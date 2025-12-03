@@ -8,6 +8,6 @@ module.exports = {
       key: 'tags',
       type: 'tags',
       input: true,
-    }
-  ]
+    },
+  ],
 };

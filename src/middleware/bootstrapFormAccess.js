@@ -15,7 +15,7 @@ const debug = require('debug')('formio:middleware:bootstrapFormAccess');
  * @param next
  * @returns {*}
  */
-module.exports = function(router) {
+module.exports = function (router) {
   const hook = require('../util/hook')(router.formio);
 
   return async function bootstrapFormAccess(req, res, next) {
@@ -32,33 +32,37 @@ module.exports = function(router) {
     // Query the roles collection, to build the updated form access list.
     try {
       let roles = await router.formio.resources.role.model
-        .find(hook.alter('roleQuery', {deleted: {$eq: null}}, req)).lean().exec();
-        if (!roles || roles.length === 0) {
-          return next();
-        }
-
-        // Convert the roles to ObjectIds before saving.
-        roles = _.map(roles, function(role) {
-          return new ObjectId(role._id);
-        });
-
-        // Update the form.
-        await router.formio.resources.form.model.updateOne(
-          {_id: res.resource.item._id, deleted: {$eq: null}},
-          {$set: {access: [{type: 'read_all', roles: roles}]}}
-        ).exec();
-        const form = await router.formio.resources.form.model.findOne(
-            {_id: res.resource.item._id, deleted: {$eq: null}}
-          ).lean().exec();
-        if (!form) {
-          return next();
-        }
-        // Update the response to reflect the access changes.
-        // Filter the response to have no __v and deleted key.
-        res.resource.item = _.omit(_.omit(form, 'deleted'), '__v');
+        .find(hook.alter('roleQuery', { deleted: { $eq: null } }, req))
+        .lean()
+        .exec();
+      if (!roles || roles.length === 0) {
         return next();
-    }
-    catch (err) {
+      }
+
+      // Convert the roles to ObjectIds before saving.
+      roles = _.map(roles, function (role) {
+        return new ObjectId(role._id);
+      });
+
+      // Update the form.
+      await router.formio.resources.form.model
+        .updateOne(
+          { _id: res.resource.item._id, deleted: { $eq: null } },
+          { $set: { access: [{ type: 'read_all', roles: roles }] } },
+        )
+        .exec();
+      const form = await router.formio.resources.form.model
+        .findOne({ _id: res.resource.item._id, deleted: { $eq: null } })
+        .lean()
+        .exec();
+      if (!form) {
+        return next();
+      }
+      // Update the response to reflect the access changes.
+      // Filter the response to have no __v and deleted key.
+      res.resource.item = _.omit(_.omit(form, 'deleted'), '__v');
+      return next();
+    } catch (err) {
       debug(err);
       return next(err);
     }

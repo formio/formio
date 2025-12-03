@@ -30,14 +30,8 @@ module.exports = (router) => {
         title: 'Reset Password',
         description: 'Provides a way to reset a password field.',
         defaults: {
-          handler: [
-            'after',
-            'before',
-          ],
-          method: [
-            'form',
-            'create',
-          ],
+          handler: ['after', 'before'],
+          method: ['form', 'create'],
         },
         access: {
           handler: false,

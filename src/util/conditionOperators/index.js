@@ -19,7 +19,7 @@ const GreaterThanOrEqual = require('./GreaterThanOrEqual');
 const IsDateEqual = require('./IsDateEqual');
 const IsNotDateEqual = require('./IsNotDateEqual');
 const _ = require('lodash');
-const {Formio} = require('../util');
+const { Formio } = require('../util');
 
 const ConditionOperators = {
   [`${IsNotEqualTo.operatorKey}`]: IsNotEqualTo,
@@ -48,14 +48,16 @@ const conditionOperatorsByComponentType = {
     IsNotEqualTo.operatorKey,
     IsEmptyValue.operatorKey,
     IsNotEmptyValue.operatorKey,
-  ]};
+  ],
+};
 
 if (Formio.Components) {
   Object.keys(Formio.Components.components).forEach((type) => {
     const component = Formio.Components.components[type];
-    const operators = component && component.serverConditionSettings
-      ? component.serverConditionSettings.operators
-      : null;
+    const operators =
+      component && component.serverConditionSettings
+        ? component.serverConditionSettings.operators
+        : null;
     if (operators) {
       conditionOperatorsByComponentType[type] = operators;
     }
@@ -89,7 +91,7 @@ const rootLevelProperties = [
         format: 'yyyy-MM-dd hh:mm a',
         hourIncrement: 1,
         minuteIncrement: 1,
-         
+
         time_24hr: false,
         minDate: null,
         disableWeekends: false,
@@ -110,35 +112,32 @@ const rootLevelProperties = [
       'dateGreaterThanOrEqual',
     ],
     valueComponent: {
-  type: 'datetime',
-    widget: {
-    type: 'calendar',
-      displayInTimezone: 'viewer',
-      locale: 'en',
-      useLocaleSettings: false,
-      allowInput: true,
-      mode: 'single',
-      enableTime: true,
-      noCalendar: false,
-      format: 'yyyy-MM-dd hh:mm a',
-      hourIncrement: 1,
-      minuteIncrement: 1,
-       
-      time_24hr: false,
-      minDate: null,
-      disableWeekends: false,
-      disableWeekdays: false,
-      maxDate: null,
-  },
-},
+      type: 'datetime',
+      widget: {
+        type: 'calendar',
+        displayInTimezone: 'viewer',
+        locale: 'en',
+        useLocaleSettings: false,
+        allowInput: true,
+        mode: 'single',
+        enableTime: true,
+        noCalendar: false,
+        format: 'yyyy-MM-dd hh:mm a',
+        hourIncrement: 1,
+        minuteIncrement: 1,
+
+        time_24hr: false,
+        minDate: null,
+        disableWeekends: false,
+        disableWeekdays: false,
+        maxDate: null,
+      },
+    },
   },
   {
     label: 'State',
     value: '(submission).state',
-    operators: [
-      'isEqual',
-      'isNotEqual',
-    ],
+    operators: ['isEqual', 'isNotEqual'],
     valueComponent: {
       valueType: 'string',
       data: {
@@ -155,76 +154,64 @@ const rootLevelProperties = [
       },
       type: 'select',
     },
-  }
+  },
 ];
 
-const rootLevelPropertiesOperatorsByPath = rootLevelProperties.reduce((acc,
-  {
-    value,
-    operators,
+const rootLevelPropertiesOperatorsByPath = rootLevelProperties.reduce(
+  (acc, { value, operators }) => {
+    acc[value] = operators;
+    return acc;
   },
-) => {
-  acc[value] = operators;
-  return acc;
-}, {});
+  {},
+);
 
-const valueComponentsForRootLevelProperties = rootLevelProperties.reduce((acc,
-  {
-    value,
-    valueComponent,
+const valueComponentsForRootLevelProperties = rootLevelProperties.reduce(
+  (acc, { value, valueComponent }) => {
+    acc[value] = valueComponent || { type: 'textfield' };
+    return acc;
   },
-) => {
-  acc[value] = valueComponent || {type: 'textfield'};
-  return acc;
-}, {});
+  {},
+);
 
-const filterComponentsForConditionComponentFieldOptions = (flattenedComponents) => _.map(
-  flattenedComponents,
-  (component, path) => ({
+const filterComponentsForConditionComponentFieldOptions = (flattenedComponents) =>
+  _.map(flattenedComponents, (component, path) => ({
     ...component,
     path,
-  }),
-)
-  // Hide components without key, layout components, data components and form, datasource, button components
-  .filter((component) => {
-    let allowed = component.key &&
-      component.input === true &&
-      !(component.hasOwnProperty('components') && !['address'].includes(component.type)) &&
-      ![
-        'form',
-        'datasource',
-        'button',
-        'reviewpage',
-        'password',
-        'datamap'
-      ].includes(component.type);
+  }))
+    // Hide components without key, layout components, data components and form, datasource, button components
+    .filter((component) => {
+      let allowed =
+        component.key &&
+        component.input === true &&
+        !(component.hasOwnProperty('components') && !['address'].includes(component.type)) &&
+        !['form', 'datasource', 'button', 'reviewpage', 'password', 'datamap'].includes(
+          component.type,
+        );
 
-    const pathArr = component.path.split('.');
+      const pathArr = component.path.split('.');
 
-    // Do not show component if it is inside dataGrid, editGrid, dataMap or tagpad
-    if (pathArr.length > 1) {
-      let subPath = pathArr[0];
-      for (let i = 1; i < pathArr.length; i++) {
-        const parent = flattenedComponents[subPath];
-        if (parent && ['datagrid', 'editgrid', 'tagpad', 'datamap', 'address'].includes(parent.type)) {
-          allowed = false;
-          break;
-        }
-        else {
-          subPath += `.${pathArr[i]}`;
+      // Do not show component if it is inside dataGrid, editGrid, dataMap or tagpad
+      if (pathArr.length > 1) {
+        let subPath = pathArr[0];
+        for (let i = 1; i < pathArr.length; i++) {
+          const parent = flattenedComponents[subPath];
+          if (
+            parent &&
+            ['datagrid', 'editgrid', 'tagpad', 'datamap', 'address'].includes(parent.type)
+          ) {
+            allowed = false;
+            break;
+          } else {
+            subPath += `.${pathArr[i]}`;
+          }
         }
       }
-    }
-    return allowed;
-  })
-  .map(({
-    path,
-    key,
-    label,
-  }) => ({
-    value: path,
-    label: `${label || key} (data.${path})`,
-  }));
+      return allowed;
+    })
+    .map(({ path, key, label }) => ({
+      value: path,
+      label: `${label || key} (data.${path})`,
+    }));
 
 const allConditionOperatorsOptions = Object.keys(ConditionOperators).map((operatorKey) => ({
   value: operatorKey,
@@ -232,12 +219,10 @@ const allConditionOperatorsOptions = Object.keys(ConditionOperators).map((operat
 }));
 
 const operatorsWithNoValue = _.chain(ConditionOperators)
-  .map(operator => {
-    return !operator.requireValue
-      ? operator.operatorKey
-      : null;
-})
-  .filter(operatorKey => !!operatorKey)
+  .map((operator) => {
+    return !operator.requireValue ? operator.operatorKey : null;
+  })
+  .filter((operatorKey) => !!operatorKey)
   .value();
 
 const getValueComponentsForEachFormComponent = (flattenedComponents) => {
@@ -245,16 +230,17 @@ const getValueComponentsForEachFormComponent = (flattenedComponents) => {
 
   Object.keys(flattenedComponents).forEach((path) => {
     const componentSchema = flattenedComponents[path];
-    const component = componentSchema && componentSchema.type
-      ? Formio.AllComponents[componentSchema.type]
-      : null;
-    const getValueComponent = component && component.serverConditionSettings ?
-      component.serverConditionSettings.valueComponent :
-      null;
+    const component =
+      componentSchema && componentSchema.type ? Formio.AllComponents[componentSchema.type] : null;
+    const getValueComponent =
+      component && component.serverConditionSettings
+        ? component.serverConditionSettings.valueComponent
+        : null;
 
-    const valueComponent = getValueComponent && typeof getValueComponent === 'function' ?
-      getValueComponent(componentSchema) :
-      {type: 'textfield'};
+    const valueComponent =
+      getValueComponent && typeof getValueComponent === 'function'
+        ? getValueComponent(componentSchema)
+        : { type: 'textfield' };
 
     valueComponentSettingsByComponentPath[path] = _.omit(valueComponent, [
       'logic',
@@ -272,7 +258,7 @@ const getValueComponentsForEachFormComponent = (flattenedComponents) => {
       'disabled',
       'description',
       'tooltip',
-      'inputMask'
+      'inputMask',
     ]);
   });
 

@@ -155,9 +155,7 @@ module.exports = function (formio, items, done) {
                   email: result.email || process.env.ROOT_EMAIL,
                   password: hash,
                 },
-                roles: [
-                  project.roles.administrator._id,
-                ],
+                roles: [project.roles.administrator._id],
               });
               return done();
             } catch (err) {
@@ -172,20 +170,13 @@ module.exports = function (formio, items, done) {
   };
 
   util.log('Installing...');
-  async.series(
-    [
-      steps.whatTemplate,
-      steps.importTemplate,
-      steps.createRootUser,
-    ],
-    function (err) {
-      if (err) {
-        util.log(err);
-        return done(err);
-      }
+  async.series([steps.whatTemplate, steps.importTemplate, steps.createRootUser], function (err) {
+    if (err) {
+      util.log(err);
+      return done(err);
+    }
 
-      util.log('Install successful!'.green);
-      done();
-    },
-  );
+    util.log('Install successful!'.green);
+    done();
+  });
 };

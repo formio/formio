@@ -9,6 +9,7 @@
     "start": "node --no-node-snapshot main.js",
     "start:dev": "nodemon --no-node-snapshot main.js",
     "lint": "eslint . --fix",
+    "format": "prettier -w .",
     "build:vm": "webpack --config src/vm/webpack.vm.config.js",
     "build:portal": "cd portal && npm ci && npm run build && cd ..",
     "show-coverage": "open coverage/lcov-report/index.html",

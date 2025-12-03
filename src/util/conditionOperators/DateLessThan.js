@@ -12,6 +12,6 @@ module.exports = class DateLessThan extends DateGeaterThan {
   }
 
   execute(options) {
-    return super.execute(options,'isBefore');
+    return super.execute(options, 'isBefore');
   }
 };

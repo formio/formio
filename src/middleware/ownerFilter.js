@@ -8,7 +8,7 @@ const util = require('../util/util');
  * @param router
  * @returns {Function}
  */
-module.exports = function() {
+module.exports = function () {
   return function ownerFilter(req, res, next) {
     // Convert any owner queries to ObjectId's.
     if (req.query && req.query.owner) {
@@ -25,15 +25,12 @@ module.exports = function() {
     }
 
     // The default ownerFilter query.
-    let query = {owner: util.ObjectId(req.token.user._id)};
+    let query = { owner: util.ObjectId(req.token.user._id) };
 
     // If the self access flag was enabled in the permissionHandler, allow resources to access themselves.
     if (req.selfAccess) {
       query = {
-        $or: [
-          query,
-          {_id: req.token.user._id}
-        ]
+        $or: [query, { _id: req.token.user._id }],
       };
     }
 

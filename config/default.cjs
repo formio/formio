@@ -3,9 +3,7 @@ module.exports = {
   appPort: 8080,
   host: 'localhost:3001',
   protocol: 'http',
-  allowedOrigins: [
-    '*',
-  ],
+  allowedOrigins: ['*'],
   domain: 'http://localhost:3001',
   basePath: '',
   mongo: process.env.TEST_SUITE

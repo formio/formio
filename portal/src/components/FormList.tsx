@@ -44,10 +44,7 @@ const FormListHeader = ({ type }: { type: 'form' | 'resource' }) => {
   const isForm = type === 'form';
   const name = isForm ? 'Form' : 'Resource';
   const pluralName = isForm ? 'Forms' : 'Resources';
-  const [
-    isBubbleActive,
-    setBubbleActive,
-  ] = useState(false);
+  const [isBubbleActive, setBubbleActive] = useState(false);
 
   return (
     <div className="panel-header">

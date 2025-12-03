@@ -15,11 +15,10 @@ export const Layout = ({
   const setLocation = useHashLocation()[1];
   const { isAuthenticated } = useFormioContext();
   const appVersion: string = packageJSON.version;
-  const rendererVersion: string = FORMIO_JS_VERSION || packageJSON.dependencies['@formio/js'].replace(/[\^~]/g, '');
-  const formioReactVersion: string = REACT_FORMIO_VERSION || packageJSON.dependencies['@formio/react'].replace(
-    /[\^~]/g,
-    '',
-  );
+  const rendererVersion: string =
+    FORMIO_JS_VERSION || packageJSON.dependencies['@formio/js'].replace(/[\^~]/g, '');
+  const formioReactVersion: string =
+    REACT_FORMIO_VERSION || packageJSON.dependencies['@formio/react'].replace(/[\^~]/g, '');
   const reactVersion: string = packageJSON.dependencies['react'].replace(/[\^~]/g, '');
   const copyrightYear = new Date().getFullYear();
   return (

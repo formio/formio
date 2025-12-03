@@ -40,8 +40,8 @@
       ],
       "submissionAccess": [
         {
-          "type" : "create_own",
-          "roles" : ["unknown"]
+          "type": "create_own",
+          "roles": ["unknown"]
         }
       ],
       "components": [

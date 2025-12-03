@@ -12,22 +12,23 @@ module.exports = class IsEqualTo extends ConditionOperator {
     return 'Is Equal To';
   }
 
-  execute({
-    value,
-    comparedValue,
-    component
-  }) {
+  execute({ value, comparedValue, component }) {
     // special check for select boxes
     if (component?.type === 'selectboxes') {
       return _.get(value, comparedValue, false);
     }
 
-    if (value && comparedValue && typeof value !== typeof comparedValue && _.isString(comparedValue)) {
+    if (
+      value &&
+      comparedValue &&
+      typeof value !== typeof comparedValue &&
+      _.isString(comparedValue)
+    ) {
       try {
         comparedValue = JSON.parse(comparedValue);
+      } catch (ignoreErr) {
+        // eslint-disable-next-line no-empty
       }
-          // eslint-disable-next-line no-empty
-      catch (ignoreErr) {}
     }
 
     return _.isEqual(value, comparedValue);

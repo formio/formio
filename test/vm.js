@@ -73,14 +73,14 @@ module.exports = function (app, template, hook) {
 
     it('should evaluate simple code with core', async () => {
       const result = await isolateVM.evaluate(
-        'utils.getComponentKey({ key: "textField", type: "textfield", input: true})'
+        'utils.getComponentKey({ key: "textField", type: "textfield", input: true})',
       );
       assert.equal(result, 'textField');
     });
 
     it('should evaluate code with nunjucks', async () => {
       const result = await isolateVM.evaluate(
-        'nunjucks.renderString("Hello {{ name }}", { name: "World" })'
+        'nunjucks.renderString("Hello {{ name }}", { name: "World" })',
       );
       assert.equal(result, 'Hello World');
     });
@@ -227,7 +227,7 @@ module.exports = function (app, template, hook) {
             ],
             submit: true,
           },
-        }
+        },
       );
       const instanceMap = root.instanceMap;
       const billNoFieldInstanceRow0 = instanceMap['accountInfo[0].BillNoField'];

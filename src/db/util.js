@@ -13,17 +13,17 @@
  * - p3: :password (if present)
  */
 function sanitizeMongoConnectionString(connectionString) {
-    return connectionString.replace(
-        /(mongodb(?:\+srv)?:\/\/)([^:]+)(:[^@]+)?@/,
-        (match, p1, p2, p3) => {
-        // If a password is present, replace it with `***`
-        if (p3) {
-            return `${p1}${p2}:***@`;
-        }
-        // If no password is present (just username), leave it as is.
-        return `${p1}${p2}@`;
-        }
-    );
+  return connectionString.replace(
+    /(mongodb(?:\+srv)?:\/\/)([^:]+)(:[^@]+)?@/,
+    (match, p1, p2, p3) => {
+      // If a password is present, replace it with `***`
+      if (p3) {
+        return `${p1}${p2}:***@`;
+      }
+      // If no password is present (just username), leave it as is.
+      return `${p1}${p2}@`;
+    },
+  );
 }
 
-module.exports = {sanitizeMongoConnectionString};
+module.exports = { sanitizeMongoConnectionString };

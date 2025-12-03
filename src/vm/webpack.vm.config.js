@@ -1,21 +1,27 @@
 'use strict';
 
-const path = require("path");
-const TerserPlugin = require("terser-webpack-plugin");
+const path = require('path');
+const TerserPlugin = require('terser-webpack-plugin');
 
 module.exports = {
-  mode: "production",
+  mode: 'production',
   entry: {
-    'core-lodash-moment-inputmask': path.resolve(__dirname, 'entries/core-lodash-moment-inputmask.js'),
-    'core-lodash-moment-inputmask-nunjucks': path.resolve(__dirname, 'entries/core-lodash-moment-inputmask-nunjucks.js')
+    'core-lodash-moment-inputmask': path.resolve(
+      __dirname,
+      'entries/core-lodash-moment-inputmask.js',
+    ),
+    'core-lodash-moment-inputmask-nunjucks': path.resolve(
+      __dirname,
+      'entries/core-lodash-moment-inputmask-nunjucks.js',
+    ),
   },
   output: {
-    filename: "[name].js",
-    path: path.resolve(__dirname, "bundles"),
+    filename: '[name].js',
+    path: path.resolve(__dirname, 'bundles'),
     library: {
-      type: "global",
+      type: 'global',
     },
-    globalObject: "globalThis",
+    globalObject: 'globalThis',
   },
   optimization: {
     minimize: true,
@@ -30,6 +36,6 @@ module.exports = {
       }),
     ],
   },
-  target: ["web"],
+  target: ['web'],
   plugins: [],
 };

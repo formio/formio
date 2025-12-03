@@ -2,7 +2,7 @@
 
 const _ = require('lodash');
 const util = require('../util/util');
-const {ObjectId} = require('mongodb');
+const { ObjectId } = require('mongodb');
 
 class BulkSubmission {
   constructor(router) {
@@ -10,7 +10,7 @@ class BulkSubmission {
     this.formio = router.formio;
     this.hook = require('../util/hook')(this.formio);
   }
-  
+
   /**
    * Function to identify if the bulk submission feature is enabled
    */
@@ -26,7 +26,7 @@ class BulkSubmission {
    */
   getUniqueFieldsFromForm(form) {
     const uniqueFields = [];
-    util.FormioUtils.eachComponent(form.components, function(component) {
+    util.FormioUtils.eachComponent(form.components, function (component) {
       if (component.unique && component.key) {
         uniqueFields.push(component.key);
       }
@@ -47,7 +47,7 @@ class BulkSubmission {
    *   - doc: the original submission document
    *   - originalIndex: the index of the doc in the input array
    */
-  async checkUniquenessForBulkSubmissionsPayload({form, docs}) {
+  async checkUniquenessForBulkSubmissionsPayload({ form, docs }) {
     const duplicateValueErrorMessage = 'Duplicate value for unique field';
     const uniqueFields = this.getUniqueFieldsFromForm(form);
 
@@ -66,10 +66,14 @@ class BulkSubmission {
           if (value !== undefined && value !== null) {
             if (seenMaps[field].has(value)) {
               const msg = `${duplicateValueErrorMessage} ${field}`;
-              errors.push({type: 'unique', message: msg});
-              duplicatePairs.push({field, firstIdx: seenMaps[field].get(value), dupIdx: idx, msg});
-            }
-            else {
+              errors.push({ type: 'unique', message: msg });
+              duplicatePairs.push({
+                field,
+                firstIdx: seenMaps[field].get(value),
+                dupIdx: idx,
+                msg,
+              });
+            } else {
               seenMaps[field].set(value, idx);
             }
           }
@@ -80,11 +84,11 @@ class BulkSubmission {
           doc,
           originalIndex: doc.originalIndex,
         };
-      })
+      }),
     );
 
-    duplicatePairs.forEach(({firstIdx, msg}) => {
-      results[firstIdx].errors.push({type: 'unique', message: msg});
+    duplicatePairs.forEach(({ firstIdx, msg }) => {
+      results[firstIdx].errors.push({ type: 'unique', message: msg });
       results[firstIdx].valid = false;
     });
 
@@ -120,11 +124,11 @@ class BulkSubmission {
           ...baseReq,
           body: processedDoc,
           method: baseReq.method,
-          params: {...baseReq.params, submissionId: processedDoc._id},
+          params: { ...baseReq.params, submissionId: processedDoc._id },
           currentForm: baseReq.currentForm,
           query: baseReq.query || {},
           headers: baseReq.headers || {},
-          isAdmin: baseReq.isAdmin
+          isAdmin: baseReq.isAdmin,
         };
 
         const mockRes = {
@@ -133,14 +137,14 @@ class BulkSubmission {
           headersSent: false,
           statusCode: null,
           jsonData: null,
-          status: function(code) {
+          status: function (code) {
             this.statusCode = code;
             return this;
           },
-          json: function(data) {
+          json: function (data) {
             this.jsonData = data;
             return this;
-          }
+          },
         };
 
         try {
@@ -149,22 +153,21 @@ class BulkSubmission {
             ...processedDoc,
             ...mockReq.body,
           };
-        }
-        catch (error) {
+        } catch (error) {
           const details = Array.isArray(error.details)
             ? error.details
-            : [{message: error.message || error, level: 'error', path: []}];
+            : [{ message: error.message || error, level: 'error', path: [] }];
 
-          details.forEach((e) => errors.push({type: 'validator', message: e.message || e}));
+          details.forEach((e) => errors.push({ type: 'validator', message: e.message || e }));
         }
 
         return {
           valid: errors.length === 0,
           errors,
           doc: processedDoc,
-          originalIndex: item.originalIndex !== undefined ? item.originalIndex : item.originalIndex
+          originalIndex: item.originalIndex !== undefined ? item.originalIndex : item.originalIndex,
         };
-      })
+      }),
     );
 
     return results;
@@ -173,24 +176,31 @@ class BulkSubmission {
   /**
    * Helper to prepare bulk submission context (shared by bulk create and upsert endpoints)
    */
-  async prepareBulkSubmissionContext({req, res, isUpsert}) {
-    const {formId} = req.params;
+  async prepareBulkSubmissionContext({ req, res, isUpsert }) {
+    const { formId } = req.params;
 
     const payload = Array.isArray(req.body) ? req.body : null;
     if (!payload || !Array.isArray(payload) || payload.length === 0) {
-      res.status(400).json({error: "Payload must be an array of submission objects."});
+      res.status(400).json({ error: 'Payload must be an array of submission objects.' });
       return null;
     }
 
     for (let i = 0; i < payload.length; i++) {
       if (!payload[i].data || typeof payload[i].data !== 'object') {
-        res.status(400).json({error: `Item at index ${i} must contain a 'data' object.`});
+        res.status(400).json({ error: `Item at index ${i} must contain a 'data' object.` });
         return null;
       }
     }
 
-    if (this.formio.config.maxBulkSubmission && payload.length > this.formio.config.maxBulkSubmission) {
-      res.status(413).json({error: `Bulk submission limit exceeded. Maximum ${this.formio.config.maxBulkSubmission} submissions allowed per request.`});
+    if (
+      this.formio.config.maxBulkSubmission &&
+      payload.length > this.formio.config.maxBulkSubmission
+    ) {
+      res
+        .status(413)
+        .json({
+          error: `Bulk submission limit exceeded. Maximum ${this.formio.config.maxBulkSubmission} submissions allowed per request.`,
+        });
       return null;
     }
 
@@ -198,7 +208,7 @@ class BulkSubmission {
     const submissionModel = req.submissionModel || this.formio.resources.submission.model;
 
     req.form = form;
-    req.body = {data: {}};
+    req.body = { data: {} };
     await this.formio.middleware.permissionHandler(req, res, () => {});
 
     const now = new Date();
@@ -220,7 +230,7 @@ class BulkSubmission {
       return doc;
     });
 
-    const validationResults = await this.checkUniquenessForBulkSubmissionsPayload({form, docs});
+    const validationResults = await this.checkUniquenessForBulkSubmissionsPayload({ form, docs });
 
     const failures = [];
     const IntermediateValidDocs = [];
@@ -231,8 +241,7 @@ class BulkSubmission {
           errors: result.errors,
           originalIndex: result.originalIndex,
         });
-      }
-      else {
+      } else {
         IntermediateValidDocs.push(result.doc);
       }
     });
@@ -240,8 +249,10 @@ class BulkSubmission {
     const validDocs = [];
     const processedResults = await this.processDocuments(
       IntermediateValidDocs,
-      isUpsert ? this.formio.middleware.submissionHandler.beforePut : this.formio.middleware.submissionHandler.beforePost,
-      req
+      isUpsert
+        ? this.formio.middleware.submissionHandler.beforePut
+        : this.formio.middleware.submissionHandler.beforePost,
+      req,
     );
 
     processedResults.forEach((result) => {
@@ -251,13 +262,12 @@ class BulkSubmission {
           errors: result.errors,
           originalIndex: result.originalIndex,
         });
-      }
-      else {
+      } else {
         validDocs.push(result.doc);
       }
     });
 
-    return {form, submissionModel, failures, validDocs, payload};
+    return { form, submissionModel, failures, validDocs, payload };
   }
 
   /**
@@ -267,25 +277,24 @@ class BulkSubmission {
     let successes = [];
     if (err.result && typeof err.result.getInsertedIds === 'function') {
       const insertedIds = err.result.getInsertedIds();
-      successes = insertedIds.map(({index, _id}) => ({
+      successes = insertedIds.map(({ index, _id }) => ({
         original: payload[validDocs[index]?.originalIndex],
-        submission: {_id: _id?.toString?.() || String(_id)},
+        submission: { _id: _id?.toString?.() || String(_id) },
       }));
-    }
-    else if (Array.isArray(err.insertedDocs)) {
+    } else if (Array.isArray(err.insertedDocs)) {
       successes = err.insertedDocs.map((doc, i) => ({
         original: payload[validDocs[i]?.originalIndex],
-        submission: {_id: doc._id?.toString?.() || String(doc._id)},
+        submission: { _id: doc._id?.toString?.() || String(doc._id) },
       }));
     }
 
     const failures = (err.writeErrors || []).map((e) => ({
       original: payload[validDocs[e.index]?.originalIndex],
-      errors: [{type: 'insert', message: e.errmsg || e.message}],
+      errors: [{ type: 'insert', message: e.errmsg || e.message }],
       originalIndex: validDocs[e.index]?.originalIndex ?? e.index,
     }));
 
-    return {successes, failures};
+    return { successes, failures };
   }
 
   /**
@@ -417,30 +426,37 @@ class BulkSubmission {
     }
     util.log('[create submissions] Received bulk create request');
 
-    const context = await this.prepareBulkSubmissionContext({req, res, isUpsert: false});
+    const context = await this.prepareBulkSubmissionContext({ req, res, isUpsert: false });
     if (!context) return;
 
-    const {form, submissionModel, failures, validDocs, payload} = context;
+    const { form, submissionModel, failures, validDocs, payload } = context;
 
     if (form.submissionRevisions) {
-      return res.status(501).send('The functionality has not been implemented for forms with enabled submissions revisions');
+      return res
+        .status(501)
+        .send(
+          'The functionality has not been implemented for forms with enabled submissions revisions',
+        );
     }
 
     try {
       if (failures.length > 0 && validDocs.length === 0) {
-        return res.status(400).json({insertedCount: 0, failures});
+        return res.status(400).json({ insertedCount: 0, failures });
       }
 
       let result;
       try {
-        result = await submissionModel.insertMany(validDocs, {ordered: false});
-      }
-      catch (err) {
+        result = await submissionModel.insertMany(validDocs, { ordered: false });
+      } catch (err) {
         if (
           (err.writeErrors && Array.isArray(err.writeErrors) && err.writeErrors.length > 0) ||
           (err.result && typeof err.result.nInserted === 'number' && err.result.nInserted > 0)
         ) {
-          const {successes, failures} = this.hydrateBulkInsertSuccessesAndFailures(err, payload, validDocs);
+          const { successes, failures } = this.hydrateBulkInsertSuccessesAndFailures(
+            err,
+            payload,
+            validDocs,
+          );
           return res.status(207).json({
             insertedCount: successes.length,
             successes,
@@ -449,7 +465,7 @@ class BulkSubmission {
         }
         return res.status(400).json({
           insertedCount: 0,
-          failures: [{error: err.message || String(err)}],
+          failures: [{ error: err.message || String(err) }],
         });
       }
 
@@ -457,17 +473,16 @@ class BulkSubmission {
         insertedCount: result.length,
         successes: result.map((doc, i) => ({
           original: payload[validDocs[i].originalIndex],
-          submission: {_id: doc._id.toString()},
+          submission: { _id: doc._id.toString() },
         })),
         failures,
       };
 
       return res.status(failures.length > 0 ? 207 : 201).json(responseBody);
-    }
-    catch (err) {
+    } catch (err) {
       return res.status(400).json({
         insertedCount: 0,
-        failures: [{error: err.message || String(err)}],
+        failures: [{ error: err.message || String(err) }],
       });
     }
   }
@@ -603,52 +618,56 @@ class BulkSubmission {
     }
     util.log('[submissions] Received bulk submission upsert request');
 
-    const context = await this.prepareBulkSubmissionContext({req, res, isUpsert: true});
+    const context = await this.prepareBulkSubmissionContext({ req, res, isUpsert: true });
     if (!context) return;
 
-    const {form, submissionModel, failures, validDocs, payload} = context;
+    const { form, submissionModel, failures, validDocs, payload } = context;
 
     if (form.submissionRevisions) {
-      return res.status(501).send('The functionality has not been implemented for forms with enabled submissions revisions');
+      return res
+        .status(501)
+        .send(
+          'The functionality has not been implemented for forms with enabled submissions revisions',
+        );
     }
 
     try {
       if (failures.length > 0 && validDocs.length === 0) {
-        return res.status(400).json({upsertedCount: 0, failures});
+        return res.status(400).json({ upsertedCount: 0, failures });
       }
 
       const operations = validDocs.map((doc) => {
         doc._id ??= new ObjectId().toString();
         return {
           updateOne: {
-            filter: {_id: doc._id},
-            update: {$set: {...doc, modified: new Date()}},
+            filter: { _id: doc._id },
+            update: { $set: { ...doc, modified: new Date() } },
             upsert: true,
           },
         };
       });
 
-      const result = await submissionModel.bulkWrite(operations, {ordered: false});
+      const result = await submissionModel.bulkWrite(operations, { ordered: false });
 
       const upserted = [];
       const modified = [];
 
       const upsertedIdSet = new Set(
-        Object.values(result.upsertedIds ?? {}).map(id => id.toString())
+        Object.values(result.upsertedIds ?? {}).map((id) => id.toString()),
       );
 
-      validDocs.forEach(doc => {
+      validDocs.forEach((doc) => {
         const docIdStr = doc._id.toString();
 
         if (upsertedIdSet.has(docIdStr)) {
           upserted.push({
             original: payload[doc.originalIndex],
-            submission: {_id: docIdStr},
+            submission: { _id: docIdStr },
           });
         } else {
           modified.push({
             original: payload[doc.originalIndex],
-            submission: {_id: docIdStr},
+            submission: { _id: docIdStr },
           });
         }
       });
@@ -662,8 +681,7 @@ class BulkSubmission {
       };
 
       return res.status(failures.length > 0 ? 207 : 200).json(responseBody);
-    }
-    catch (err) {
+    } catch (err) {
       const failures = (err.writeErrors || []).map((e) => ({
         original: payload[validDocs[e.index]?.originalIndex],
         error: e.errmsg || e.message,
@@ -689,7 +707,7 @@ class BulkSubmission {
   }
 }
 
-module.exports = function(router) {
+module.exports = function (router) {
   const bulkSubmission = new BulkSubmission(router);
   return bulkSubmission.register();
 };

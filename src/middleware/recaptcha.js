@@ -22,7 +22,7 @@ module.exports = function (router) {
         response: req.query.recaptchaToken,
       });
 
-      const response = await fetch(`${url}?${query}`, {method: 'POST'});
+      const response = await fetch(`${url}?${query}`, { method: 'POST' });
       const body = response.ok ? await response.json() : null;
       if (!body) {
         throw new Error('No response from Google');

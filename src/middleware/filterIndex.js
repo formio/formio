@@ -8,27 +8,22 @@
  *
  * @returns {Function}
  */
-module.exports = () => settings => (req, res, next) => {
-  if (
-    req.method !== 'GET' ||
-    !req.filterIndex ||
-    !res.resource ||
-    !res.resource.item
-  ) {
+module.exports = () => (settings) => (req, res, next) => {
+  if (req.method !== 'GET' || !req.filterIndex || !res.resource || !res.resource.item) {
     return next();
   }
 
   // Handle single items
   if (!Array.isArray(res.resource.item)) {
-    settings.forEach(setting => {
+    settings.forEach((setting) => {
       delete res.resource.item[setting];
     });
     return next();
   }
 
   // Handle arrays.
-  res.resource.item.forEach(item => {
-    settings.forEach(setting => {
+  res.resource.item.forEach((item) => {
+    settings.forEach((setting) => {
       delete item[setting];
     });
   });

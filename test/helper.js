@@ -69,7 +69,7 @@ module.exports = function (app) {
     return this.lastSubmission;
   };
 
-    Helper.prototype.getLastBulkSubmission = function () {
+  Helper.prototype.getLastBulkSubmission = function () {
     return this.lastBulkSubmission;
   };
 
@@ -260,10 +260,7 @@ module.exports = function (app) {
 
   Helper.prototype.getRolesAndForms = function (done) {
     async.series(
-      [
-        async.apply(this.getForms.bind(this)),
-        async.apply(this.getRoles.bind(this)),
-      ],
+      [async.apply(this.getForms.bind(this)), async.apply(this.getRoles.bind(this))],
       (err) => {
         if (err) {
           return done(err);
@@ -373,10 +370,7 @@ module.exports = function (app) {
     }
 
     // Convert the role names to role ids.
-    [
-      'access',
-      'submissionAccess',
-    ].forEach((accessName) =>
+    ['access', 'submissionAccess'].forEach((accessName) =>
       _.each(form[accessName], (perm, i) =>
         _.each(perm.roles, (permRole, j) => {
           if (this.template.roles.hasOwnProperty(permRole)) {
@@ -854,7 +848,14 @@ module.exports = function (app) {
     });
   };
 
-  Helper.prototype.bulkCreateUpsertSubmissions = function (form, data, user, expect, isUpsert, done) {
+  Helper.prototype.bulkCreateUpsertSubmissions = function (
+    form,
+    data,
+    user,
+    expect,
+    isUpsert,
+    done,
+  ) {
     if (typeof form === 'object') {
       form = this.contextName;
     }
@@ -887,7 +888,9 @@ module.exports = function (app) {
     }
     url += '/form/' + this.template.forms[form]._id + '/submissions';
 
-    let currentRequest = isUpsert ? request(app).put(url).send(data) : request(app).post(url).send(data);
+    let currentRequest = isUpsert
+      ? request(app).put(url).send(data)
+      : request(app).post(url).send(data);
 
     if (user) {
       currentRequest = currentRequest.set('x-jwt-token', user.token);
@@ -895,14 +898,12 @@ module.exports = function (app) {
 
     if (expect.length) {
       currentRequest = currentRequest.expect('Content-Type', expect[0]).expect(expect[1]);
-    }
-    else {
+    } else {
       if (this.expects.length) {
         _.each(this.expects, (expect) => {
           currentRequest = currentRequest.expect(...expect);
         });
-      }
-      else {
+      } else {
         currentRequest = currentRequest.expect('Content-Type', /json/).expect(201);
       }
     }
@@ -1214,10 +1215,7 @@ module.exports = function (app) {
             },
           },
           null,
-          [
-            /application\/json/,
-            200,
-          ],
+          [/application\/json/, 200],
           (err) => {
             if (err) {
               return done(err);

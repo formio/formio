@@ -10,16 +10,13 @@
  * @param tools
  * @param done
  */
-module.exports = function(db, config, tools, done) {
+module.exports = function (db, config, tools, done) {
   // Add default flags to all of the project default roles.
   let projects = db.collection('projects');
   let roles = db.collection('roles');
-  projects.find({}).forEach(function(project) {
+  projects.find({}).forEach(function (project) {
     if (project.defaultAccess) {
-      roles.updateOne(
-        { _id: project.defaultAccess },
-        { $set: { default: true } }
-      );
+      roles.updateOne({ _id: project.defaultAccess }, { $set: { default: true } });
     }
   }, done);
 };

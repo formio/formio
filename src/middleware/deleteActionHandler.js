@@ -23,15 +23,14 @@ module.exports = (router) => {
     const params = util.getUrlParams(req.url);
 
     // Get the actionId from the request url.
-    const actionId = params.hasOwnProperty('action')
-      ? params.action
-      : null;
+    const actionId = params.hasOwnProperty('action') ? params.action : null;
 
     if (!actionId) {
       return next();
     }
 
-    prune.action(actionId, null, req)
+    prune
+      .action(actionId, null, req)
       .then(() => res.sendStatus(200))
       .catch((err) => {
         debug(err);

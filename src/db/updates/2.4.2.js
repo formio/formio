@@ -13,7 +13,7 @@ let _ = require('lodash');
  *
  * Update all forms to have the required fields.
  */
-module.exports = function(db, config, tools, done) {
+module.exports = function (db, config, tools, done) {
   let projects = db.collection('projects');
   let roles = db.collection('roles');
   let forms = db.collection('forms');
@@ -28,125 +28,141 @@ module.exports = function(db, config, tools, done) {
     let components = component.components || component.columns;
     if (components) {
       return _.map(components, getKeys).concat(component.key);
-    }
-    else if (component.input) {
+    } else if (component.input) {
       return component.key;
     }
   };
 
   // Make a new, random key.
-  let newKey = function() {
+  let newKey = function () {
     return 'key' + Math.floor(Math.random() * 100000).toString();
   };
 
   // Update the access properties for all pre-existing projects.
-  let updateProjectAccess = function(then) {
-    projects.find({deleted: {$eq: null}}).toArray()
-    .then(docs => {
-      if (!docs) {
-        return then('No Projects found.');
-      }
-
-      let createAdminRole = function(project, callback) {
-        let doc = {
-          project: project._id,
-          title: 'Administrator',
-          description : 'The Administrator Role.',
-          deleted: null,
-          default: false,
-          admin: true
-        };
-
-        roles.insertOne(doc)
-        .then((insertionResult) => {
-          console.log('Making Admin role for project: ' + project._id);
-          if (!insertionResult.acknowledged || !insertionResult.insertedId) {
-            return callback('Failed to create Admin role for project: ' + project._id);
-          }
-          return roles.findOne({_id: insertionResult.insertedId});
-        }).then((doc) => {
-          callback(null, doc);
-        })
-        .catch(err => callback(err));
-      };
-
-      async.forEachOf(docs, function(project, key, next) {
-        async.waterfall([
-          // Get the Admin role for each project.
-          function(cb) {
-            roles.find({project: project._id, title: 'Administrator', deleted: {$eq: null}}).toArray()
-            .then(docs => {
-              if (!docs || docs.length === 0) {
-                return createAdminRole(project, cb);
-                //return cb('No Admin role found for project: ' + project._id);
-              }
-              if (docs && docs.length > 1) {
-                return cb('More than one admin role found for project: ' + project._id);
-              }
-
-              cb(null, docs[0]);
-
-            })
-            .catch(err => cb(err));
-          },
-          // Update the access for each project.
-          function(role, cb) {
-            let access = [
-              {type: 'create_all', roles: [role._id]},
-              {type: 'read_all', roles: [role._id]},
-              {type: 'update_all', roles: [role._id]},
-              {type: 'delete_all', roles: [role._id]}
-            ];
-
-            projects.updateOne(
-              {_id: project._id, deleted: {$eq: null}},
-              {$set: {access: access}},
-            )
-            .then(() => cb())
-            .catch(err => cb(err));
-          }
-        ], function(err) {
-          if (err) {
-            return next(err);
-          }
-
-          next();
-        });
-      }, function(err) {
-        if (err) {
-          return then(err);
+  let updateProjectAccess = function (then) {
+    projects
+      .find({ deleted: { $eq: null } })
+      .toArray()
+      .then((docs) => {
+        if (!docs) {
+          return then('No Projects found.');
         }
 
-        then();
-      });
-    })
-    .catch(err => then(err));
+        let createAdminRole = function (project, callback) {
+          let doc = {
+            project: project._id,
+            title: 'Administrator',
+            description: 'The Administrator Role.',
+            deleted: null,
+            default: false,
+            admin: true,
+          };
+
+          roles
+            .insertOne(doc)
+            .then((insertionResult) => {
+              console.log('Making Admin role for project: ' + project._id);
+              if (!insertionResult.acknowledged || !insertionResult.insertedId) {
+                return callback('Failed to create Admin role for project: ' + project._id);
+              }
+              return roles.findOne({ _id: insertionResult.insertedId });
+            })
+            .then((doc) => {
+              callback(null, doc);
+            })
+            .catch((err) => callback(err));
+        };
+
+        async.forEachOf(
+          docs,
+          function (project, key, next) {
+            async.waterfall(
+              [
+                // Get the Admin role for each project.
+                function (cb) {
+                  roles
+                    .find({ project: project._id, title: 'Administrator', deleted: { $eq: null } })
+                    .toArray()
+                    .then((docs) => {
+                      if (!docs || docs.length === 0) {
+                        return createAdminRole(project, cb);
+                        //return cb('No Admin role found for project: ' + project._id);
+                      }
+                      if (docs && docs.length > 1) {
+                        return cb('More than one admin role found for project: ' + project._id);
+                      }
+
+                      cb(null, docs[0]);
+                    })
+                    .catch((err) => cb(err));
+                },
+                // Update the access for each project.
+                function (role, cb) {
+                  let access = [
+                    { type: 'create_all', roles: [role._id] },
+                    { type: 'read_all', roles: [role._id] },
+                    { type: 'update_all', roles: [role._id] },
+                    { type: 'delete_all', roles: [role._id] },
+                  ];
+
+                  projects
+                    .updateOne(
+                      { _id: project._id, deleted: { $eq: null } },
+                      { $set: { access: access } },
+                    )
+                    .then(() => cb())
+                    .catch((err) => cb(err));
+                },
+              ],
+              function (err) {
+                if (err) {
+                  return next(err);
+                }
+
+                next();
+              },
+            );
+          },
+          function (err) {
+            if (err) {
+              return then(err);
+            }
+
+            then();
+          },
+        );
+      })
+      .catch((err) => then(err));
   };
 
   // Prune the `settings` on pre-existing projects.
-  let pruneProjectSettings = function(then) {
-    projects.find({settings: {$ne: null}}).toArray()
-    .then(docs => {
-      async.forEachOf(docs, function(project, key, next) {
-        projects.updateOne(
-          {_id: project._id},
-          {$set: {settings: null}})
-          .then(() => next())
-          .catch(err => next(err));
-      }, function(err) {
-        if (err) {
-          return then(err);
-        }
+  let pruneProjectSettings = function (then) {
+    projects
+      .find({ settings: { $ne: null } })
+      .toArray()
+      .then((docs) => {
+        async.forEachOf(
+          docs,
+          function (project, key, next) {
+            projects
+              .updateOne({ _id: project._id }, { $set: { settings: null } })
+              .then(() => next())
+              .catch((err) => next(err));
+          },
+          function (err) {
+            if (err) {
+              return then(err);
+            }
 
-        then();
-      });
-
-    })
-    .catch(err => then(err));
+            then();
+          },
+        );
+      })
+      .catch((err) => then(err));
   };
 
   // Remove invalid keys for layout form components.
-  let cleanLayoutKeys = function(iter, _id) {
+  let cleanLayoutKeys = function (iter, _id) {
     iter = iter || [];
     for (let a = 0; a < iter.length; a++) {
       let element = iter[a];
@@ -171,8 +187,8 @@ module.exports = function(db, config, tools, done) {
     return iter;
   };
 
-  let updateForm = function(form, changes, then) {
-    let updateKey = function(iter, change) {
+  let updateForm = function (form, changes, then) {
+    let updateKey = function (iter, change) {
       iter = iter || [];
 
       if (!change._new && !change._old && !change._done) return;
@@ -184,7 +200,14 @@ module.exports = function(db, config, tools, done) {
         // Add the key change if this element is a input component and the keys match.
         if (element.hasOwnProperty('input') && element.input === true) {
           if (element.hasOwnProperty('key') && element.key === change._old) {
-            console.log('Found old form (' + form._id + ') component key "' + change._old + '" and updating => ' + change._new);
+            console.log(
+              'Found old form (' +
+                form._id +
+                ') component key "' +
+                change._old +
+                '" and updating => ' +
+                change._new,
+            );
             element.key = change._new;
             change._done = true;
             break;
@@ -205,31 +228,31 @@ module.exports = function(db, config, tools, done) {
 
     // Cycle through the changes and update the keys for each change.
     changes = changes || [];
-    changes.forEach(function(change) {
+    changes.forEach(function (change) {
       if (!change._new && !change._old) return;
       form.components = updateKey(form.components, change);
     });
 
     // Finalize the updates to each forms component list (including forms that had layout component key changes).
-    forms.updateOne({_id: form._id}, {$set: {components: form.components}})
-    .then(() => {
-      console.log('Updating the form components for the form: ' + form._id);
-      then();
-    })
-    .catch(err => then(err));
-
+    forms
+      .updateOne({ _id: form._id }, { $set: { components: form.components } })
+      .then(() => {
+        console.log('Updating the form components for the form: ' + form._id);
+        then();
+      })
+      .catch((err) => then(err));
   };
 
-  let cleanFormComponentKeys = function(then) {
+  let cleanFormComponentKeys = function (then) {
     // Check each given component key for validity.
-    let matches = function(item, changes, uniques) {
+    let matches = function (item, changes, uniques) {
       let _old = item;
 
       item = _.deburr(item);
       item = item.replace(removeRegex, '');
       let valid = item.match(validRegex);
 
-      while (!item || !valid || item.match(invalidRegex) || (uniques.indexOf(item) !== -1)) {
+      while (!item || !valid || item.match(invalidRegex) || uniques.indexOf(item) !== -1) {
         item = newKey();
         valid = item.match(validRegex);
       }
@@ -239,7 +262,7 @@ module.exports = function(db, config, tools, done) {
         changes.push({
           _old: _old,
           _new: item,
-          _done: false
+          _done: false,
         });
       }
 
@@ -248,107 +271,131 @@ module.exports = function(db, config, tools, done) {
     };
 
     // Check if the given form components have valid keys.
-    let isValid = function(form, changes, uniques) {
-      let keys = _(form.components).map(getKeys).flatten().filter(function(key) {
-        return !_.isUndefined(key);
-      }).values();
+    let isValid = function (form, changes, uniques) {
+      let keys = _(form.components)
+        .map(getKeys)
+        .flatten()
+        .filter(function (key) {
+          return !_.isUndefined(key);
+        })
+        .values();
 
       // Potential errors, because the empty key was included (potential duplicates).
       if (keys.indexOf('') !== -1 || !_.isEqual(keys, _.unique(keys))) {
         form.components = cleanLayoutKeys(form.components, form._id);
 
         // Update the key list after cleaning erroneous form component layout keys.
-        keys = _(form.components).map(getKeys).flatten().filter(function(key) {
-          return !_.isUndefined(key);
-        }).values();
+        keys = _(form.components)
+          .map(getKeys)
+          .flatten()
+          .filter(function (key) {
+            return !_.isUndefined(key);
+          })
+          .values();
       }
 
-      return keys.all(function(key) {
+      return keys.all(function (key) {
         return matches(key, changes, uniques);
       });
     };
 
-    forms.find().toArray()
-    .then(docs => {
-      if (!docs) {
-        return then('No forms found');
-      }
-      async.forEachOf(docs, function(form, key, next) {
-        let changes = [];
-        let uniques = [];
-        if (!isValid(form, changes, uniques)) {
-          return next('Form w/ _id: ' + form._id + ', is not valid.');
+    forms
+      .find()
+      .toArray()
+      .then((docs) => {
+        if (!docs) {
+          return then('No forms found');
         }
+        async.forEachOf(
+          docs,
+          function (form, key, next) {
+            let changes = [];
+            let uniques = [];
+            if (!isValid(form, changes, uniques)) {
+              return next('Form w/ _id: ' + form._id + ', is not valid.');
+            }
 
-        // Update the form with the given changes.
-        updateForm(form, changes)
-        .then(() => next())
-        .catch(err => next(err));
-      }, function(err) {
-        if (err) {
-          return then(err);
-        }
+            // Update the form with the given changes.
+            updateForm(form, changes)
+              .then(() => next())
+              .catch((err) => next(err));
+          },
+          function (err) {
+            if (err) {
+              return then(err);
+            }
 
-        then();
-      });
-
-
-    })
-    .catch(err => then(err));
+            then();
+          },
+        );
+      })
+      .catch((err) => then(err));
   };
 
-  let verifyFormComponents = function(then) {
-    forms.find().toArray()
-    .then(docs => {
-      if (!docs) {
-        return then('No forms found');
-      }
-
-      async.forEachOfSeries(docs, function(form, key, next) {
-        let _valid = _(form.components).map(getKeys).flatten().filter(function(key) {
-          return !_.isUndefined(key);
-        }).all(function(key) {
-          if (!key) return true;
-          return key.match(validRegex);
-        });
-
-        let _unique = _(form.components).map(getKeys).flatten().filter(function(key) {
-          return !_.isUndefined(key);
-        }).value();
-        _unique = _.isEqual(_unique, _.unique(_unique));
-
-        // Confirm that each form has only valid components.
-        if (!_valid) {
-          return next('Form w/ _id: ' + form._id + ', is not valid.');
+  let verifyFormComponents = function (then) {
+    forms
+      .find()
+      .toArray()
+      .then((docs) => {
+        if (!docs) {
+          return then('No forms found');
         }
 
-        // Confirm that each form has only unique components.
-        if (!_unique) {
-          return next('Form w/ _id: ' + form._id + ', is not unique.');
-        }
+        async.forEachOfSeries(
+          docs,
+          function (form, key, next) {
+            let _valid = _(form.components)
+              .map(getKeys)
+              .flatten()
+              .filter(function (key) {
+                return !_.isUndefined(key);
+              })
+              .all(function (key) {
+                if (!key) return true;
+                return key.match(validRegex);
+              });
 
-        next();
-      }, function(err) {
-        if (err) {
-          return then(err);
-        }
+            let _unique = _(form.components)
+              .map(getKeys)
+              .flatten()
+              .filter(function (key) {
+                return !_.isUndefined(key);
+              })
+              .value();
+            _unique = _.isEqual(_unique, _.unique(_unique));
 
-        then();
-      });
-    })
-    .catch(err => then(err));
+            // Confirm that each form has only valid components.
+            if (!_valid) {
+              return next('Form w/ _id: ' + form._id + ', is not valid.');
+            }
+
+            // Confirm that each form has only unique components.
+            if (!_unique) {
+              return next('Form w/ _id: ' + form._id + ', is not unique.');
+            }
+
+            next();
+          },
+          function (err) {
+            if (err) {
+              return then(err);
+            }
+
+            then();
+          },
+        );
+      })
+      .catch((err) => then(err));
   };
 
-  async.series([
-    updateProjectAccess,
-    pruneProjectSettings,
-    cleanFormComponentKeys,
-    verifyFormComponents
-  ], function(err) {
-    if (err) {
-      return done(err);
-    }
+  async.series(
+    [updateProjectAccess, pruneProjectSettings, cleanFormComponentKeys, verifyFormComponents],
+    function (err) {
+      if (err) {
+        return done(err);
+      }
 
-    done();
-  });
+      done();
+    },
+  );
 };

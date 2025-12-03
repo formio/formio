@@ -68,11 +68,7 @@
       "access": [
         {
           "type": "read_all",
-          "roles": [
-            "anonymous",
-            "authenticated",
-            "administrator"
-          ]
+          "roles": ["anonymous", "authenticated", "administrator"]
         }
       ],
       "components": [
@@ -165,11 +161,7 @@
       "access": [
         {
           "type": "read_all",
-          "roles": [
-            "anonymous",
-            "authenticated",
-            "administrator"
-          ]
+          "roles": ["anonymous", "authenticated", "administrator"]
         }
       ],
       "components": [
@@ -235,8 +227,8 @@
       ],
       "submissionAccess": [
         {
-          "type" : "create_own",
-          "roles" : ["anonymous"]
+          "type": "create_own",
+          "roles": ["anonymous"]
         }
       ],
       "components": [
@@ -366,8 +358,8 @@
       ],
       "submissionAccess": [
         {
-          "type" : "create_own",
-          "roles" : ["anonymous"]
+          "type": "create_own",
+          "roles": ["anonymous"]
         }
       ],
       "components": [
@@ -525,27 +517,19 @@
   "access": [
     {
       "type": "create_all",
-      "roles": [
-        "administrator"
-      ]
+      "roles": ["administrator"]
     },
     {
       "type": "read_all",
-      "roles": [
-        "administrator"
-      ]
+      "roles": ["administrator"]
     },
     {
       "type": "update_all",
-      "roles": [
-        "administrator"
-      ]
+      "roles": ["administrator"]
     },
     {
       "type": "delete_all",
-      "roles": [
-        "administrator"
-      ]
+      "roles": ["administrator"]
     }
   ]
 }

@@ -8,7 +8,7 @@
  * @returns {Function}
  */
 module.exports = () => {
-  return function(req, res, next) {
+  return function (req, res, next) {
     // Only run on create requests.
     if (req.method !== 'POST') {
       return next();

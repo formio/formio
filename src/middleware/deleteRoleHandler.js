@@ -25,9 +25,7 @@ module.exports = (router) => {
     const params = util.getUrlParams(req.url);
 
     // Get the roleId from the request url.
-    const roleId = params.hasOwnProperty('role')
-      ? params.role
-      : null;
+    const roleId = params.hasOwnProperty('role') ? params.role : null;
 
     if (!roleId) {
       return next();
@@ -52,13 +50,11 @@ module.exports = (router) => {
       try {
         await prune.role(role._id, req);
         res.sendStatus(200);
-      }
-      catch (err) {
+      } catch (err) {
         debug(err);
         return next(err);
       }
-    }
-    catch (ignoreErr) {
+    } catch (ignoreErr) {
       return res.status(404).send('Unknown Role.');
     }
   };

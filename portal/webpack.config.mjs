@@ -44,11 +44,7 @@ export default {
     ],
   },
   resolve: {
-    extensions: [
-      '.tsx',
-      '.ts',
-      '.js',
-    ],
+    extensions: ['.tsx', '.ts', '.js'],
   },
   output: {
     path: path.resolve(__dirname, 'dist'),
@@ -56,13 +52,11 @@ export default {
   },
   plugins: [
     new CopyPlugin({
-      patterns: [
-        { from: 'public' },
-      ],
+      patterns: [{ from: 'public' }],
     }),
     new webpack.DefinePlugin({
-      'FORMIO_JS_VERSION': JSON.stringify(formiojsPackage.version),
-      'REACT_FORMIO_VERSION': JSON.stringify(reactPackage.version),
+      FORMIO_JS_VERSION: JSON.stringify(formiojsPackage.version),
+      REACT_FORMIO_VERSION: JSON.stringify(reactPackage.version),
     }),
   ],
 };

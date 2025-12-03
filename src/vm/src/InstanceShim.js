@@ -9,7 +9,7 @@ class InstanceShim {
     data,
     path = component.path || component.key,
     dataIndex = null,
-    scope
+    scope,
   ) {
     this._component = component;
     this._root = root;
@@ -47,11 +47,7 @@ class InstanceShim {
 
   // Returns row
   get data() {
-    return FormioCore.Utils.getContextualRowData(
-      this.component,
-      this._path,
-      this._data
-    );
+    return FormioCore.Utils.getContextualRowData(this.component, this._path, this._data);
   }
 
   // No op
@@ -59,9 +55,7 @@ class InstanceShim {
 
   // Returns parent instance
   get parent() {
-    return this.root.getComponent(
-      this._path?.replace(/(\.[^.]+)$/, "")
-    );
+    return this.root.getComponent(this._path?.replace(/(\.[^.]+)$/, ''));
   }
 
   // Returns component value
@@ -74,8 +68,7 @@ class InstanceShim {
       this._conditionals || [],
       (condComp) =>
         condComp.conditionallyHidden &&
-        (condComp.path === this._path ||
-          _.startsWith(condComp.path, this._path))
+        (condComp.path === this._path || _.startsWith(condComp.path, this._path)),
     );
   }
 
@@ -100,11 +93,7 @@ class InstanceShim {
   }
 
   isEmpty() {
-    return FormioCore.Utils.isComponentDataEmpty(
-      this.component,
-      this._data,
-      this._path
-    );
+    return FormioCore.Utils.isComponentDataEmpty(this.component, this._data, this._path);
   }
 
   getCustomDefaultValue() {
@@ -127,7 +116,7 @@ class InstanceShim {
       const defaultValue = FormioCore.Evaluator.evaluate(
         this.component.customDefaultValue,
         evaluationContext,
-        "value"
+        'value',
       );
       return defaultValue;
     }
@@ -137,7 +126,7 @@ class InstanceShim {
   on() {}
   off() {}
   render() {
-    return "";
+    return '';
   }
   redraw() {}
   ready() {
@@ -160,4 +149,4 @@ class InstanceShim {
   }
 }
 
-module.exports = {InstanceShim};
+module.exports = { InstanceShim };

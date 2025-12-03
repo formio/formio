@@ -10,7 +10,7 @@ let async = require('async');
  * @param tools
  * @param done
  */
-module.exports = function(db, config, tools, done) {
+module.exports = function (db, config, tools, done) {
   let applications = db.collection('applications');
   let forms = db.collection('forms');
   let roles = db.collection('roles');
@@ -21,8 +21,8 @@ module.exports = function(db, config, tools, done) {
    * Steps:
    *   1. Rename the application collection to projects.
    */
-  let updateApplications = function(cb) {
-    applications.rename('projects', function(err) {
+  let updateApplications = function (cb) {
+    applications.rename('projects', function (err) {
       if (err) {
         return cb(err);
       }
@@ -39,35 +39,34 @@ module.exports = function(db, config, tools, done) {
    *   2. Rename the app property for every document.
    *   3. Add an index for project
    */
-  let updateForms = function(cb) {
+  let updateForms = function (cb) {
     // Forms update step 1.
-    let dropIndex = function(next) {
-      forms.dropIndex('app_1')
-      .then(() => next())
-      .catch(err => next(err));
+    let dropIndex = function (next) {
+      forms
+        .dropIndex('app_1')
+        .then(() => next())
+        .catch((err) => next(err));
     };
 
     // Forms update step 2.
-    let rename = function(next) {
-      forms.updateMany({}, {$rename: {'app': 'project'}})
-      .then(() => {
-        next()
-      })
-      .catch(err => next(err));
+    let rename = function (next) {
+      forms
+        .updateMany({}, { $rename: { app: 'project' } })
+        .then(() => {
+          next();
+        })
+        .catch((err) => next(err));
     };
 
     // Forms update step 3.
-    let createIndex = function(next) {
-      forms.createIndex({project: 1})
-      .then(() => next())
-      .catch(err => next(err));
+    let createIndex = function (next) {
+      forms
+        .createIndex({ project: 1 })
+        .then(() => next())
+        .catch((err) => next(err));
     };
 
-    async.series([
-      dropIndex,
-      rename,
-      createIndex
-    ], function(err) {
+    async.series([dropIndex, rename, createIndex], function (err) {
       if (err) {
         return cb(err);
       }
@@ -84,33 +83,32 @@ module.exports = function(db, config, tools, done) {
    *   2. Rename the app property for every document.
    *   3. Add an index for project
    */
-  let updateRoles = function(cb) {
+  let updateRoles = function (cb) {
     // Roles update step 1.
-    let dropIndex = function(next) {
-      roles.dropIndex('app_1')
-      .then(() => next(err))
-      .catch(err => next(err));
+    let dropIndex = function (next) {
+      roles
+        .dropIndex('app_1')
+        .then(() => next(err))
+        .catch((err) => next(err));
     };
 
     // Roles update step 2.
-    let rename = function(next) {
-      roles.updateMany({}, {$rename: {'app': 'project'}})
-      .then(() => next())
-      .catch(err => next(err));
+    let rename = function (next) {
+      roles
+        .updateMany({}, { $rename: { app: 'project' } })
+        .then(() => next())
+        .catch((err) => next(err));
     };
 
     // Roles update step 3.
-    let createIndex = function(next) {
-      roles.createIndex({project: 1})
-      .then(() => next())
-      .catch(err=>next(err));
+    let createIndex = function (next) {
+      roles
+        .createIndex({ project: 1 })
+        .then(() => next())
+        .catch((err) => next(err));
     };
 
-    async.series([
-      dropIndex,
-      rename,
-      createIndex
-    ], function(err) {
+    async.series([dropIndex, rename, createIndex], function (err) {
       if (err) {
         return cb(err);
       }
@@ -119,11 +117,7 @@ module.exports = function(db, config, tools, done) {
     });
   };
 
-  async.series([
-    updateApplications,
-    updateForms,
-    updateRoles
-  ], function(err) {
+  async.series([updateApplications, updateForms, updateRoles], function (err) {
     if (err) {
       return done(err);
     }

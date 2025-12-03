@@ -11,10 +11,7 @@ export const EditForm = ({
   type: 'form' | 'resource';
   onSaveForm?: (data: FormType | any) => void;
 }) => {
-  const [
-    initialForm,
-    setInitialForm,
-  ] = useState<FormType | undefined>();
+  const [initialForm, setInitialForm] = useState<FormType | undefined>();
   const { token } = useFormioContext();
   const setLocation = useLocation()[1];
   const name = type === 'form' ? 'Form' : 'Resource';
@@ -32,9 +29,7 @@ export const EditForm = ({
     };
     setInitialForm(undefined);
     fetchForm();
-  }, [
-    url,
-  ]);
+  }, [url]);
   return (
     <div className="panel enter-data active">
       {initialForm ? (

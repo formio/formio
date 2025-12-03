@@ -11,7 +11,7 @@ import App from '../src/components/App';
 const server = setupServer(
   http.get('http://localhost:3002/current', () => {
     return HttpResponse.json({});
-  })
+  }),
 );
 
 beforeAll(() => {
@@ -25,7 +25,7 @@ beforeEach(() => {
       <InfoPanelProvider>
         <App />
       </InfoPanelProvider>
-    </FormioProvider>
+    </FormioProvider>,
   );
 });
 
@@ -36,13 +36,13 @@ test('Clicking on edit button under form list takes you to edit form page', asyn
       if (queryParameters.get('type') === 'form') {
         return HttpResponse.json([
           {
-            '_id': '679d116aa90ca7ccebc38597',
-            'title': 'test',
-            'name': 'test',
-            'path': 'test',
-            'type': 'form',
-            'display': 'form'
-          }
+            _id: '679d116aa90ca7ccebc38597',
+            title: 'test',
+            name: 'test',
+            path: 'test',
+            type: 'form',
+            display: 'form',
+          },
         ]);
       } else {
         return HttpResponse.json([]);
@@ -50,14 +50,14 @@ test('Clicking on edit button under form list takes you to edit form page', asyn
     }),
     http.get('/form/679d116aa90ca7ccebc38597', () => {
       return HttpResponse.json({
-        '_id': '679d116aa90ca7ccebc38597',
-        'title': 'test',
-        'name': 'test',
-        'path': 'test',
-        'type': 'form',
-        'display': 'form'
+        _id: '679d116aa90ca7ccebc38597',
+        title: 'test',
+        name: 'test',
+        path: 'test',
+        type: 'form',
+        display: 'form',
       });
-    })
+    }),
   );
   const editButton: HTMLAnchorElement = await screen.findByText('Edit');
   editButton.click();
@@ -69,13 +69,13 @@ test('Clicking on edit button under form list takes you to edit form page', asyn
 test('Clicking save form updates the form', async () => {
   const formForms = [
     {
-      '_id': '679d116aa90ca7ccebc38597',
-      'title': 'test',
-      'name': 'test',
-      'path': 'test',
-      'type': 'form',
-      'display': 'form'
-    }
+      _id: '679d116aa90ca7ccebc38597',
+      title: 'test',
+      name: 'test',
+      path: 'test',
+      type: 'form',
+      display: 'form',
+    },
   ];
   server.use(
     http.get('http://localhost:3002/form', ({ request }) => {
@@ -94,13 +94,13 @@ test('Clicking save form updates the form', async () => {
       formForms[0].name = 'tests';
       formForms[0].path = 'tests';
       return HttpResponse.json({
-        'title': 'tests',
-        'name': 'tests',
-        'path': 'tests',
-        'type': 'form',
-        'display': 'form'
+        title: 'tests',
+        name: 'tests',
+        path: 'tests',
+        type: 'form',
+        display: 'form',
       });
-    })
+    }),
   );
   await screen.findByText('Resources');
   await screen.findByText('Forms');
@@ -109,11 +109,18 @@ test('Clicking save form updates the form', async () => {
   await screen.findByText('Form Name');
   await userEvent.type(document.querySelector('[name="data[title]"]')!, 's');
   await waitFor(() => {
-    expect((document.querySelector('[name="data[name]"]')! as HTMLInputElement).value).to.equal('tests');
+    expect((document.querySelector('[name="data[name]"]')! as HTMLInputElement).value).to.equal(
+      'tests',
+    );
   });
   fireEvent.click(await screen.findByText('Save Form'));
   await waitFor(() => {
-    expect(document.querySelector('div.panel-wrap.main.form')!.querySelector('div.panel-title')!.textContent?.trim()).to.equal('tests');
+    expect(
+      document
+        .querySelector('div.panel-wrap.main.form')!
+        .querySelector('div.panel-title')!
+        .textContent?.trim(),
+    ).to.equal('tests');
   });
 });
 

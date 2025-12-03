@@ -1,6 +1,5 @@
 module.exports = {
-    wait: (ms) => {
-        return new Promise((resolve) => setTimeout(resolve, ms));
-    }
+  wait: (ms) => {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  },
 };
-

@@ -3,13 +3,19 @@
 let async = require('async');
 let _ = require('lodash');
 let debug = {
-  getFormsWithUniqueComponents: require('debug')('formio:update:3.0.5-getFormsWithUniqueComponents'),
-  getFormsWithUniqueComponentsInLayoutComponents: require('debug')('formio:update:3.0.5-getFormsWithUniqueComponentsInLayoutComponents'),
-  getFormsWithPotentialUniqueComponentsInLayoutComponents: require('debug')('formio:update:3.0.5-getFormsWithPotentialUniqueComponentsInLayoutComponents'),
+  getFormsWithUniqueComponents: require('debug')(
+    'formio:update:3.0.5-getFormsWithUniqueComponents',
+  ),
+  getFormsWithUniqueComponentsInLayoutComponents: require('debug')(
+    'formio:update:3.0.5-getFormsWithUniqueComponentsInLayoutComponents',
+  ),
+  getFormsWithPotentialUniqueComponentsInLayoutComponents: require('debug')(
+    'formio:update:3.0.5-getFormsWithPotentialUniqueComponentsInLayoutComponents',
+  ),
   getAffectedSubmissions: require('debug')('formio:update:3.0.5-getAffectedSubmissions'),
   buildUniqueComponentList: require('debug')('formio:update:3.0.5-buildUniqueComponentList'),
   fixSubmissionUniques: require('debug')('formio:update:3.0.5-fixSubmissionUniques'),
-  mergeForms: require('debug')('formio:update:3.0.5-mergeForms')
+  mergeForms: require('debug')('formio:update:3.0.5-mergeForms'),
 };
 
 /**
@@ -25,7 +31,7 @@ let debug = {
  * @param tools
  * @param done
  */
-module.exports = function(db, config, tools, done) {
+module.exports = function (db, config, tools, done) {
   let formCollection = db.collection('forms');
   let submissionCollection = db.collection('submissions');
   let blackListedComponents = ['select', 'address'];
@@ -44,56 +50,61 @@ module.exports = function(db, config, tools, done) {
    * @param next
    * @returns {*}
    */
-  let fixSubmissionUniques = function(submissions, next) {
-    async.each(submissions, function(submission, cb) {
-      let update = {};
-      _.each(uniques[submission.form.toString()], function(path, key) {
-        let item = _.get(submission, 'data.' + path);
-        if (item) {
-          // Coerce all unique string fields to be lowercase.
-          if (typeof item === 'string') {
-            debug.fixSubmissionUniques(submission._id.toString());
-            update['data.' + path] = item.toString().toLowerCase();
-          }
-          // Coerce all unique string fields in an array to be lowercase.
-          else if (item instanceof Array && (item.length > 0) && (typeof item[0] === 'string')) {
-            _.map(item, function(element) {
-              return element.toString().toLowerCase();
-            });
-
+  let fixSubmissionUniques = function (submissions, next) {
+    async.each(
+      submissions,
+      function (submission, cb) {
+        let update = {};
+        _.each(uniques[submission.form.toString()], function (path, key) {
+          let item = _.get(submission, 'data.' + path);
+          if (item) {
             // Coerce all unique string fields to be lowercase.
-            update['data.' + path] = item;
+            if (typeof item === 'string') {
+              debug.fixSubmissionUniques(submission._id.toString());
+              update['data.' + path] = item.toString().toLowerCase();
+            }
+            // Coerce all unique string fields in an array to be lowercase.
+            else if (item instanceof Array && item.length > 0 && typeof item[0] === 'string') {
+              _.map(item, function (element) {
+                return element.toString().toLowerCase();
+              });
+
+              // Coerce all unique string fields to be lowercase.
+              update['data.' + path] = item;
+            }
           }
-        }
-      });
+        });
 
-      if (Object.keys(update).length === 0) {
-        debug.fixSubmissionUniques(submission.form + ': No updates! -> ' + submission._id.toString());
-        return cb();
-      }
-      else {
-        debug.fixSubmissionUniques(submission.form + ': Updates! -> ');
-        debug.fixSubmissionUniques(update);
-      }
-
-      submissionCollection.updateOne(
-        {_id: tools.util.idToBson(submission._id)},
-        {$set: update},
-        function(err) {
-          if (err) {
-            return cb(err);
-          }
-
+        if (Object.keys(update).length === 0) {
+          debug.fixSubmissionUniques(
+            submission.form + ': No updates! -> ' + submission._id.toString(),
+          );
           return cb();
+        } else {
+          debug.fixSubmissionUniques(submission.form + ': Updates! -> ');
+          debug.fixSubmissionUniques(update);
         }
-      );
-    }, function(err) {
-      if (err) {
-        return next(err);
-      }
 
-      return next();
-    });
+        submissionCollection.updateOne(
+          { _id: tools.util.idToBson(submission._id) },
+          { $set: update },
+          function (err) {
+            if (err) {
+              return cb(err);
+            }
+
+            return cb();
+          },
+        );
+      },
+      function (err) {
+        if (err) {
+          return next(err);
+        }
+
+        return next();
+      },
+    );
   };
 
   /**
@@ -102,22 +113,27 @@ module.exports = function(db, config, tools, done) {
    * @param next
    * @returns {*}
    */
-  let buildUniqueComponentList = function(next) {
-    formCollection.find({_id: {$in: forms}, deleted: {$eq: null}})
+  let buildUniqueComponentList = function (next) {
+    formCollection
+      .find({ _id: { $in: forms }, deleted: { $eq: null } })
       .toArray()
-      .forEach(function(form) {
-        tools.util.eachComponent(form.components, function(component, path) {
-          // We only care about non-layout components, which are not unique, and have not been blacklisted.
-          if (
-            _.get(component, 'key')
-            && _.get(component, 'unique') === true
-            && blackListedComponents.indexOf(_.get(component, 'type')) === -1
-          ) {
-            debug.buildUniqueComponentList(form._id.toString() + ' -> ' + path);
-            uniques[form._id.toString()] = uniques[form._id.toString()] || {};
-            uniques[form._id.toString()][component.key] = path;
-          }
-        }, true);
+      .forEach(function (form) {
+        tools.util.eachComponent(
+          form.components,
+          function (component, path) {
+            // We only care about non-layout components, which are not unique, and have not been blacklisted.
+            if (
+              _.get(component, 'key') &&
+              _.get(component, 'unique') === true &&
+              blackListedComponents.indexOf(_.get(component, 'type')) === -1
+            ) {
+              debug.buildUniqueComponentList(form._id.toString() + ' -> ' + path);
+              uniques[form._id.toString()] = uniques[form._id.toString()] || {};
+              uniques[form._id.toString()][component.key] = path;
+            }
+          },
+          true,
+        );
       }, next());
   };
 
@@ -126,24 +142,28 @@ module.exports = function(db, config, tools, done) {
    *
    * @param next
    */
-  let getFormsWithUniqueComponents = function(next) {
-    formCollection.find({
-      components: {$elemMatch: {unique: true, type: {$nin: blackListedComponents}}},
-      deleted: {$eq: null}
-    }, {_id: 1})
-    .toArray()
-    .map(function(form) {
-      return form._id;
-    })
-    .toArray(function(err, forms) {
-      if (err) {
-        return next(err);
-      }
+  let getFormsWithUniqueComponents = function (next) {
+    formCollection
+      .find(
+        {
+          components: { $elemMatch: { unique: true, type: { $nin: blackListedComponents } } },
+          deleted: { $eq: null },
+        },
+        { _id: 1 },
+      )
+      .toArray()
+      .map(function (form) {
+        return form._id;
+      })
+      .toArray(function (err, forms) {
+        if (err) {
+          return next(err);
+        }
 
-      console.log(forms[0])
-      debug.getFormsWithUniqueComponents(forms.length);
-      return next(null, forms);
-    });
+        console.log(forms[0]);
+        debug.getFormsWithUniqueComponents(forms.length);
+        return next(null, forms);
+      });
   };
 
   /**
@@ -151,31 +171,60 @@ module.exports = function(db, config, tools, done) {
    *
    * @param next
    */
-  let getFormsWithUniqueComponentsInLayoutComponents = function(next) {
-    formCollection.find({
-      _id: {$nin: forms},
-      deleted: {$eq: null},
-      components: {
-        $elemMatch: {
-          $or: [
-            {$and: [{columns: {$exists: true}}, {columns: {$elemMatch: {unique: true, type: {$nin: blackListedComponents}}}}]},
-            {$and: [{rows: {$exists: true}}, {rows: {$elemMatch: {unique: true, type: {$nin: blackListedComponents}}}}]},
-            {$and: [{components: {$exists: true}}, {components: {$elemMatch: {unique: true, type: {$nin: blackListedComponents}}}}]}
-          ]
+  let getFormsWithUniqueComponentsInLayoutComponents = function (next) {
+    formCollection
+      .find(
+        {
+          _id: { $nin: forms },
+          deleted: { $eq: null },
+          components: {
+            $elemMatch: {
+              $or: [
+                {
+                  $and: [
+                    { columns: { $exists: true } },
+                    {
+                      columns: {
+                        $elemMatch: { unique: true, type: { $nin: blackListedComponents } },
+                      },
+                    },
+                  ],
+                },
+                {
+                  $and: [
+                    { rows: { $exists: true } },
+                    {
+                      rows: { $elemMatch: { unique: true, type: { $nin: blackListedComponents } } },
+                    },
+                  ],
+                },
+                {
+                  $and: [
+                    { components: { $exists: true } },
+                    {
+                      components: {
+                        $elemMatch: { unique: true, type: { $nin: blackListedComponents } },
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
+          },
+        },
+        { _id: 1 },
+      )
+      .map(function (form) {
+        return form._id;
+      })
+      .toArray(function (err, forms) {
+        if (err) {
+          return next(err);
         }
-      }
-    }, {_id: 1})
-    .map(function(form) {
-      return form._id;
-    })
-    .toArray(function(err, forms) {
-      if (err) {
-        return next(err);
-      }
 
-      debug.getFormsWithUniqueComponentsInLayoutComponents(forms.length);
-      return next(null, forms);
-    });
+        debug.getFormsWithUniqueComponentsInLayoutComponents(forms.length);
+        return next(null, forms);
+      });
   };
 
   /**
@@ -183,83 +232,99 @@ module.exports = function(db, config, tools, done) {
    *
    * @param next
    */
-  let getFormsWithPotentialUniqueComponentsInLayoutComponents = function(next) {
-    formCollection.find({
-      _id: {$nin: forms},
-      deleted: {$eq: null},
-      components: {
-        $elemMatch: {
-          $or: [
-            {columns: {$elemMatch: {
-              $or: [
-                {columns: {$exists: true}},
-                {rows: {$exists: true}},
-                {components: {$exists: true}}
-              ]
-            }}},
-            {rows: {$elemMatch: {
-              $or: [
-                {columns: {$exists: true}},
-                {rows: {$exists: true}},
-                {components: {$exists: true}}
-              ]
-            }}},
-            {components: {$elemMatch: {
-              $or: [
-                {columns: {$exists: true}},
-                {rows: {$exists: true}},
-                {components: {$exists: true}}
-              ]
-            }}}
-          ]
-        }
-      }
-    })
-    .toArray()
-    .then(forms => {
-      let walkComponents = function(components) {
-        for(let a = 0; a < components.length; a++) {
-          // Check the current component, to see if its unique.
-          let component = components[a];
-          if (
-            component.hasOwnProperty('unique')
-            && component.unique === true
-            && blackListedComponents.indexOf(component.type) === -1
-          ) {
-            return true;
+  let getFormsWithPotentialUniqueComponentsInLayoutComponents = function (next) {
+    formCollection
+      .find({
+        _id: { $nin: forms },
+        deleted: { $eq: null },
+        components: {
+          $elemMatch: {
+            $or: [
+              {
+                columns: {
+                  $elemMatch: {
+                    $or: [
+                      { columns: { $exists: true } },
+                      { rows: { $exists: true } },
+                      { components: { $exists: true } },
+                    ],
+                  },
+                },
+              },
+              {
+                rows: {
+                  $elemMatch: {
+                    $or: [
+                      { columns: { $exists: true } },
+                      { rows: { $exists: true } },
+                      { components: { $exists: true } },
+                    ],
+                  },
+                },
+              },
+              {
+                components: {
+                  $elemMatch: {
+                    $or: [
+                      { columns: { $exists: true } },
+                      { rows: { $exists: true } },
+                      { components: { $exists: true } },
+                    ],
+                  },
+                },
+              },
+            ],
+          },
+        },
+      })
+      .toArray()
+      .then((forms) => {
+        let walkComponents = function (components) {
+          for (let a = 0; a < components.length; a++) {
+            // Check the current component, to see if its unique.
+            let component = components[a];
+            if (
+              component.hasOwnProperty('unique') &&
+              component.unique === true &&
+              blackListedComponents.indexOf(component.type) === -1
+            ) {
+              return true;
+            }
+
+            // Check any column components.
+            if (component.hasOwnProperty('columns') && walkComponents(component.columns) === true) {
+              return true;
+            }
+            // Check any row components.
+            if (component.hasOwnProperty('rows') && walkComponents(component.rows) === true) {
+              return true;
+            }
+            // Check any component components.
+            if (
+              component.hasOwnProperty('components') &&
+              walkComponents(component.components) === true
+            ) {
+              return true;
+            }
           }
 
-          // Check any column components.
-          if (component.hasOwnProperty('columns') && walkComponents(component.columns) === true) {
-            return true;
+          return false;
+        };
+
+        let filtered = [];
+        forms.forEach(function (form) {
+          let res = walkComponents(form.components) === true;
+
+          if (res) {
+            filtered.push(form._id);
           }
-          // Check any row components.
-          if (component.hasOwnProperty('rows') && walkComponents(component.rows) === true) {
-            return true;
-          }
-          // Check any component components.
-          if (component.hasOwnProperty('components') && walkComponents(component.components) === true) {
-            return true;
-          }
-        }
+        });
 
-        return false;
-      };
-
-      let filtered = [];
-      forms.forEach(function(form) {
-        let res = (walkComponents(form.components) === true);
-
-        if (res) {
-          filtered.push(form._id);
-        }
-      });
-
-      debug.getFormsWithPotentialUniqueComponentsInLayoutComponents(filtered);
-      debug.getFormsWithPotentialUniqueComponentsInLayoutComponents(filtered.length);
-      return next(null, filtered);
-    })
-    .catch(err => next(err));
+        debug.getFormsWithPotentialUniqueComponentsInLayoutComponents(filtered);
+        debug.getFormsWithPotentialUniqueComponentsInLayoutComponents(filtered.length);
+        return next(null, filtered);
+      })
+      .catch((err) => next(err));
   };
 
   /**
@@ -267,17 +332,18 @@ module.exports = function(db, config, tools, done) {
    *
    * @param next
    */
-  let getAffectedSubmissions = function(next) {
-    submissionCollection.find({
-      deleted: {$eq: null},
-      form: {$in: forms}
-    })
-    .toArray()
-    .then(submissions => {
-      debug.getAffectedSubmissions(submissions.length);
-      return next(null, submissions);
-    })
-    .catch(err => next(err));
+  let getAffectedSubmissions = function (next) {
+    submissionCollection
+      .find({
+        deleted: { $eq: null },
+        form: { $in: forms },
+      })
+      .toArray()
+      .then((submissions) => {
+        debug.getAffectedSubmissions(submissions.length);
+        return next(null, submissions);
+      })
+      .catch((err) => next(err));
   };
 
   /**
@@ -286,7 +352,7 @@ module.exports = function(db, config, tools, done) {
    * @param newForms
    * @param next
    */
-  let mergeForms = function(newForms, next) {
+  let mergeForms = function (newForms, next) {
     debug.mergeForms('Old: ' + forms.length);
     debug.mergeForms('New: ' + newForms.length);
     forms = forms.concat(newForms);
@@ -295,21 +361,24 @@ module.exports = function(db, config, tools, done) {
     next();
   };
 
-  async.waterfall([
-    getFormsWithUniqueComponents,
-    mergeForms,
-    getFormsWithUniqueComponentsInLayoutComponents,
-    mergeForms,
-    getFormsWithPotentialUniqueComponentsInLayoutComponents,
-    mergeForms,
-    buildUniqueComponentList,
-    getAffectedSubmissions,
-    fixSubmissionUniques
-  ], function(err) {
-    if (err) {
-      return done(err);
-    }
+  async.waterfall(
+    [
+      getFormsWithUniqueComponents,
+      mergeForms,
+      getFormsWithUniqueComponentsInLayoutComponents,
+      mergeForms,
+      getFormsWithPotentialUniqueComponentsInLayoutComponents,
+      mergeForms,
+      buildUniqueComponentList,
+      getAffectedSubmissions,
+      fixSubmissionUniques,
+    ],
+    function (err) {
+      if (err) {
+        return done(err);
+      }
 
-    done();
-  });
+      done();
+    },
+  );
 };

@@ -13,21 +13,27 @@ const util = require('../../util/util');
  * @param tools
  * @param done
  */
-module.exports = function(db, config, tools, done) {
+module.exports = function (db, config, tools, done) {
   done();
   const submissions = db.collection('submissions');
-  db.collection('forms').find({deleted: {$eq: null}}).forEach((form) => {
-    util.FormioUtils.eachComponent(form.components, function(component, path) {
-      if (component.reference) {
-        submissions.find({form: form._id, deleted: {$eq: null}}).forEach((submission) => {
-          const refId = _.get(submission, `data.${path}._id`);
-          if (refId) {
-            const update = {};
-            update[`data.${path}._id`] = new ObjectID(refId);
-            submissions.updateOne({_id: submission._id}, {$set: update});
+  db.collection('forms')
+    .find({ deleted: { $eq: null } })
+    .forEach((form) => {
+      util.FormioUtils.eachComponent(
+        form.components,
+        function (component, path) {
+          if (component.reference) {
+            submissions.find({ form: form._id, deleted: { $eq: null } }).forEach((submission) => {
+              const refId = _.get(submission, `data.${path}._id`);
+              if (refId) {
+                const update = {};
+                update[`data.${path}._id`] = new ObjectID(refId);
+                submissions.updateOne({ _id: submission._id }, { $set: update });
+              }
+            });
           }
-        });
-      }
-    }, true);
-  });
+        },
+        true,
+      );
+    });
 };

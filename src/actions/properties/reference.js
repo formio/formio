@@ -4,11 +4,7 @@ const util = require('../../util/util');
 const async = require('async');
 
 module.exports = (router) => {
-  const hiddenFields = [
-    'deleted',
-    '__v',
-    'machineName',
-  ];
+  const hiddenFields = ['deleted', '__v', 'machineName'];
 
   // Get a subrequest and sub response for a nested request.
   const getSubRequest = function (component, subQuery, req, res, response) {
@@ -159,10 +155,7 @@ module.exports = (router) => {
     // Create the subquery.
     const subQuery = {
       match: {
-        $or: [
-          doesNotExist,
-          withinForm,
-        ],
+        $or: [doesNotExist, withinForm],
       },
       sort: {},
     };
@@ -321,20 +314,10 @@ module.exports = (router) => {
                 _.set(
                   resource,
                   `data.${path}`,
-                  _.map(_.get(resource, `data.${path}`), (iData) =>
-                    _.pick(iData, [
-                      '_id',
-                    ]),
-                  ),
+                  _.map(_.get(resource, `data.${path}`), (iData) => _.pick(iData, ['_id'])),
                 );
               } else {
-                _.set(
-                  resource,
-                  `data.${path}`,
-                  _.pick(_.get(resource, `data.${path}`), [
-                    '_id',
-                  ]),
-                );
+                _.set(resource, `data.${path}`, _.pick(_.get(resource, `data.${path}`), ['_id']));
               }
             }
           })
@@ -343,20 +326,10 @@ module.exports = (router) => {
               _.set(
                 resource,
                 `data.${path}`,
-                _.map(_.get(resource, `data.${path}`), (iData) =>
-                  _.pick(iData, [
-                    '_id',
-                  ]),
-                ),
+                _.map(_.get(resource, `data.${path}`), (iData) => _.pick(iData, ['_id'])),
               );
             } else {
-              _.set(
-                resource,
-                `data.${path}`,
-                _.pick(_.get(resource, `data.${path}`), [
-                  '_id',
-                ]),
-              );
+              _.set(resource, `data.${path}`, _.pick(_.get(resource, `data.${path}`), ['_id']));
             }
           });
       case 'beforeIndex':

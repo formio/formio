@@ -1,7 +1,7 @@
 'use strict';
 
 const _last = require('lodash/last');
-module.exports = function(formio) {
+module.exports = function (formio) {
   const hook = require('../util/hook')(formio);
 
   /**
@@ -55,53 +55,59 @@ module.exports = function(formio) {
     title: {
       type: String,
       index: true,
-      required: true
+      required: true,
     },
     name: {
       type: String,
-      required: true
+      required: true,
     },
-    handler: [{
-      type: String,
-      require: true
-    }],
-    method: [{
-      type: String,
-      require: true
-    }],
+    handler: [
+      {
+        type: String,
+        require: true,
+      },
+    ],
+    method: [
+      {
+        type: String,
+        require: true,
+      },
+    ],
     condition: {
       type: formio.mongoose.Schema.Types.Mixed,
-      required: false
+      required: false,
     },
     priority: {
       type: Number,
       require: true,
       index: true,
-      default: 0
+      default: 0,
     },
     settings: {
       type: formio.mongoose.Schema.Types.Mixed,
-      required: false
+      required: false,
     },
     form: {
       type: formio.mongoose.Schema.Types.ObjectId,
       ref: 'form',
       index: true,
-      required: true
+      required: true,
     },
     deleted: {
       type: Number,
       index: true,
-      default: null
-    }
+      default: null,
+    },
   });
 
   // Add machineName to the schema.
   Action.schema.plugin(require('../plugins/machineName')('action', formio));
 
-  Action.schema.machineName = async function(document, done) {
+  Action.schema.machineName = async function (document, done) {
     try {
-      const form = await formio.mongoose.model('form').findOne({_id: document.form, deleted: {$eq: null}})
+      const form = await formio.mongoose
+        .model('form')
+        .findOne({ _id: document.form, deleted: { $eq: null } })
         .exec();
       if (!form) {
         hook.alter('actionMachineName', `${document.form}:${document.name}`, document, done);
@@ -109,19 +115,23 @@ module.exports = function(formio) {
       }
 
       const formMachineName = _last(form.machineName.split(':'));
-      hook.alter('actionMachineName', `${formMachineName || form.name}:${document.name}`, document, done);
-    }
-    catch (err) {
+      hook.alter(
+        'actionMachineName',
+        `${formMachineName || form.name}:${document.name}`,
+        document,
+        done,
+      );
+    } catch (err) {
       return done(err);
     }
   };
 
-   // Execute a pre-save method for the SaveSubmission action.
-   Action.schema.pre('save', function(next) {
+  // Execute a pre-save method for the SaveSubmission action.
+  Action.schema.pre('save', function (next) {
     if (this.name === 'save') {
       // Ensure that save actions with resource associations are always executed
       // before the ones without resource association.
-      this.priority = (this.settings && this.settings.resource) ? 11 : 10;
+      this.priority = this.settings && this.settings.resource ? 11 : 10;
     }
     next();
   });

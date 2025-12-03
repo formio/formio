@@ -27,9 +27,7 @@ module.exports = (router) => {
         return [];
       }
 
-      return roles.length
-        ? roles.map((role) => (`${element._id}:${role}`))
-        : element._id;
+      return roles.length ? roles.map((role) => `${element._id}:${role}`) : element._id;
     });
   };
 
@@ -45,9 +43,12 @@ module.exports = (router) => {
         return next(`Cannot load form ${req.params.formId}`);
       }
 
-       
       util.FormioUtils.eachComponent(form.components, (component, path) => {
-        if (component && component.key && (component.submissionAccess || component.defaultPermission)) {
+        if (
+          component &&
+          component.key &&
+          (component.submissionAccess || component.defaultPermission)
+        ) {
           if (!component.submissionAccess) {
             component.submissionAccess = [
               {
@@ -78,8 +79,7 @@ module.exports = (router) => {
                     perm.resources = [];
                   }
                   perm.resources = perm.resources.concat(ids);
-                }
-                else {
+                } else {
                   req.body.access.push({
                     type: access.type,
                     resources: ids,
@@ -90,11 +90,9 @@ module.exports = (router) => {
           }
         }
       });
-       
 
       return next();
-    }
-    catch (ignoreErr) {
+    } catch (ignoreErr) {
       return next(`Cannot load form ${req.params.formId}`);
     }
   };

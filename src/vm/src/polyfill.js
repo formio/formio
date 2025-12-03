@@ -17,15 +17,15 @@ class Event {
 globalThis.Text = class {};
 globalThis.HTMLElement = class {};
 globalThis.HTMLCanvasElement = class {};
-globalThis.navigator = {userAgent: ""};
+globalThis.navigator = { userAgent: '' };
 
 globalThis.document = {
   createElement: () => ({}),
-  cookie: "",
+  cookie: '',
   getElementsByTagName: () => [],
   documentElement: {
     style: [],
-    firstElementChild: {appendChild: () => {}},
+    firstElementChild: { appendChild: () => {} },
   },
 };
 globalThis.window = {
@@ -35,11 +35,11 @@ globalThis.window = {
 };
 globalThis.btoa = (str) => {
   return str instanceof Buffer
-    ? str.toString("base64")
-    : Buffer.from(str.toString(), "binary").toString("base64");
+    ? str.toString('base64')
+    : Buffer.from(str.toString(), 'binary').toString('base64');
 };
 globalThis.setTimeout = (cb) => {
   cb();
 };
 
-module.exports = {Event};
+module.exports = { Event };

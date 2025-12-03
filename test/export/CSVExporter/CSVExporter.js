@@ -9,7 +9,7 @@ module.exports = function (app, template, hook) {
   const testFile = require('../../fixtures/forms/fileComponent.js');
   const testTags = require('../../fixtures/forms/tagsWithDelimiter.js');
   const testRadio = require('../../fixtures/forms/radioComponent');
-  const wizardTest = require('../../fixtures/forms/wizardFormWithAdvancedConditions.js')
+  const wizardTest = require('../../fixtures/forms/wizardFormWithAdvancedConditions.js');
   const testAzureAddress = require('../../fixtures/forms/azureAddressComponent');
   const testGoogleAddress = require('../../fixtures/forms/googleAddressComponent');
   const testNominatimAddress = require('../../fixtures/forms/nominatimAddressComponent');
@@ -37,13 +37,13 @@ module.exports = function (app, template, hook) {
 
   describe('CSVExporter', () => {
     it('Sets up a default project', (done) => {
-      let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      let owner = app.hasProjects || docker ? template.formio.owner : template.users.admin;
       helper = new Helper(owner);
       helper.project().user('user', 'user1').execute(done);
     });
 
     it(`Export works in case when format is not set`, (done) => {
-      let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      let owner = app.hasProjects || docker ? template.formio.owner : template.users.admin;
       helper = new Helper(owner);
       helper
         .project()
@@ -64,7 +64,7 @@ module.exports = function (app, template, hook) {
     });
 
     it(`Test displaying File values`, (done) => {
-      let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      let owner = app.hasProjects || docker ? template.formio.owner : template.users.admin;
       helper = new Helper(owner);
       helper
         .project()
@@ -87,9 +87,9 @@ module.exports = function (app, template, hook) {
                 storage: 'base64',
                 type: 'image/jpeg',
                 url: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAA',
-              }
-            ]
-          }
+              },
+            ],
+          },
         })
         .execute((err) => {
           if (err) {
@@ -111,18 +111,14 @@ module.exports = function (app, template, hook) {
     });
 
     it(`Test using Tags delimiter`, (done) => {
-      let owner = (
-        app.hasProjects || docker
-      ) ? template.formio.owner : template.users.admin;
+      let owner = app.hasProjects || docker ? template.formio.owner : template.users.admin;
       helper = new Helper(owner);
       helper
         .project()
         .form('testTags', testTags.components)
         .submission({
           data: {
-            tags: [
-              'tag1', 'tag2', 'tag3',
-            ],
+            tags: ['tag1', 'tag2', 'tag3'],
           },
         })
         .execute((err) => {
@@ -143,15 +139,15 @@ module.exports = function (app, template, hook) {
     });
 
     it(`Test displaying File values in Radio component`, (done) => {
-      let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      let owner = app.hasProjects || docker ? template.formio.owner : template.users.admin;
       helper = new Helper(owner);
       helper
         .project()
         .form('testRadio', testRadio.form1.components)
         .submission({
           data: {
-            "radio": false
-          }
+            radio: false,
+          },
         })
         .execute((err) => {
           if (err) {
@@ -171,15 +167,15 @@ module.exports = function (app, template, hook) {
     });
 
     it('Should export csv with conditional radio component', (done) => {
-      let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      let owner = app.hasProjects || docker ? template.formio.owner : template.users.admin;
       helper = new Helper(owner);
       helper
         .project()
         .form('radioWithCondition', testRadio.form2.components)
         .submission({
           data: {
-            select: [2]
-          }
+            select: [2],
+          },
         })
         .execute((err) => {
           if (err) {
@@ -198,7 +194,7 @@ module.exports = function (app, template, hook) {
     });
 
     it('Should export csv for wizard forms', (done) => {
-      let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      let owner = app.hasProjects || docker ? template.formio.owner : template.users.admin;
       helper = new Helper(owner);
       helper
         .project()
@@ -207,8 +203,8 @@ module.exports = function (app, template, hook) {
           data: {
             number: 2,
             textField: 'test',
-            textArea: 'test New'
-          }
+            textArea: 'test New',
+          },
         })
         .execute((err) => {
           if (err) {
@@ -227,7 +223,7 @@ module.exports = function (app, template, hook) {
     });
 
     it('Should display data for Components inside the Layout Components', (done) => {
-      let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      let owner = app.hasProjects || docker ? template.formio.owner : template.users.admin;
       helper = new Helper(owner);
       helper
         .project()
@@ -236,8 +232,8 @@ module.exports = function (app, template, hook) {
           data: {
             number: 2,
             textField: 'test Form',
-            textArea: 'test Form New'
-          }
+            textArea: 'test Form New',
+          },
         })
         .execute((err) => {
           if (err) {
@@ -257,7 +253,7 @@ module.exports = function (app, template, hook) {
     });
 
     it('Should correctly display paths for component inside layout components', (done) => {
-      let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      let owner = app.hasProjects || docker ? template.formio.owner : template.users.admin;
       helper = new Helper(owner);
       helper
         .project()
@@ -286,16 +282,16 @@ module.exports = function (app, template, hook) {
               '"textArea"',
               '"email"',
               '"phoneNumber"',
-              '"container.signature"'
+              '"container.signature"',
             ]);
-      
+
             done();
           });
         });
     });
 
     it(`Test Azure address data`, (done) => {
-      let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      let owner = app.hasProjects || docker ? template.formio.owner : template.users.admin;
       helper = new Helper(owner);
       helper
         .form('testAzureAddress', testAzureAddress.components)
@@ -312,7 +308,11 @@ module.exports = function (app, template, hook) {
 
             const addressLatWithMode = getComponentValue(result.text, 'addressWithMode.lat', 0);
             const addressLngWithMode = getComponentValue(result.text, 'addressWithMode.lng', 0);
-            const addressNameWithMode = getComponentValue(result.text, 'addressWithMode.formatted', 0);
+            const addressNameWithMode = getComponentValue(
+              result.text,
+              'addressWithMode.formatted',
+              0,
+            );
 
             const addressLat = getComponentValue(result.text, 'address.lat', 0);
             const addressLng = getComponentValue(result.text, 'address.lng', 0);
@@ -340,7 +340,7 @@ module.exports = function (app, template, hook) {
     });
 
     it(`Test Google address data`, (done) => {
-      let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      let owner = app.hasProjects || docker ? template.formio.owner : template.users.admin;
       helper = new Helper(owner);
       helper
         .form('testGoogleAddress', testGoogleAddress.components)
@@ -357,7 +357,11 @@ module.exports = function (app, template, hook) {
 
             const addressLatWithMode = getComponentValue(result.text, 'addressWithMode.lat', 0);
             const addressLngWithMode = getComponentValue(result.text, 'addressWithMode.lng', 0);
-            const addressNameWithMode = getComponentValue(result.text, 'addressWithMode.formatted', 0);
+            const addressNameWithMode = getComponentValue(
+              result.text,
+              'addressWithMode.formatted',
+              0,
+            );
 
             const addressLat = getComponentValue(result.text, 'address.lat', 0);
             const addressLng = getComponentValue(result.text, 'address.lng', 0);
@@ -385,7 +389,7 @@ module.exports = function (app, template, hook) {
     });
 
     it(`Test OpenStreetMap Nominatim address data`, (done) => {
-      let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      let owner = app.hasProjects || docker ? template.formio.owner : template.users.admin;
       helper = new Helper(owner);
       helper
         .form('testNominatimAddress', testNominatimAddress.components)
@@ -402,7 +406,11 @@ module.exports = function (app, template, hook) {
 
             const addressLatWithMode = getComponentValue(result.text, 'addressWithMode.lat', 0);
             const addressLngWithMode = getComponentValue(result.text, 'addressWithMode.lng', 0);
-            const addressNameWithMode = getComponentValue(result.text, 'addressWithMode.formatted', 0);
+            const addressNameWithMode = getComponentValue(
+              result.text,
+              'addressWithMode.formatted',
+              0,
+            );
 
             const addressLat = getComponentValue(result.text, 'address.lat', 0);
             const addressLng = getComponentValue(result.text, 'address.lng', 0);
@@ -433,15 +441,15 @@ module.exports = function (app, template, hook) {
       const currentDate = moment().utc().seconds(0).milliseconds(0);
       const submissionDate = currentDate.format('YYYY-MM-DDTHH:mm:ssZ');
       const formattedDate = currentDate.format('YYYY-MM-DDTHH:mm:ss.SSS[Z]');
-      let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      let owner = app.hasProjects || docker ? template.formio.owner : template.users.admin;
       helper = new Helper(owner);
       helper
         .project()
         .form('testTimeDate', testTimeDate.formWithTimeDateWithSubmission.components)
         .submission({
           data: {
-                dateTime: submissionDate
-          }
+            dateTime: submissionDate,
+          },
         })
         .execute((err) => {
           if (err) {
@@ -464,19 +472,22 @@ module.exports = function (app, template, hook) {
       const currentDate = moment().utc().seconds(0).milliseconds(0);
       const submissionDate = currentDate.format('YYYY-MM-DDTHH:mm:ssZ');
       const formattedDate = currentDate.format('YYYY-MM-DDTHH:mm:ss.SSS[Z]');
-      let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      let owner = app.hasProjects || docker ? template.formio.owner : template.users.admin;
       helper = new Helper(owner);
       helper
         .project()
-        .form('testTimeDateInEditGrid', testTimeDate.testDateTimeWithSubmissionInEditGrid.components)
+        .form(
+          'testTimeDateInEditGrid',
+          testTimeDate.testDateTimeWithSubmissionInEditGrid.components,
+        )
         .submission({
           data: {
             editGrid: [
               {
-                dateTime: submissionDate
-              }
-            ]
-          }
+                dateTime: submissionDate,
+              },
+            ],
+          },
         })
         .execute((err) => {
           if (err) {
@@ -498,7 +509,7 @@ module.exports = function (app, template, hook) {
 
   describe('Nested form CSV export', () => {
     it('Sets up a default project', (done) => {
-      let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      let owner = app.hasProjects || docker ? template.formio.owner : template.users.admin;
       helper = new Helper(owner);
       helper.project().user('user', 'user1').execute(done);
     });
@@ -509,41 +520,43 @@ module.exports = function (app, template, hook) {
         form: {
           data: {
             name: 'Mary Jane',
-            age: 23
-          }
-        }
+            age: 23,
+          },
+        },
       },
-      state: 'submitted'
+      state: 'submitted',
     };
 
     it('Build the forms', (done) => {
-      helper.form('in', [
-        {
-          type: 'textfield',
-          key: 'name',
-          input: true,
-        },
-        {
-          type: 'number',
-          key: 'age',
-          input: true,
-        }
-      ])
+      helper
+        .form('in', [
+          {
+            type: 'textfield',
+            key: 'name',
+            input: true,
+          },
+          {
+            type: 'number',
+            key: 'age',
+            input: true,
+          },
+        ])
         .execute((err) => {
           if (err) {
             return done(err);
           }
           childForm = helper.template.forms.in;
-          helper.form('out', [
-            {
-              tableView: true,
-              form: childForm._id,
-              useOriginalRevision: false,
-              key: 'form',
-              type: 'form',
-              input: true
-            }
-          ])
+          helper
+            .form('out', [
+              {
+                tableView: true,
+                form: childForm._id,
+                useOriginalRevision: false,
+                key: 'form',
+                type: 'form',
+                input: true,
+              },
+            ])
             .execute((err) => {
               if (err) {
                 return done(err);
@@ -555,25 +568,23 @@ module.exports = function (app, template, hook) {
     });
 
     it(`Test nested form data`, (done) => {
-      helper
-        .submission(submission)
-        .execute((err) => {
-          if (err) {
-            return done(err);
+      helper.submission(submission).execute((err) => {
+        if (err) {
+          return done(err);
+        }
+        helper.getExport(parentForm, 'csv', (error, result) => {
+          if (error) {
+            done(error);
           }
-          helper.getExport(parentForm, 'csv', (error, result) => {
-            if (error) {
-              done(error);
-            }
 
-            const age = getComponentValue(result.text, 'form.age', 0);
-            const name = getComponentValue(result.text, 'form.name', 0);
+          const age = getComponentValue(result.text, 'form.age', 0);
+          const name = getComponentValue(result.text, 'form.name', 0);
 
-            assert.equal(age, '"23"');
-            assert.equal(name, '"Mary Jane"');
-            done();
-          });
+          assert.equal(age, '"23"');
+          assert.equal(name, '"Mary Jane"');
+          done();
         });
+      });
     });
   });
 };

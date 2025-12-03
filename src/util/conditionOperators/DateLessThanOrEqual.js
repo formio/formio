@@ -12,6 +12,6 @@ module.exports = class DateLessThanOrEqual extends DateGeaterThan {
   }
 
   execute(options) {
-    return super.execute(options,'isSameOrBefore');
+    return super.execute(options, 'isSameOrBefore');
   }
 };

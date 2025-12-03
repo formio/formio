@@ -15,7 +15,7 @@ let ObjectId = require('mongodb').ObjectId;
  * @param tools
  * @param done
  */
-module.exports = function(db, config, tools, done) {
+module.exports = function (db, config, tools, done) {
   let forms = db.collection('forms');
   let actions = db.collection('actions');
   let roles = db.collection('roles');
@@ -31,23 +31,27 @@ module.exports = function(db, config, tools, done) {
   let formsAndProjects = [];
 
   // Remove all auth actions that dont have settings.
-  let pruneAuthActions = function(cb) {
-    actions.deleteMany({name: 'auth', settings: {$eq: null}})
-    .then(() => cb())
-    .catch(err => cb(err));
+  let pruneAuthActions = function (cb) {
+    actions
+      .deleteMany({ name: 'auth', settings: { $eq: null } })
+      .then(() => cb())
+      .catch((err) => cb(err));
   };
 
   // Get all the forms in the platform, with their projectId's
-  let getAllForms = function(cb) {
-    forms.find({deleted: {$eq: null}}, {project: 1}).toArray()
-    .then((result) => cb(null, result))
-    .catch(err=>cb(err));
+  let getAllForms = function (cb) {
+    forms
+      .find({ deleted: { $eq: null } }, { project: 1 })
+      .toArray()
+      .then((result) => cb(null, result))
+      .catch((err) => cb(err));
   };
 
-  let filterForms = function(documents, cb) {
+  let filterForms = function (documents, cb) {
     // Map the forms for later lookups
-    allForms = _.map(documents, function(element) {
-      formsAndProjects[element._id.toString()] = formsAndProjects[element._id.toString()] || element.project.toString();
+    allForms = _.map(documents, function (element) {
+      formsAndProjects[element._id.toString()] =
+        formsAndProjects[element._id.toString()] || element.project.toString();
       return element._id.toString();
     });
 
@@ -55,18 +59,20 @@ module.exports = function(db, config, tools, done) {
   };
 
   // Get all the auth and role actions in the system.
-  let getAllActions = function(cb) {
-    let query = {deleted: {$eq: null}, $or: [{name: 'auth'}, {name: 'role'}]};
-    actions.find(query).toArray()
-    .then((result) => cb(null, result))
-    .catch(err=>cb(err));
+  let getAllActions = function (cb) {
+    let query = { deleted: { $eq: null }, $or: [{ name: 'auth' }, { name: 'role' }] };
+    actions
+      .find(query)
+      .toArray()
+      .then((result) => cb(null, result))
+      .catch((err) => cb(err));
   };
 
   // Sort the actions by formId, so we can merge Auth/Role actions on forms.
-  let filterActions = function(documents, cb) {
+  let filterActions = function (documents, cb) {
     // The formId:[actionId] pairs.
     let filteredActions = {};
-    documents.forEach(function(element) {
+    documents.forEach(function (element) {
       filteredActions[element.form.toString()] = filteredActions[element.form.toString()] || [];
       filteredActions[element.form.toString()].push(element);
     });
@@ -75,33 +81,34 @@ module.exports = function(db, config, tools, done) {
   };
 
   // Update the auth action with the given actionId, to have the roleId as the default role assignment.
-  let updateAuthenticationAction = function(actionId, roleId, cb) {
-    let query = {_id: ObjectId(actionId)};
-    let update = {$set: {'settings.role': ObjectId(roleId)}};
-    actions.updateOne(query, update)
-    .then((result) => cb(null, result))
-    .catch(err=>cb(err));
+  let updateAuthenticationAction = function (actionId, roleId, cb) {
+    let query = { _id: ObjectId(actionId) };
+    let update = { $set: { 'settings.role': ObjectId(roleId) } };
+    actions
+      .updateOne(query, update)
+      .then((result) => cb(null, result))
+      .catch((err) => cb(err));
   };
 
   // Delete the roleAction with the given actionId;
-  let deleteRoleAction = function(actionId, cb) {
-    let query = {_id: ObjectId(actionId)};
-    actions.findOneAndDelete(query)
-    .then((result) => cb(null, result))
-    .catch(err=>cb(err));
+  let deleteRoleAction = function (actionId, cb) {
+    let query = { _id: ObjectId(actionId) };
+    actions
+      .findOneAndDelete(query)
+      .then((result) => cb(null, result))
+      .catch((err) => cb(err));
   };
 
   // Condense the given actions (role and auth), to be a single authentication action.
-  let condenseActions = function(formActions, formId, cb) {
+  let condenseActions = function (formActions, formId, cb) {
     let role = null;
     let roleActionId = null;
     let authActionId = null;
-    formActions.forEach(function(action) {
+    formActions.forEach(function (action) {
       if (action.name === 'role') {
         roleActionId = action._id.toString();
-        role = (action.settings && action.settings.hasOwnProperty('role'))
-          ? action.settings.role
-          : null;
+        role =
+          action.settings && action.settings.hasOwnProperty('role') ? action.settings.role : null;
       }
       if (action.name === 'auth') {
         authActionId = action._id.toString();
@@ -117,12 +124,12 @@ module.exports = function(db, config, tools, done) {
     }
 
     // Before completing the process, add the formId to the list of already processed forms.
-    updateAuthenticationAction(authActionId, role, function(err) {
+    updateAuthenticationAction(authActionId, role, function (err) {
       if (err) {
         return cb(err);
       }
 
-      deleteRoleAction(roleActionId, function(err) {
+      deleteRoleAction(roleActionId, function (err) {
         if (err) {
           return cb(err);
         }
@@ -133,172 +140,220 @@ module.exports = function(db, config, tools, done) {
     });
   };
 
-  let processActions = function(filteredActions, cb) {
-    async.forEachOfSeries(filteredActions, function(formActions, formId, callback) {
-      if (!(formActions instanceof Array)) {
-        return callback('Expected Array, got: ' + JSON.stringify(formActions))
-      }
-      if (formActions.length > 2) {
-        return callback('The form ' + formId.toString() + ', has duplicate actions.. ' + JSON.stringify(formActions));
-      }
+  let processActions = function (filteredActions, cb) {
+    async.forEachOfSeries(
+      filteredActions,
+      function (formActions, formId, callback) {
+        if (!(formActions instanceof Array)) {
+          return callback('Expected Array, got: ' + JSON.stringify(formActions));
+        }
+        if (formActions.length > 2) {
+          return callback(
+            'The form ' +
+              formId.toString() +
+              ', has duplicate actions.. ' +
+              JSON.stringify(formActions),
+          );
+        }
 
-      if (formActions.length === 2) {
-        let association = null;
-        formActions.forEach(function(action) {
-          if (!action.settings || !action.settings.hasOwnProperty('association')) {
-            return callback('Expected the action to have association settings... ' + JSON.stringify(action));
-          }
+        if (formActions.length === 2) {
+          let association = null;
+          formActions.forEach(function (action) {
+            if (!action.settings || !action.settings.hasOwnProperty('association')) {
+              return callback(
+                'Expected the action to have association settings... ' + JSON.stringify(action),
+              );
+            }
 
-          if (association === null) {
-            association = action.settings.association;
-          }
-          else {
-            association = ((association === 'new') && (association === action.settings.association))
-              ? 'new'
-              : 'existing';
-          }
-        });
+            if (association === null) {
+              association = action.settings.association;
+            } else {
+              association =
+                association === 'new' && association === action.settings.association
+                  ? 'new'
+                  : 'existing';
+            }
+          });
 
-        // There are 2 form actions that need to be condensed.
-        if (association === 'new') {
-          console.log('Condensing: actions for form: ' + formId);
-          condenseActions(formActions, formId, function(err) {
+          // There are 2 form actions that need to be condensed.
+          if (association === 'new') {
+            console.log('Condensing: actions for form: ' + formId);
+            condenseActions(formActions, formId, function (err) {
+              if (err) {
+                return callback(err);
+              }
+
+              callback();
+            });
+          } else {
+            // We dont care about adding roles to `existing` resource options.
+            callback();
+          }
+        } else {
+          // only 1 action defined on the form (auth or role).
+          callback();
+        }
+      },
+      function (err) {
+        if (err) {
+          return cb(err);
+        }
+
+        cb();
+      },
+    );
+  };
+
+  // Find all the auth actions that have not been already migrated.
+  let findAuthActionsToMigrate = function (cb) {
+    let query = {
+      name: 'auth',
+      'settings.association': 'new',
+      form: { $nin: alreadyDone },
+      deleted: { $eq: null },
+    };
+    actions
+      .find(query)
+      .toArray()
+      .then((result) => cb(null, result))
+      .catch((err) => cb(err));
+  };
+
+  // Get the authenticated role for the project containing the given formId.
+  let getAuthenticatedRole = function (formId, cb) {
+    let proj = formsAndProjects[formId];
+
+    // Special case for boardman project.
+    if (proj === '552b2297d70ef854300001e5') {
+      let query = { title: 'Agent', project: ObjectId(proj), deleted: { $eq: null } };
+      roles
+        .find(query)
+        .toArray()
+        .then((result) => cb(null, result))
+        .catch((err) => cb(err));
+    } else {
+      let query = { title: 'Authenticated', project: ObjectId(proj), deleted: { $eq: null } };
+      roles
+        .find(query)
+        .toArray()
+        .then((result) => cb(null, result))
+        .catch((err) => cb(err));
+    }
+  };
+
+  let addRoleToAuthAction = function (actionId, roleId, cb) {
+    let query = { _id: ObjectId(actionId) };
+    let update = { $set: { 'settings.role': ObjectId(roleId.toString()) } };
+    actions
+      .updateOne(query, update)
+      .then(() => cb())
+      .catch((err) => cb(err));
+  };
+
+  // Migrate any auth actions that were not configured with role actions.
+  let migrateAuthActions = function (documents, cb) {
+    async.eachSeries(
+      documents,
+      function (action, callback) {
+        async.waterfall(
+          [
+            function (next) {
+              getAuthenticatedRole(action.form.toString(), next);
+            },
+            function (roles, next) {
+              if (!roles || (roles instanceof Array && roles.length === 0)) {
+                return next(
+                  'No roles were found for the project containing the form: ' +
+                    action.form.toString() +
+                    ', ' +
+                    JSON.stringify(roles),
+                );
+              }
+              if (roles instanceof Array && roles.length !== 1) {
+                return next(
+                  'More than one role was returned for the project... Expected 1: ' +
+                    JSON.stringify(roles),
+                );
+              }
+
+              addRoleToAuthAction(action._id.toString(), roles[0]._id.toString(), next);
+            },
+          ],
+          function (err) {
             if (err) {
               return callback(err);
             }
 
             callback();
-          });
-        }
-        else {
-          // We dont care about adding roles to `existing` resource options.
-          callback();
-        }
-      }
-      else {
-        // only 1 action defined on the form (auth or role).
-        callback();
-      }
-    }, function(err) {
-      if (err) {
-        return cb(err);
-      }
-
-      cb();
-    });
-  };
-
-  // Find all the auth actions that have not been already migrated.
-  let findAuthActionsToMigrate = function(cb) {
-    let query = {name: 'auth', 'settings.association': 'new', form: {$nin: alreadyDone}, deleted: {$eq: null}};
-    actions.find(query).toArray()
-    .then((result) => cb(null, result))
-    .catch(err=>cb(err));
-  };
-
-  // Get the authenticated role for the project containing the given formId.
-  let getAuthenticatedRole = function(formId, cb) {
-    let proj = formsAndProjects[formId];
-
-    // Special case for boardman project.
-    if (proj === '552b2297d70ef854300001e5') {
-      let query = {title: 'Agent', project: ObjectId(proj), deleted: {$eq: null}};
-      roles.find(query).toArray()
-      .then((result) => cb(null, result))
-      .catch(err=>cb(err));
-    }
-    else {
-      let query = {title: 'Authenticated', project: ObjectId(proj), deleted: {$eq: null}};
-      roles.find(query).toArray()
-      .then((result) => cb(null, result))
-      .catch(err=>cb(err));
-    }
-  };
-
-  let addRoleToAuthAction = function(actionId, roleId, cb) {
-    let query = {_id: ObjectId(actionId)};
-    let update = {$set: {'settings.role': ObjectId(roleId.toString())}};
-    actions.updateOne(query, update)
-    .then(() => cb())
-    .catch(err=>cb(err));
-  };
-
-  // Migrate any auth actions that were not configured with role actions.
-  let migrateAuthActions = function(documents, cb) {
-    async.eachSeries(documents, function(action, callback) {
-      async.waterfall([
-        function(next) {
-          getAuthenticatedRole(action.form.toString(), next)
-        },
-        function(roles, next) {
-          if (!roles || ((roles instanceof Array) && roles.length === 0)) {
-            return next('No roles were found for the project containing the form: ' + action.form.toString() + ', ' + JSON.stringify(roles));
-          }
-          if ((roles instanceof Array) && roles.length !== 1) {
-            return next('More than one role was returned for the project... Expected 1: ' + JSON.stringify(roles))
-          }
-
-          addRoleToAuthAction(action._id.toString(), roles[0]._id.toString(), next);
-        }
-      ], function(err) {
+          },
+        );
+      },
+      function (err) {
         if (err) {
-          return callback(err);
+          return cb(err);
         }
 
-        callback();
-      });
-    }, function(err) {
-      if (err) {
-        return cb(err);
-      }
-
-      cb();
-    });
+        cb();
+      },
+    );
   };
 
-  let checkMigrations = function(cb) {
-    let checkRoleActions = function(callback) {
-      actions.find({name: 'role', deleted: {$eq: null}}).toArray()
-      .then(documents => {
-        if (!documents || documents.length === 0) {
-          return callback();
-        }
-        console.log(documents.length + ' role actions remaining');
-        documents.forEach(function(doc) {
-          console.log('_id: ' + doc._id + ', form: ' + doc.form);
-        });
-        callback();
-      })
-      .catch(err => callback(err));
-    };
-
-    let checkAuthActions = function(callback) {
-      actions.find({name: 'auth', deleted: {$eq: null}, 'settings.role': {$eq: null}, 'settings.association': 'new'})
+  let checkMigrations = function (cb) {
+    let checkRoleActions = function (callback) {
+      actions
+        .find({ name: 'role', deleted: { $eq: null } })
         .toArray()
-        .then(documents => {
+        .then((documents) => {
           if (!documents || documents.length === 0) {
             return callback();
           }
-          console.log('Found ' + documents.length + ' auth actions w/ no role and `new` association, expected 0.');
-          documents.forEach(function(doc) {
+          console.log(documents.length + ' role actions remaining');
+          documents.forEach(function (doc) {
+            console.log('_id: ' + doc._id + ', form: ' + doc.form);
+          });
+          callback();
+        })
+        .catch((err) => callback(err));
+    };
+
+    let checkAuthActions = function (callback) {
+      actions
+        .find({
+          name: 'auth',
+          deleted: { $eq: null },
+          'settings.role': { $eq: null },
+          'settings.association': 'new',
+        })
+        .toArray()
+        .then((documents) => {
+          if (!documents || documents.length === 0) {
+            return callback();
+          }
+          console.log(
+            'Found ' +
+              documents.length +
+              ' auth actions w/ no role and `new` association, expected 0.',
+          );
+          documents.forEach(function (doc) {
             console.log('_id: ' + doc._id + ', form._id: ' + doc.form);
           });
           callback();
         })
-        .catch(err => callback(err));
+        .catch((err) => callback(err));
     };
 
-    let checkBothActions = function(callback) {
-      actions.find({$or: [{name: 'auth'}, {name: 'role'}], deleted: {$eq: null}})
+    let checkBothActions = function (callback) {
+      actions
+        .find({ $or: [{ name: 'auth' }, { name: 'role' }], deleted: { $eq: null } })
         .toArray()
-        .then(documents => {
+        .then((documents) => {
           if (!documents || documents.length === 0) {
             return callback();
           }
 
           let allFormIds = [];
           let formsAndActions = {};
-          documents.forEach(function(doc) {
+          documents.forEach(function (doc) {
             allFormIds.push(doc.form.toString());
 
             formsAndActions[doc.form.toString()] = formsAndActions[doc.form.toString()] || [];
@@ -306,22 +361,20 @@ module.exports = function(db, config, tools, done) {
           });
 
           allFormIds = _.uniq(allFormIds);
-          allFormIds.forEach(function(id) {
+          allFormIds.forEach(function (id) {
             if (formsAndActions[id] && formsAndActions[id].length > 1) {
-              console.log('Found unexpected form w/ auth actions and role actions, form._id: ' + id);
+              console.log(
+                'Found unexpected form w/ auth actions and role actions, form._id: ' + id,
+              );
             }
           });
 
           callback();
-
         })
-        .catch(err => callback(err));
+        .catch((err) => callback(err));
     };
 
-    async.series([
-      checkAuthActions,
-      checkBothActions
-    ], function(err) {
+    async.series([checkAuthActions, checkBothActions], function (err) {
       if (err) {
         return cb(err);
       }
@@ -331,22 +384,25 @@ module.exports = function(db, config, tools, done) {
   };
 
   // Consolidate the actions for all forms.
-  async.waterfall([
-    pruneAuthActions,
-    getAllForms,
-    filterForms,
-    getAllActions,
-    filterActions,
-    processActions,
-    findAuthActionsToMigrate,
-    migrateAuthActions,
-    checkMigrations
-  ], function(err) {
-    if (err) {
-      console.log(err);
-      return done(err);
-    }
+  async.waterfall(
+    [
+      pruneAuthActions,
+      getAllForms,
+      filterForms,
+      getAllActions,
+      filterActions,
+      processActions,
+      findAuthActionsToMigrate,
+      migrateAuthActions,
+      checkMigrations,
+    ],
+    function (err) {
+      if (err) {
+        console.log(err);
+        return done(err);
+      }
 
-    return done();
-  });
+      return done();
+    },
+  );
 };

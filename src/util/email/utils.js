@@ -18,12 +18,7 @@ const insertHtml = (html, parentId, document) => {
   }
 };
 
-const t = (
-  text,
-  language,
-  params,
-  ...args
-) => {
+const t = (text, language, params, ...args) => {
   if (!text) {
     return '';
   }
@@ -69,10 +64,7 @@ const normalizeValue = (value, component) => {
     : value;
 };
 
-const getProviderDisplayValue = (
-  address,
-  component,
-) => {
+const getProviderDisplayValue = (address, component) => {
   let displayedProperty = '';
   switch (component.provider) {
     case 'google':
@@ -91,13 +83,10 @@ const getProviderDisplayValue = (
   return _.get(address, displayedProperty, '');
 };
 
-const formatAddressValue = (
-  value,
-  component,
-) => {
+const formatAddressValue = (value, component) => {
   const normalizedValue = normalizeValue(value, component);
 
-  const {address, mode} = component.enableManualMode
+  const { address, mode } = component.enableManualMode
     ? normalizedValue
     : {
         address: normalizedValue,
@@ -111,33 +100,37 @@ const formatAddressValue = (
   }
   if (valueInManualMode) {
     if (component.manualModeViewString && address) {
-      return Evaluator.evaluate(component.manualModeViewString, {
-        address,
-        component,
-        data: value,
-      }, 'value');
+      return Evaluator.evaluate(
+        component.manualModeViewString,
+        {
+          address,
+          component,
+          data: value,
+        },
+        'value',
+      );
     }
   }
   if (address) {
     const parts = [];
     if (address.address1) {
-parts.push(address.address1);
-}
+      parts.push(address.address1);
+    }
     if (address.address2) {
-parts.push(address.address2);
-}
+      parts.push(address.address2);
+    }
     if (address.city) {
-parts.push(address.city);
-}
+      parts.push(address.city);
+    }
     if (address.state) {
-parts.push(address.state);
-}
+      parts.push(address.state);
+    }
     if (address.zip) {
-parts.push(address.zip);
-}
+      parts.push(address.zip);
+    }
     if (address.country) {
-parts.push(address.country);
-}
+      parts.push(address.country);
+    }
     return parts.join(', ');
   }
   return '';
@@ -145,8 +138,8 @@ parts.push(address.country);
 
 const formatCurrency = (component, value) => {
   if (!value) {
-return '';
-}
+    return '';
+  }
   const currency = component.currency;
   return currency
     ? Number(value).toLocaleString(undefined, {
@@ -156,14 +149,10 @@ return '';
     : value;
 };
 
-const formatDatetime = (
-  component,
-  userProvidedTimezone,
-  value,
-) => {
+const formatDatetime = (component, userProvidedTimezone, value) => {
   if (!value) {
-return '';
-}
+    return '';
+  }
   const rawFormat = component.format ?? 'yyyy-MM-dd hh:mm a';
   let format = convertFormatToMoment(rawFormat);
   format += format.match(/z$/) ? '' : ' z';
@@ -191,7 +180,7 @@ const formatTime = (component, value) => {
 };
 
 const insertGridHeader = (componentRenderContext) => {
-  const {component, data, row, parentId, paths, document, language} = componentRenderContext;
+  const { component, data, row, parentId, paths, document, language } = componentRenderContext;
   const componentIdNoLastIndex = `${parentId}-${component.key}`;
   const existingHeadValue = document.getElementById(`${componentIdNoLastIndex}-th`);
   if (!existingHeadValue) {
@@ -216,7 +205,7 @@ const insertGridHtml = (
   componentRenderContext,
   childHtml, // child row or child table
 ) => {
-  const {document, paths, directChildOfTagPad, parentId} = componentRenderContext;
+  const { document, paths, directChildOfTagPad, parentId } = componentRenderContext;
   const childRowId = `${parentId}${paths?.dataIndex ?? 0}-childRow`;
   const existingChildRow = document.getElementById(childRowId);
   const styles = directChildOfTagPad ? 'text-align: center' : 'padding: 5px 10px;';
@@ -246,7 +235,7 @@ const insertGridHtml = (
 };
 
 const insertGridRow = (value, componentRenderContext) => {
-  const {directChildOfTagPad} = componentRenderContext;
+  const { directChildOfTagPad } = componentRenderContext;
   insertGridHeader(componentRenderContext);
   const styles = directChildOfTagPad ? 'text-align: center' : 'padding: 5px 10px;';
   const childValue = `<td style="${styles}">${value}</td>`;
@@ -255,12 +244,8 @@ const insertGridRow = (value, componentRenderContext) => {
 
 // a child that is a table within a grid-based component
 // i.e. a nested form inside of an edit grid
-const insertGridChildTable = (
-  componentRenderContext,
-  rows,
-  tHead,
-) => {
-  const {componentId, directChildOfTagPad} = componentRenderContext;
+const insertGridChildTable = (componentRenderContext, rows, tHead) => {
+  const { componentId, directChildOfTagPad } = componentRenderContext;
   insertGridHeader(componentRenderContext);
   const styles = directChildOfTagPad ? 'text-align: center' : 'padding: 5px 10px;';
   const childTable = `
@@ -282,8 +267,8 @@ const insertRow = (
   label,
   noInsert, // only used by insertDataMapTable
 ) => {
-  const {component, parent, parentId, document, directChildOfGrid} = componentRenderContext;
-  const value = component?.protected ? '--- PROTECTED ---' : rawValue ?? '';
+  const { component, parent, parentId, document, directChildOfGrid } = componentRenderContext;
+  const value = component?.protected ? '--- PROTECTED ---' : (rawValue ?? '');
   if (shouldInsertGridChild(component, parent, directChildOfGrid) && !noInsert) {
     insertGridRow(value, componentRenderContext);
     return;
@@ -297,17 +282,13 @@ const insertRow = (
     </tr>
   `;
   if (noInsert) {
-return html;
-}
+    return html;
+  }
   insertHtml(html, parentId, document);
 };
 
-const insertTable = (
-  componentRenderContext,
-  rows,
-  tHead,
-) => {
-  const {component, componentId, parentId, document, parent, directChildOfGrid} =
+const insertTable = (componentRenderContext, rows, tHead) => {
+  const { component, componentId, parentId, document, parent, directChildOfGrid } =
     componentRenderContext;
   if (shouldInsertGridChild(component, parent, directChildOfGrid)) {
     insertGridChildTable(componentRenderContext, rows, tHead);
@@ -329,11 +310,8 @@ const insertTable = (
   insertHtml(html, parentId, document);
 };
 
-const insertSketchpadTable = (
-  componentRenderContext,
-  rowValue,
-) => {
-  const {component, data, row, language = 'en'} = componentRenderContext;
+const insertSketchpadTable = (componentRenderContext, rowValue) => {
+  const { component, data, row, language = 'en' } = componentRenderContext;
   const tHead =
     rowValue?.length !== 0
       ? `
@@ -343,7 +321,7 @@ const insertSketchpadTable = (
             row,
             component,
             _userInput: true,
-          })}</th>${t('complexData', language, {data, row, component})}</tr>
+          })}</th>${t('complexData', language, { data, row, component })}</tr>
         </thead>
       `
       : '';
@@ -352,11 +330,8 @@ const insertSketchpadTable = (
 
 // insert a grid-based table component
 // i.e. an edit grid, data grid, etc.
-const insertGridTable = (
-  componentRenderContext,
-  rowValue,
-) => {
-  const {component, componentId, data, row, paths, language = 'en'} = componentRenderContext;
+const insertGridTable = (componentRenderContext, rowValue) => {
+  const { component, componentId, data, row, paths, language = 'en' } = componentRenderContext;
   const tHead =
     rowValue?.length !== 0
       ? `
@@ -378,16 +353,13 @@ const insertGridTable = (
   insertTable(componentRenderContext, undefined, tHead);
 };
 
-const insertSurveyTable = (
-  componentRenderContext,
-  value,
-) => {
-  const {component, data, row, language = 'en'} = componentRenderContext;
+const insertSurveyTable = (componentRenderContext, value) => {
+  const { component, data, row, language = 'en' } = componentRenderContext;
   const tHead = `
     <thead>
       <tr>
-        <th>${t('surveyQuestion', language, {data, row, component})}</th>
-        <th>${t('surveyQuestionValue', language, {data, row, component})}</th>
+        <th>${t('surveyQuestion', language, { data, row, component })}</th>
+        <th>${t('surveyQuestionValue', language, { data, row, component })}</th>
       </tr>
     </thead>`;
   const rows = value
@@ -410,10 +382,7 @@ const insertSurveyTable = (
   insertTable(componentRenderContext, rows, tHead);
 };
 
-const insertDataMapTable = (
-  componentRenderContext,
-  value,
-) => {
+const insertDataMapTable = (componentRenderContext, value) => {
   const rows = value
     ? Object.entries(value)
         .map(([key, value]) => insertRow(componentRenderContext, value, key, true))
@@ -426,12 +395,10 @@ const convertToString = (value) => {
   if (!_.isString(value) && !_.isNil(value)) {
     try {
       return JSON.stringify(value);
-    }
-    catch (ignoreErr) {
+    } catch (ignoreErr) {
       return value;
     }
-  }
-  else {
+  } else {
     return value;
   }
 };
@@ -526,5 +493,5 @@ module.exports = {
   convertToString,
   cleanLabelTemplate,
   formioComponents,
-  getSelectTemplate
+  getSelectTemplate,
 };

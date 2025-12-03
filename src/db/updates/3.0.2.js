@@ -17,53 +17,61 @@ let ObjectId = require('mongodb').ObjectId;
  * @param tools
  * @param done
  */
-module.exports = function(db, config, tools, done) {
+module.exports = function (db, config, tools, done) {
   let actionCollection = db.collection('actions');
   let formCollection = db.collection('forms');
 
   // Find all resource actions.
-  actionCollection.find({name: 'resource'}).toArray()
-  .then(actions => {
-    async.forEachOf(actions, function(action, key, next) {
+  actionCollection
+    .find({ name: 'resource' })
+    .toArray()
+    .then((actions) => {
+      async.forEachOf(
+        actions,
+        function (action, key, next) {
+          let formId = '';
+          try {
+            formId = ObjectId(action.settings.resource);
+          } catch (err) {
+            return next();
+          }
 
-      let formId = '';
-      try {
-        formId = ObjectId(action.settings.resource);
-      }
-      catch (err) {
-        return next();
-      }
+          if (!formId) {
+            return next();
+          }
 
-      if (!formId) {
-        return next();
-      }
-
-      // Find all actions associated with the resource.
-      actionCollection.find({form: formId}).toArray()
-      .then(resourceActions => {
-        let roleAction = _.find(resourceActions, {name: 'role'});
-        if (!roleAction) {
-          actionCollection.insert({
-            title: 'Role Assignment',
-            name: 'role',
-            priority: 1,
-            handler: ['after'],
-            method: ['create'],
-            form: formId,
-            settings: {
-              association: 'new',
-              type: 'add',
-              role: action.settings.role.toString()
-            }
-          }, function() {
-            next();
-          });
-        }
-        else {
-          next();
-        }
-      });
-    }, done);
-  })
-  .catch(err => done(err));
+          // Find all actions associated with the resource.
+          actionCollection
+            .find({ form: formId })
+            .toArray()
+            .then((resourceActions) => {
+              let roleAction = _.find(resourceActions, { name: 'role' });
+              if (!roleAction) {
+                actionCollection.insert(
+                  {
+                    title: 'Role Assignment',
+                    name: 'role',
+                    priority: 1,
+                    handler: ['after'],
+                    method: ['create'],
+                    form: formId,
+                    settings: {
+                      association: 'new',
+                      type: 'add',
+                      role: action.settings.role.toString(),
+                    },
+                  },
+                  function () {
+                    next();
+                  },
+                );
+              } else {
+                next();
+              }
+            });
+        },
+        done,
+      );
+    })
+    .catch((err) => done(err));
 };

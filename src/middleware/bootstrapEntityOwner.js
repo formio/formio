@@ -13,15 +13,15 @@ const _ = require('lodash');
 module.exports = function () {
   return function bootstrapEntityOwner(req, res, next) {
     // Util to determine if we have a token to default access.
-    const tokenPresent = (_.has(req, 'token') && req.token !== null && _.has(req, 'token.user._id'));
+    const tokenPresent = _.has(req, 'token') && req.token !== null && _.has(req, 'token.user._id');
 
     // See if this request has provided an owner.
     const hasOwner = _.has(req, 'body.owner');
 
     // Confirm we are only modifying PUT/POST/PATCH requests.
-    const isPut = (req.method === 'PUT');
-    const isPatch = (req.method === 'PATCH');
-    const isPost = (req.method === 'POST');
+    const isPut = req.method === 'PUT';
+    const isPatch = req.method === 'PATCH';
+    const isPost = req.method === 'POST';
     if (!isPut && !isPost && !isPatch) {
       return next();
     }

@@ -1,33 +1,33 @@
 module.exports = {
-  type: "form",
+  type: 'form',
   components: [
     {
-      label: "Upload",
+      label: 'Upload',
       tableView: false,
-      storage: "base64",
-      fileNameTemplate: "myFilePrefix-{{fileName}}",
+      storage: 'base64',
+      fileNameTemplate: 'myFilePrefix-{{fileName}}',
       webcam: false,
       fileTypes: [
         {
-          label: "",
-          value: ""
-        }
+          label: '',
+          value: '',
+        },
       ],
       multiple: true,
-      key: "file",
-      type: "file",
-      input: true
+      key: 'file',
+      type: 'file',
+      input: true,
     },
     {
-      type: "button",
-      label: "Submit",
-      key: "submit",
+      type: 'button',
+      label: 'Submit',
+      key: 'submit',
       disableOnInvalid: true,
       input: true,
-      tableView: false
-    }
+      tableView: false,
+    },
   ],
-  title: "FIO-2834",
-  display: "form",
-  name: "fio2834",
+  title: 'FIO-2834',
+  display: 'form',
+  name: 'fio2834',
 };

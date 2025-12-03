@@ -11,6 +11,6 @@ module.exports = class IsNotDateEqual extends DateGeaterThan {
   }
 
   execute(options) {
-    return !super.execute(options,'isSame');
+    return !super.execute(options, 'isSame');
   }
 };

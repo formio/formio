@@ -32,12 +32,8 @@ module.exports = function (router) {
         description: 'Provides the Role Assignment capabilities.',
         priority: 1,
         defaults: {
-          handler: [
-            'after',
-          ],
-          method: [
-            'create',
-          ],
+          handler: ['after'],
+          method: ['create'],
         },
         access: {
           handler: false,

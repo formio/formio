@@ -8,17 +8,16 @@ const debug = require('debug')('formio:error');
 
 module.exports = (router) => {
   const hook = require('../util/hook')(router.formio);
-   
+
   const resource = ResourceFactory(
     router,
     '/form/:formId/export',
     'export',
     router.formio.mongoose.model('submission'),
     {
-      convertIds: /(^|\.)(_id|form|owner)$/
-    }
+      convertIds: /(^|\.)(_id|form|owner)$/,
+    },
   );
-   
 
   // Mount the export endpoint using the url.
   router.get('/form/:formId/export', async (req, res, next) => {
@@ -27,9 +26,7 @@ module.exports = (router) => {
     }
 
     // Get the export format.
-    const format = (req.query && req.query.format)
-      ? req.query.format.toLowerCase()
-      : 'json';
+    const format = req.query && req.query.format ? req.query.format.toLowerCase() : 'json';
 
     // Handle unknown formats.
     if (!exporters.hasOwnProperty(format)) {
@@ -48,15 +45,13 @@ module.exports = (router) => {
       if (req.headers.hasOwnProperty('x-query')) {
         try {
           query = JSON.parse(req.headers['x-query']);
-        }
-        catch (e) {
+        } catch (e) {
           debug(e);
           router.formio.util.log(e);
         }
-      }
-      else {
+      } else {
         query = resource.getFindQuery(req, {
-          queryFilter: true
+          queryFilter: true,
         });
       }
 
@@ -65,18 +60,17 @@ module.exports = (router) => {
 
       // Only show non-deleted items unless specified
       if (query && !query.hasOwnProperty('deleted')) {
-        query.deleted = {$eq: null};
+        query.deleted = { $eq: null };
       }
 
       // Function for populate pages in wizard
       const populateWizardComponents = (components, callback) => {
-        return components.map(page => {
-          return callback(page.components)
-                  .then(result => {
-                    page.components = result;
+        return components.map((page) => {
+          return callback(page.components).then((result) => {
+            page.components = result;
 
-                    return page;
-                  });
+            return page;
+          });
         });
       };
 
@@ -89,31 +83,33 @@ module.exports = (router) => {
           return Promise.resolve(components);
         }
         components.noRecurse = true;
-        const newComponents = components.map(component => {
+        const newComponents = components.map((component) => {
           if (component.type === 'form' && component.form) {
-            const subForm = router.formio.mongoose.models.form.findById(component.form)
-              .select('-_id -owner -_vid -__v').lean();
+            const subForm = router.formio.mongoose.models.form
+              .findById(component.form)
+              .select('-_id -owner -_vid -__v')
+              .lean();
 
-            return subForm.then(resultForm => {
+            return subForm.then((resultForm) => {
               resultForm.label = component.label;
               resultForm.key = component.key;
 
               if (resultForm.display === 'wizard') {
-                const subformComponents = populateWizardComponents(resultForm.components, getSubForms);
+                const subformComponents = populateWizardComponents(
+                  resultForm.components,
+                  getSubForms,
+                );
 
-                return Promise.all(subformComponents)
-                  .then(result => {
-                    resultForm.components = result;
-                    return resultForm;
-                  });
-              }
-              else {
-                return getSubForms(resultForm.components)
-                  .then(res => {
-                    resultForm.components = res;
+                return Promise.all(subformComponents).then((result) => {
+                  resultForm.components = result;
+                  return resultForm;
+                });
+              } else {
+                return getSubForms(resultForm.components).then((res) => {
+                  resultForm.components = res;
 
-                    return resultForm;
-                  });
+                  return resultForm;
+                });
               }
             });
           }
@@ -124,15 +120,13 @@ module.exports = (router) => {
       };
 
       // Replace form components to populated subforms
-       
+
       if (form.display === 'wizard') {
         const components = populateWizardComponents(form.components, getSubForms);
         form.components = await Promise.all(components);
-      }
-      else {
+      } else {
         form.components = await getSubForms(form.components);
       }
-       
 
       // Create the exporter.
       const exporter = new exporters[format](form, req, res);
@@ -144,7 +138,8 @@ module.exports = (router) => {
         }
 
         // Initialize the exporter.
-        exporter.init()
+        exporter
+          .init()
           .then(async () => {
             const submissionModel = req.submissionModel || router.formio.resources.submission.model;
             const addSubData = async (data) => {
@@ -157,27 +152,33 @@ module.exports = (router) => {
                 if (field && field._id) {
                   // Add data property for resource fields
                   promises.push(
-                    submissionModel.findById(field._id).populate('form').select('form data')
-                      .then(result => {
+                    submissionModel
+                      .findById(field._id)
+                      .populate('form')
+                      .select('form data')
+                      .then((result) => {
                         if (!result) {
                           return;
                         }
 
                         // Recurse for nested resources
-                        return addSubData(result.data)
-                          .then(res => newData[key] = {data: res});
+                        return addSubData(result.data).then(
+                          (res) => (newData[key] = { data: res }),
+                        );
                       })
                       .catch((error) => {
                         debug(error);
                         newData[key] = field;
-                      })
+                      }),
                   );
-                }
-                else {
-                  if (req.encryptedComponents && Object.keys(req.encryptedComponents).includes(key) && field) {
+                } else {
+                  if (
+                    req.encryptedComponents &&
+                    Object.keys(req.encryptedComponents).includes(key) &&
+                    field
+                  ) {
                     newData[key] = hook.alter('decrypt', req, field);
-                  }
-                  else {
+                  } else {
                     newData[key] = field;
                   }
                 }
@@ -193,23 +194,29 @@ module.exports = (router) => {
             }
 
             // Create the query stream.
-            const cursor = submissionModel.find(hook.alter('submissionQuery', query, req))
-              .sort('-created').lean().cursor();
+            const cursor = submissionModel
+              .find(hook.alter('submissionQuery', query, req))
+              .sort('-created')
+              .lean()
+              .cursor();
             const promises = [];
 
-            const stream = cursor.pipe(through(function(row) {
-              // Doesn`t write to stream before promise resolve
-              this.pause();
-             promises.push(
-              addSubData(row.data).then((data) => {
-                row.data = data;
-                // Resumes writing to stream
-                this.resume();
-                router.formio.util.removeProtectedFields(form, 'export', row);
-                this.queue(row);
-              })
-             );
-            }), {end: false});
+            const stream = cursor.pipe(
+              through(function (row) {
+                // Doesn`t write to stream before promise resolve
+                this.pause();
+                promises.push(
+                  addSubData(row.data).then((data) => {
+                    row.data = data;
+                    // Resumes writing to stream
+                    this.resume();
+                    router.formio.util.removeProtectedFields(form, 'export', row);
+                    this.queue(row);
+                  }),
+                );
+              }),
+              { end: false },
+            );
             // If the DB cursor throws an error, send the error.
             cursor.on('error', (error) => {
               debug(error);
@@ -218,7 +225,9 @@ module.exports = (router) => {
             });
             // When the DB cursor ends, allow the output stream a tick to perform the last write,
             // then manually end it by pushing a null item to the output stream's queue
-            cursor.on('end',() => Promise.all(promises).then(() => process.nextTick(() => stream.queue(null))));
+            cursor.on('end', () =>
+              Promise.all(promises).then(() => process.nextTick(() => stream.queue(null))),
+            );
             // Create the stream.
             return exporter.stream(stream);
           })
@@ -227,8 +236,7 @@ module.exports = (router) => {
             next(error);
           });
       });
-    }
-    catch (ignoreErr) {
+    } catch (ignoreErr) {
       return res.sendStatus(401);
     }
   });

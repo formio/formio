@@ -12,9 +12,7 @@ class JSONExporter extends Exporter {
   }
 
   stream(stream) {
-    return stream
-      .pipe(JSONStream.stringify())
-      .pipe(this.res);
+    return stream.pipe(JSONStream.stringify()).pipe(this.res);
   }
 }
 

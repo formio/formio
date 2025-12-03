@@ -33,22 +33,18 @@ module.exports = (router) => {
     }
 
     // Build the query, using either the subId or forms array.
-    const query = {deleted: {$eq: null}};
+    const query = { deleted: { $eq: null } };
     if (subId) {
       query._id = util.idToBson(subId);
-    }
-    else {
+    } else {
       forms = forms.map(util.idToBson);
-      query.form = {$in: forms};
+      query.form = { $in: forms };
     }
 
     const submissionModel = req.submissionModel || router.formio.resources.submission.model;
-    return submissionModel.updateMany(
-      hook.alter('submissionQuery', query, req),
-      {
-        deleted: Date.now()
-      }
-    );
+    return submissionModel.updateMany(hook.alter('submissionQuery', query, req), {
+      deleted: Date.now(),
+    });
   }
 
   /**
@@ -75,27 +71,24 @@ module.exports = (router) => {
       forms = [forms];
     }
 
-    const query = {deleted: {$eq: null}};
+    const query = { deleted: { $eq: null } };
     if (actionId) {
       query._id = util.idToBson(actionId);
       query.form = util.idToBson(req.formId);
 
-      const actions  = await router.formio.actions.model.find(query).exec();
+      const actions = await router.formio.actions.model.find(query).exec();
 
       if (!actions || !actions.length) {
         throw Error('Could not find the action');
       }
-    }
-    else {
+    } else {
       forms = forms.map(util.idToBson);
-      query.form = {$in: forms};
+      query.form = { $in: forms };
     }
 
-    return router.formio.actions.model.updateMany(
-      query,
-      {
-        deleted: Date.now(),
-      });
+    return router.formio.actions.model.updateMany(query, {
+      deleted: Date.now(),
+    });
   }
 
   /**
@@ -115,17 +108,16 @@ module.exports = (router) => {
       return Promise.resolve();
     }
 
-    const query = {_id: util.idToBson(formId), deleted: {$eq: null}};
-    return router.formio.resources.form.model.updateOne(
-      query,
-      {$set: {
-        deleted: Date.now(),
-      }}
-      )
-    .then(()=> Promise.all([
-      deleteAction(null, formId, req),
-      deleteSubmission(null, formId, req),
-    ]));
+    const query = { _id: util.idToBson(formId), deleted: { $eq: null } };
+    return router.formio.resources.form.model
+      .updateOne(query, {
+        $set: {
+          deleted: Date.now(),
+        },
+      })
+      .then(() =>
+        Promise.all([deleteAction(null, formId, req), deleteSubmission(null, formId, req)]),
+      );
   }
 
   /**
@@ -155,44 +147,54 @@ module.exports = (router) => {
       // Build the or query on accessTypes.
       const accessTypes = ['access', 'submissionAccess'];
       const or = accessTypes.map((accessType) => ({
-        [`${accessType}.roles`]: util.idToBson(roleId)
+        [`${accessType}.roles`]: util.idToBson(roleId),
       }));
 
       // Build the search query, and allow anyone to hook it.
-      const query = await hook.alter('formQuery', {
-        _id: {$in: formIds.map(util.idToBson)},
-        $or: or,
-      }, req);
+      const query = await hook.alter(
+        'formQuery',
+        {
+          _id: { $in: formIds.map(util.idToBson) },
+          $or: or,
+        },
+        req,
+      );
 
-      return router.formio.resources.form.model.find(query).exec()
-      .then((forms) => {
-        if (!forms || forms.length === 0) {
-          return Promise.resolve();
-        }
-
-        // Iterate each form and remove the role.
-        return Promise.all(forms.map((form) => {
-          const update = {};
-          // Iterate each access type to remove the role.
-          for (const accessType of accessTypes) {
-            const accesses = form.toObject()[accessType] || [];
-
-            // Iterate the roles for each permission type, and remove the given roleId.
-            for (const access of accesses) {
-              access.roles = (access.roles || [])
-                .map(util.idToString)
-                .filter((role) => role !== roleId)
-                .map(util.idToBson);
-            }
-            update[accessType]= accesses;
+      return router.formio.resources.form.model
+        .find(query)
+        .exec()
+        .then((forms) => {
+          if (!forms || forms.length === 0) {
+            return Promise.resolve();
           }
 
-         return router.formio.resources.form.model.updateOne({
-            _id: form._id
-          },
-          {$set: update});
-        }));
-      });
+          // Iterate each form and remove the role.
+          return Promise.all(
+            forms.map((form) => {
+              const update = {};
+              // Iterate each access type to remove the role.
+              for (const accessType of accessTypes) {
+                const accesses = form.toObject()[accessType] || [];
+
+                // Iterate the roles for each permission type, and remove the given roleId.
+                for (const access of accesses) {
+                  access.roles = (access.roles || [])
+                    .map(util.idToString)
+                    .filter((role) => role !== roleId)
+                    .map(util.idToBson);
+                }
+                update[accessType] = accesses;
+              }
+
+              return router.formio.resources.form.model.updateOne(
+                {
+                  _id: form._id,
+                },
+                { $set: update },
+              );
+            }),
+          );
+        });
     }
 
     /**
@@ -204,38 +206,34 @@ module.exports = (router) => {
     function removeFromSubmissions(formIds) {
       // Find all submissions that contain the role in its roles.
       const query = {
-        form: {$in: formIds.map(util.idToBson)},
-        deleted: {$eq: null},
+        form: { $in: formIds.map(util.idToBson) },
+        deleted: { $eq: null },
         roles: util.idToBson(roleId),
       };
       const submissionModel = req.submissionModel || router.formio.resources.submission.model;
 
-      submissionModel.updateMany(
-        hook.alter('submissionQuery', query, req),
-        {
-          $pull: {roles: roleId}
-        }
-      );
+      submissionModel.updateMany(hook.alter('submissionQuery', query, req), {
+        $pull: { roles: roleId },
+      });
     }
 
     // Build the search query and allow anyone to hook it.
-    const query = await hook.alter('formQuery', {deleted: {$eq: null}}, req);
+    const query = await hook.alter('formQuery', { deleted: { $eq: null } }, req);
 
-    return router.formio.resources.form.model.find(query).select('_id').lean().exec()
+    return router.formio.resources.form.model
+      .find(query)
+      .select('_id')
+      .lean()
+      .exec()
       .then((forms) => {
         if (!forms) {
           return Promise.resolve();
         }
 
         // update the list of formIds
-        const formIds = forms
-          .map((form) => form._id)
-          .map(util.idToString);
+        const formIds = forms.map((form) => form._id).map(util.idToString);
 
-        return Promise.all([
-          removeFromForm(formIds),
-          removeFromSubmissions(formIds),
-        ]);
+        return Promise.all([removeFromForm(formIds), removeFromSubmissions(formIds)]);
       });
   }
 
@@ -256,15 +254,13 @@ module.exports = (router) => {
       return Promise.resolve();
     }
 
-    const query = {_id: util.idToBson(roleId), deleted: {$eq: null}};
+    const query = { _id: util.idToBson(roleId), deleted: { $eq: null } };
 
-    return router.formio.resources.role.model.updateMany(
-      query,
-      {
-        deleted: Date.now()
-      }
-    )
-    .then(() => deleteRoleAccess(roleId, req));
+    return router.formio.resources.role.model
+      .updateMany(query, {
+        deleted: Date.now(),
+      })
+      .then(() => deleteRoleAccess(roleId, req));
   }
 
   /**

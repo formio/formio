@@ -5,14 +5,7 @@ import globals from 'globals';
 /** @type {import("eslint").Linter.Config} */
 export default [
   {
-    ignores: [
-      'test/',
-      'app/',
-      'portal/',
-      'src/db/updates/',
-      'src/vm/bundles/',
-      'node_modules/',
-    ],
+    ignores: ['test/', 'app/', 'portal/', 'src/db/updates/', 'src/vm/bundles/', 'node_modules/'],
   },
   js.configs.recommended,
   eslintConfigPrettier,

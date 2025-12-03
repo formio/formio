@@ -3,14 +3,10 @@ import react from '@vitejs/plugin-react';
 import { ViteUserConfig } from 'vitest/config';
 
 export default defineConfig({
-  plugins: [
-    react() as ViteUserConfig['plugins'],
-  ],
+  plugins: [react() as ViteUserConfig['plugins']],
   test: {
     globals: true,
     environment: 'jsdom',
-    setupFiles: [
-      './test/setup.ts',
-    ],
+    setupFiles: ['./test/setup.ts'],
   },
 });

@@ -546,9 +546,7 @@ module.exports = function (router) {
                 if (subs[dataId] && _.isArray(subs[dataId])) {
                   subs[dataId].push(subInfo);
                 } else {
-                  subs[dataId] = [
-                    subInfo,
-                  ];
+                  subs[dataId] = [subInfo];
                 }
               }
             }

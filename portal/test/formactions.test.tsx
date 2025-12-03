@@ -11,7 +11,7 @@ import App from '../src/components/App';
 const server = setupServer(
   http.get('http://localhost:3002/current', () => {
     return HttpResponse.json({});
-  })
+  }),
 );
 
 beforeAll(() => {
@@ -25,7 +25,7 @@ beforeEach(() => {
       <InfoPanelProvider>
         <App />
       </InfoPanelProvider>
-    </FormioProvider>
+    </FormioProvider>,
   );
 });
 
@@ -41,8 +41,8 @@ test('Clicking on Form Actions tab takes you to /actions page', async () => {
             title: 'test',
             path: 'test',
             type: 'form',
-            display: 'form'
-          }
+            display: 'form',
+          },
         ]);
       } else {
         return HttpResponse.json([]);
@@ -55,7 +55,7 @@ test('Clicking on Form Actions tab takes you to /actions page', async () => {
         title: 'test',
         path: 'test',
         type: 'form',
-        display: 'form'
+        display: 'form',
       });
     }),
     http.get('/form/679d387ba90ca7ccebc387a1', () => {
@@ -65,12 +65,12 @@ test('Clicking on Form Actions tab takes you to /actions page', async () => {
         title: 'test',
         path: 'test',
         type: 'form',
-        display: 'form'
+        display: 'form',
       });
     }),
     http.get('http://localhost:3002/form/679d387ba90ca7ccebc387a1/action', () => {
       return HttpResponse.json([]);
-    })
+    }),
   );
   await screen.findByText('Resources');
   await screen.findByText('Forms');
@@ -94,8 +94,8 @@ test('A request to /action on the actions page will load the actions on the page
             title: 'test',
             path: 'test',
             type: 'form',
-            display: 'form'
-          }
+            display: 'form',
+          },
         ]);
       } else {
         return HttpResponse.json([]);
@@ -108,7 +108,7 @@ test('A request to /action on the actions page will load the actions on the page
         title: 'test',
         path: 'test',
         type: 'form',
-        display: 'form'
+        display: 'form',
       });
     }),
     http.get('/form/679d387ba90ca7ccebc387a1', () => {
@@ -118,19 +118,19 @@ test('A request to /action on the actions page will load the actions on the page
         title: 'test',
         path: 'test',
         type: 'form',
-        display: 'form'
+        display: 'form',
       });
     }),
     http.get('http://localhost:3002/form/679d387ba90ca7ccebc387a1/action', () => {
       return HttpResponse.json([
         {
-          '_id': '679d387ba90ca7ccebc387a9',
-          'title': 'Save Submission',
-          'name': 'save',
-          'form': '679d387ba90ca7ccebc387a1'
-        }
+          _id: '679d387ba90ca7ccebc387a9',
+          title: 'Save Submission',
+          name: 'save',
+          form: '679d387ba90ca7ccebc387a1',
+        },
       ]);
-    })
+    }),
   );
   await screen.findByText('Resources');
   await screen.findByText('Forms');

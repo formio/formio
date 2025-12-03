@@ -41,20 +41,15 @@ module.exports = (router) => {
     };
     // Only execute if the component should save reference and conditions do not apply.
     if (
-      (component.hasOwnProperty('reference') && !component.reference)
-      || isConditionallyHidden()
-      || (component.hidden && component.clearOnHide !== false)
+      (component.hasOwnProperty('reference') && !component.reference) ||
+      isConditionallyHidden() ||
+      (component.hidden && component.clearOnHide !== false)
     ) {
       return next();
     }
 
     let url = '/form/:formId/submission';
-    if (
-      [
-        'PUT',
-        'PATCH',
-      ].includes(req.method)
-    ) {
+    if (['PUT', 'PATCH'].includes(req.method)) {
       url += '/:submissionId';
     }
     const childRes = router.formio.util.createSubResponse((err) => {

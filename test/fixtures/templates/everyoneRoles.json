@@ -62,33 +62,35 @@
           "roles": ["everyone"]
         }
       ],
-      "components": [{
-        "conditional": {
-          "eq": "",
-          "when": null,
-          "show": ""
-        },
-        "tags": [],
-        "type": "resource",
-        "defaultPermission": "",
-        "validate": {
-          "required": false
-        },
-        "clearOnHide": true,
-        "persistent": true,
-        "protected": false,
-        "multiple": false,
-        "searchFields": "",
-        "selectFields": "",
-        "template": "<span>{{ item.data }}</span>",
-        "defaultValue": "",
-        "resource": "a",
-        "placeholder": "",
-        "key": "a",
-        "label": "a",
-        "tableView": true,
-        "input": true
-      }]
+      "components": [
+        {
+          "conditional": {
+            "eq": "",
+            "when": null,
+            "show": ""
+          },
+          "tags": [],
+          "type": "resource",
+          "defaultPermission": "",
+          "validate": {
+            "required": false
+          },
+          "clearOnHide": true,
+          "persistent": true,
+          "protected": false,
+          "multiple": false,
+          "searchFields": "",
+          "selectFields": "",
+          "template": "<span>{{ item.data }}</span>",
+          "defaultValue": "",
+          "resource": "a",
+          "placeholder": "",
+          "key": "a",
+          "label": "a",
+          "tableView": true,
+          "input": true
+        }
+      ]
     },
     "c": {
       "title": "c",
@@ -99,33 +101,35 @@
       "tags": [],
       "submissionAccess": [],
       "access": [],
-      "components": [{
-        "conditional": {
-          "eq": "",
-          "when": null,
-          "show": ""
-        },
-        "tags": [],
-        "type": "resource",
-        "defaultPermission": "",
-        "validate": {
-          "required": false
-        },
-        "clearOnHide": true,
-        "persistent": true,
-        "protected": false,
-        "multiple": false,
-        "searchFields": "",
-        "selectFields": "",
-        "template": "<span>{{ item.data }}</span>",
-        "defaultValue": "",
-        "resource": "b",
-        "placeholder": "",
-        "key": "b",
-        "label": "b",
-        "tableView": true,
-        "input": true
-      }]
+      "components": [
+        {
+          "conditional": {
+            "eq": "",
+            "when": null,
+            "show": ""
+          },
+          "tags": [],
+          "type": "resource",
+          "defaultPermission": "",
+          "validate": {
+            "required": false
+          },
+          "clearOnHide": true,
+          "persistent": true,
+          "protected": false,
+          "multiple": false,
+          "searchFields": "",
+          "selectFields": "",
+          "template": "<span>{{ item.data }}</span>",
+          "defaultValue": "",
+          "resource": "b",
+          "placeholder": "",
+          "key": "b",
+          "label": "b",
+          "tableView": true,
+          "input": true
+        }
+      ]
     }
   },
   "forms": {},

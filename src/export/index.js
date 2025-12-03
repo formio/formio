@@ -2,5 +2,5 @@
 
 module.exports = {
   csv: require('./exporters/CSVExporter'),
-  json: require('./exporters/JSONExporter')
+  json: require('./exporters/JSONExporter'),
 };

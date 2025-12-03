@@ -12,15 +12,18 @@ const ProgressBar = require('progress');
  * @param tools
  * @param done
  */
-module.exports = async function(db, config, tools, done) {
+module.exports = async function (db, config, tools, done) {
   done();
   const submissions = db.collection('submissions');
   const count = await submissions.countDocuments({ deleted: { $eq: null } });
   const progress = new ProgressBar('Fixing IDs [:bar] :current/:total', { total: count });
-  await submissions.find({ deleted: { $eq: null } }).batchSize(1000).forEach(async (submission) => {
-    progress.tick();
-    if (submission && submission.data && utils.ensureIds(submission.data)) {
-      await submissions.updateOne({ _id: submission._id }, { $set: submission });
-    }
-  });
+  await submissions
+    .find({ deleted: { $eq: null } })
+    .batchSize(1000)
+    .forEach(async (submission) => {
+      progress.tick();
+      if (submission && submission.data && utils.ensureIds(submission.data)) {
+        await submissions.updateOne({ _id: submission._id }, { $set: submission });
+      }
+    });
 };

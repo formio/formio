@@ -4,8 +4,14 @@ module.exports = {
     name: 'bulkEndpointTest-upsert',
     type: 'form',
     display: 'form',
-    access: [{ type: 'create_all', roles: ['anonymous'] },   { type: 'update_all', roles: ['anonymous'] }],
-    submissionAccess: [{ type: 'create_all', roles: ['anonymous'] },   { type: 'update_all', roles: ['anonymous'] }],
+    access: [
+      { type: 'create_all', roles: ['anonymous'] },
+      { type: 'update_all', roles: ['anonymous'] },
+    ],
+    submissionAccess: [
+      { type: 'create_all', roles: ['anonymous'] },
+      { type: 'update_all', roles: ['anonymous'] },
+    ],
     components: [
       {
         label: 'TextField1',

@@ -1,6 +1,6 @@
 'use strict';
 const FormioCore = require('@formio/core');
-const {InstanceShim} = require('./InstanceShim');
+const { InstanceShim } = require('./InstanceShim');
 
 class RootShim {
   constructor(form, submission, scope) {
@@ -17,15 +17,14 @@ class RootShim {
         if (!paths) {
           paths = FormioCore.Utils.getComponentPaths(component);
         }
-        const {path, fullPath, fullLocalPath, dataPath, localDataPath} =
-          paths;
+        const { path, fullPath, fullLocalPath, dataPath, localDataPath } = paths;
         const instance = new InstanceShim(
           component,
           this,
           submission.data,
           dataPath ?? path ?? component.key,
           index,
-          this._scope
+          this._scope,
         );
         this.components.push(instance);
         if (path && !this.instanceMap[path]) {
@@ -44,7 +43,7 @@ class RootShim {
           this.instanceMap[localDataPath] = instance;
         }
       },
-      true
+      true,
     );
   }
 
@@ -55,7 +54,7 @@ class RootShim {
     if (!this.instanceMap[path]) {
       for (const key in this.instanceMap) {
         const match = key.match(new RegExp(`\\.${path}$`));
-        const lastPathSegment = match ? match[0].slice(1) : "";
+        const lastPathSegment = match ? match[0].slice(1) : '';
         if (lastPathSegment === path) {
           // set a cache for future `getComponent` calls in this lifecycle
           this.instanceMap[path] = this.instanceMap[key];
@@ -83,4 +82,4 @@ class RootShim {
   }
 }
 
-module.exports = {RootShim};
+module.exports = { RootShim };

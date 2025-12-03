@@ -9,24 +9,20 @@ const _ = require('lodash');
  * @param next
  * @returns {*}
  */
-module.exports = function(router) {
+module.exports = function (router) {
   const hook = require('../util/hook')(router.formio);
   return async function formLoader(req, res, next) {
     if (
       req.method !== 'GET' ||
       Array.isArray(res.resource.item) ||
-      (_.get(req, '__rMethod', 'get') !== 'get')
+      _.get(req, '__rMethod', 'get') !== 'get'
     ) {
       return next();
     }
 
     let shouldLoadSubForms = true;
     // Only process on GET request, and if they provide full query.
-    if (
-      !req.full ||
-      !res.resource ||
-      !res.resource.item
-    ) {
+    if (!req.full || !res.resource || !res.resource.item) {
       shouldLoadSubForms = false;
     }
 
@@ -36,8 +32,7 @@ module.exports = function(router) {
     if (shouldLoadSubForms) {
       await router.formio.cache.loadSubForms(res.resource.item, req);
       return next();
-    }
-    else {
+    } else {
       return next();
     }
   };

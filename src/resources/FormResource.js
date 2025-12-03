@@ -3,25 +3,21 @@
 const Resource = require('resourcejs');
 const _ = require('lodash');
 
-module.exports = function(router) {
+module.exports = function (router) {
   // Include the hook system.
   const hook = require('../util/hook')(router.formio);
   const util = router.formio.util;
 
   // @TODO: Fix permission check to use the new roles and permissions system.
-  const sanitizeValidations = function(req, res, next) {
-    if (
-      req.method === 'GET' &&
-      res.resource &&
-      res.resource.item
-    ) {
+  const sanitizeValidations = function (req, res, next) {
+    if (req.method === 'GET' && res.resource && res.resource.item) {
       // Make sure we do not expose private validations.
-      const checkPrivateValidation = function(form) {
+      const checkPrivateValidation = function (form) {
         if (req.isAdmin) {
           return;
         }
 
-        util.eachComponent(form.components, function(component) {
+        util.eachComponent(form.components, function (component) {
           if (component.validate && component.validate.customPrivate) {
             delete component.validate.custom;
           }
@@ -30,11 +26,10 @@ module.exports = function(router) {
 
       // Check both array of forms and objects.
       if (_.isArray(res.resource.item)) {
-        _.each(res.resource.item, function(item) {
+        _.each(res.resource.item, function (item) {
           checkPrivateValidation(item);
         });
-      }
-      else {
+      } else {
         checkPrivateValidation(res.resource.item);
       }
     }
@@ -43,12 +38,11 @@ module.exports = function(router) {
     next();
   };
 
-   
   // If the last argument is a function, hook.alter assumes it is a callback function.
   const FormResource = hook.alter('FormResource', Resource, null);
 
-  return FormResource(router, '', 'form', router.formio.mongoose.model('form'))
-    .rest(hook.alter('formRoutes', {
+  return FormResource(router, '', 'form', router.formio.mongoose.model('form')).rest(
+    hook.alter('formRoutes', {
       before: [
         (req, res, next) => {
           // Disable Patch for forms for now.
@@ -66,7 +60,7 @@ module.exports = function(router) {
           next();
         },
         router.formio.middleware.filterIdCreate,
-        router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
+        router.formio.middleware.filterMongooseExists({ field: 'deleted', isNull: true }),
         router.formio.middleware.bootstrapEntityOwner,
         router.formio.middleware.formHandler,
         router.formio.middleware.formActionHandler('before'),
@@ -88,8 +82,9 @@ module.exports = function(router) {
           before(req, res, item, next) {
             util.markModifiedParameters(item, ['components', 'properties']);
             return next();
-          }
-        }
-      }
-    }));
+          },
+        },
+      },
+    }),
+  );
 };
