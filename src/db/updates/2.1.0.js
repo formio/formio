@@ -1,6 +1,7 @@
 'use strict';
 
 let crypto = require('crypto');
+const { deriveKeyAndIv } = require('../util');
 
 /**
  * Encrypt some text
@@ -13,7 +14,8 @@ function encrypt(secret, mixed) {
     return undefined;
   }
 
-  let cipher = crypto.createCipher('aes-256-cbc', secret);
+  const { key, iv } = deriveKeyAndIv(secret);
+  const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
   let decryptedJSON = JSON.stringify(mixed);
 
   return Buffer.concat([
@@ -34,7 +36,8 @@ function decrypt(secret, cipherbuffer) {
     return undefined;
   }
 
-  let decipher = crypto.createDecipher('aes-256-cbc', secret);
+  const { key, iv } = deriveKeyAndIv(secret);
+  const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
   let decryptedJSON = Buffer.concat([
     decipher.update(cipherbuffer), // Buffer contains encrypted utf8
     decipher.final(),
