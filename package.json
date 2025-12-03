@@ -78,6 +78,7 @@
     "nyc": "^17.0.0",
     "pre-commit": "^1.2.2",
     "prettier": "^3.7.3",
+    "prettier-plugin-multiline-arrays": "^4.0.3",
     "superagent-use": "^0.1.0",
     "supertest": "^6.3.0",
     "supertest-capture-error": "^1.0.0",
