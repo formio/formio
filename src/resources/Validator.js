@@ -304,7 +304,7 @@ class Validator {
    * @param next
    *   The callback function to pass the results.
    */
-  /* eslint-disable max-statements */
+   
   async validate(submission, next) {
     debug.validator('Starting validation');
 

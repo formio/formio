@@ -159,7 +159,7 @@ module.exports = (router) => {
     catch (err) {
       return next(err);
     }
-  }, router.formio.middleware.permissionHandler, (req, res, next) => {
+  }, router.formio.middleware.permissionHandler, (req, res, _next) => {
     return res.status(200).json({
       _id: req.subId,
     });

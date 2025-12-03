@@ -43,7 +43,7 @@ module.exports = function(formio) {
      * @param next
      *   The callback function to be executed after processing.
      */
-    resolve(handler, method, req, res, next) {}
+    resolve(_handler, _method, _req, _res, _next) {}
   }
 
   /**

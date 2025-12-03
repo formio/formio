@@ -28,7 +28,7 @@ module.exports = function(router) {
       return;
     }
 
-    /* eslint-disable camelcase */
+     
     async.each(submission.access, function(permission, callback) {
       // Only process the permission if it's in the correct format.
       if (!_.has(permission, 'type') || !_.has(permission, 'resources')) {
@@ -99,7 +99,7 @@ module.exports = function(router) {
       }
 
       callback();
-    }, function(err) {
+    }, function(_err) {
       // Force all the permissions to be unique, even if an error occurred.
       access.submission.read_all = _(access.submission.read_all).uniq().value();
       access.submission.create_all = _(access.submission.create_all).uniq().value();
@@ -119,7 +119,7 @@ module.exports = function(router) {
         });
       }
     });
-    /* eslint-enable camelcase */
+     
   };
 
   const getSubmissionFieldMatchAccess = function(req, submission, access) {
@@ -258,13 +258,13 @@ module.exports = function(router) {
 
           selectValue.filter((value) => (value && value._id)).forEach(({_id}) => {
             createAccess.forEach(({roles}) => {
-              /* eslint-disable camelcase */
+               
               access.submission.create_all = (access.submission.create_all || []).concat(
                 roles.length
                   ? roles.map((role) => (`${_id}:${role}`))
                   : _id,
               );
-              /* eslint-enable camelcase */
+               
             });
           });
         }
@@ -338,7 +338,7 @@ module.exports = function(router) {
                 // If the user has update_all permissions, give them create_all access also, to compensate for the
                 // hidden availability of create_all in the formio ui.
                 if (permission.type === 'update_all') {
-                  access.submission.create_all = access.submission.create_all || []; //eslint-disable-line camelcase
+                  access.submission.create_all = access.submission.create_all || [];  
                 }
 
                 permission.roles.forEach(function(id) {
@@ -348,7 +348,7 @@ module.exports = function(router) {
                   // If the user has update_all permissions, give them create_all access also, to compensate for the
                   // hidden availability of create_all in the formio ui.
                   if (permission.type === 'update_all') {
-                    access.submission.create_all.push(id.toString()); //eslint-disable-line camelcase
+                    access.submission.create_all.push(id.toString());  
                   }
                 });
               });
@@ -551,7 +551,7 @@ module.exports = function(router) {
      * @returns boolean
      *   If the user has access to this method, with their given roles.
      */
-    /* eslint-disable max-statements */
+     
     hasAccess(req, access, entity, res) {
       const method = req.method.toUpperCase();
       let user = req.user ? util.idToString(req.user._id) : null;
@@ -683,7 +683,7 @@ module.exports = function(router) {
       // Return if they have access.
       return _hasAccess;
     }
-    /* eslint-enable max-statements */
+     
   };
 
   /**

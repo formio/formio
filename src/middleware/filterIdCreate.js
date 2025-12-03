@@ -7,7 +7,7 @@
  *
  * @returns {Function}
  */
-module.exports = router => {
+module.exports = () => {
   return function(req, res, next) {
     // Only run on create requests.
     if (req.method !== 'POST') {

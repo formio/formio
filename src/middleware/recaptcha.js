@@ -45,7 +45,7 @@ module.exports = function (router) {
       } catch (err) {
         return res.status(400).send(err.message);
       }
-    } catch (err) {
+    } catch (ignoreErr) {
       return res.status(400).send('reCAPTCHA settings not set.');
     }
   });

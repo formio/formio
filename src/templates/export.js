@@ -90,7 +90,7 @@ module.exports = (router) => {
       .lean(true)
       .exec();
 
-      _.each(actions, function(action, index) {
+      _.each(actions, function(action) {
         assignForm(_map, action);
         assignRole(_map, action.settings);
         assignResource(_map, action.settings);

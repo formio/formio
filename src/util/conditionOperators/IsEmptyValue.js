@@ -18,7 +18,6 @@ module.exports = class IsEmptyValue extends ConditionOperator {
 
   execute({
     value,
-    instance,
     component,
   }) {
     const isSimpleEmptyValue = (v) => v === null || v === undefined || v === '';

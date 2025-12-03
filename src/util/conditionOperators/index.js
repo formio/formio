@@ -89,7 +89,7 @@ const rootLevelProperties = [
         format: 'yyyy-MM-dd hh:mm a',
         hourIncrement: 1,
         minuteIncrement: 1,
-        // eslint-disable-next-line camelcase
+         
         time_24hr: false,
         minDate: null,
         disableWeekends: false,
@@ -123,7 +123,7 @@ const rootLevelProperties = [
       format: 'yyyy-MM-dd hh:mm a',
       hourIncrement: 1,
       minuteIncrement: 1,
-      // eslint-disable-next-line camelcase
+       
       time_24hr: false,
       minDate: null,
       disableWeekends: false,

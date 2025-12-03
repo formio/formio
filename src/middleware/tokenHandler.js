@@ -90,7 +90,7 @@ module.exports = (router) => {
   };
 
   return (req, res, next) => {
-    /* eslint-disable max-statements */
+     
     // If someone else provided then skip.
     if (req.user && req.token && res.token) {
       return next();
@@ -209,7 +209,7 @@ module.exports = (router) => {
           try {
             user = await cache.loadSubmission(req, formId, userId);
           }
-          catch (err) {
+          catch (ignoreErr) {
             // Couldn't load the user, try to fail safely.
             user = decoded.user;
           }

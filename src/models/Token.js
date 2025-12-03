@@ -36,7 +36,7 @@ module.exports = (formio) => {
               const result = await formio.mongoose.model('token').findOne(search).lean().exec();
               return !result;
             }
-            catch (err) {
+            catch (ignoreErr) {
               return false;
             }
           },

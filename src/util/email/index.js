@@ -1,4 +1,4 @@
-/* eslint-disable max-statements */
+ 
 'use strict';
 
 const nodemailer = require('nodemailer');
@@ -517,7 +517,7 @@ module.exports = (formio) => {
       debug.send(message);
       debug.send(emailType);
       // Get the settings.
-      const settings = await hook.settings(req); // eslint-disable-line max-statements
+      const settings = await hook.settings(req);  
       // Force the email type to custom for EMAIL_OVERRIDE which will allow
       // us to use ngrok to test emails out of test platform.
       if (EMAIL_OVERRIDE) {

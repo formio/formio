@@ -8,7 +8,7 @@
  * @param router
  * @returns {Function}
  */
-module.exports = (router) => (formio) => function(req, res, next) {
+module.exports = () => (formio) => function(req, res, next) {
   const states = {
     0: 'disconnected',
     1: 'connected',

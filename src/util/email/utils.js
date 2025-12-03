@@ -94,7 +94,6 @@ const getProviderDisplayValue = (
 const formatAddressValue = (
   value,
   component,
-  data,
 ) => {
   const normalizedValue = normalizeValue(value, component);
 
@@ -428,7 +427,7 @@ const convertToString = (value) => {
     try {
       return JSON.stringify(value);
     }
-    catch (e) {
+    catch (ignoreErr) {
       return value;
     }
   }

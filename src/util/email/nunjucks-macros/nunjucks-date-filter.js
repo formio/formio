@@ -1,4 +1,4 @@
-/* eslint-disable max-depth */
+ 
 /* global nunjucks, moment */
 'use strict';
 /**

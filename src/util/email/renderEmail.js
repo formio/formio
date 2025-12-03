@@ -1,4 +1,4 @@
-/* eslint-disable max-statements */
+ 
 'use strict';
 
 const {processSync, Evaluator} = require('@formio/core');
@@ -142,7 +142,7 @@ function renderEmailProcessorSync(context) {
       let outputValue = '';
     if (rowValue) {
       if (component.dataSrc === 'url') {
-        // eslint-disable-next-line max-depth
+         
         if (component.template && _.get(context.metadata, `selectData.${paths?.dataPath}`)) {
           const selectData = _.get(context.metadata, `selectData.${paths?.dataPath}`);
           const template = cleanLabelTemplate(component.template);
@@ -225,7 +225,7 @@ function renderEmailProcessorSync(context) {
       let outputValue = '';
       if (rowValue) {
         if (component.dataSrc === 'url') {
-          // eslint-disable-next-line max-depth
+           
           if (component.template && _.isArray(_.get(context.metadata, `selectData.${paths?.dataPath}`))) {
             const selectData = _.get(context.metadata, `selectData.${paths?.dataPath}`);
             const template = cleanLabelTemplate(component.template);
@@ -359,7 +359,6 @@ async function renderEmail({
   render,
   context = {},
   vm,
-  timeout = 500,
 }) {
   if (context._private) {
     delete context._private;

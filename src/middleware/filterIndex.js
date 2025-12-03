@@ -8,7 +8,7 @@
  *
  * @returns {Function}
  */
-module.exports = router => settings => (req, res, next) => {
+module.exports = () => settings => (req, res, next) => {
   if (
     req.method !== 'GET' ||
     !req.filterIndex ||

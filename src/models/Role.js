@@ -36,7 +36,7 @@ module.exports = function(formio) {
               const result = await formio.mongoose.model('role').findOne(search).lean().exec();
               return !result;
             }
-            catch (err) {
+            catch (ignoreErr) {
               return false;
             }
           }

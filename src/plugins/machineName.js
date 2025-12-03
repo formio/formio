@@ -3,7 +3,7 @@
 const util = require('../util/util');
 
 module.exports = (modelName, formio) => {
-  return (schema, options) => {
+  return (schema) => {
     // Add the machineName param.
     schema.add({
       machineName: {

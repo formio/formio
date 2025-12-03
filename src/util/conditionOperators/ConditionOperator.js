@@ -2,7 +2,7 @@
 
 const _ = require('lodash');
 
-/* eslint-disable no-unused-vars */
+ 
 module.exports = class ConditionOperator {
   static get operatorKey() {
     return '';

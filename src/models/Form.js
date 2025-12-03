@@ -49,7 +49,7 @@ module.exports = (formio) => {
 
   const componentShortcuts = (components) => {
     const shortcuts = [];
-    util.eachComponent(components, (component, path) => {
+    util.eachComponent(components, (component) => {
       if (component.shortcut) {
         shortcuts.push(_.capitalize(component.shortcut));
       }

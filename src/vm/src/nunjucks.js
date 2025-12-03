@@ -1,5 +1,5 @@
-/* eslint-disable max-statements */
-/* eslint-disable max-depth */
+ 
+ 
 /* global submissionTableHtml */
 'use strict';
 
@@ -282,7 +282,7 @@ const renderComponentValue = (data, key, components, noRecurse) => {
     case 'file': {
       const file = Array.isArray(compValue.value) ? compValue.value[0] : compValue.value;
       if (file) {
-        // eslint-disable-next-line max-len
+         
         compValue.value = `<a href="${file.url}" target="_blank" download="${file.originalName}">${file.originalName}</a>`;
       }
       else {
@@ -415,7 +415,7 @@ environment.addFilter('is_object', (obj) => _.isPlainObject(obj));
 
 environment.addFilter('date', dateFilter);
 
-environment.addFilter('submissionTable', (obj, components, formInstance) => {
+environment.addFilter('submissionTable', (obj, components) => {
   const view = submissionTableHtml ?? util.renderFormSubmission(obj, components);
   return new nunjucks.runtime.SafeString(view);
 });

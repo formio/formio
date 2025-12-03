@@ -5,7 +5,7 @@ const util = require('../util/util');
 const Validator = require('../resources/Validator');
 const setDefaultProperties = require('../actions/properties/setDefaultProperties');
 
-module.exports = (router, resourceName, resourceId) => {
+module.exports = (router) => {
   const hook = require('../util/hook')(router.formio);
   const fActions = require('../actions/fields')(router);
   const pActions = require('../actions/properties')(router);
@@ -204,13 +204,13 @@ module.exports = (router, resourceName, resourceId) => {
 
       // Next we need to validate the input.
       await new Promise((resolve, reject) => {
-        hook.alter('validateSubmissionForm', req.currentForm, req.body, req, async (form) => {
+        hook.alter('validateSubmissionForm', req.currentForm, req.body, req, async () => {
         // Validate the request.
         const validator = new Validator(
           req,
           router.formio
         );
-        await validator.validate(req.body, (err, data, visibleComponents) => {
+        await validator.validate(req.body, (err, data) => {
           if (req.noValidate) {
             return resolve();
           }
@@ -345,7 +345,7 @@ module.exports = (router, resourceName, resourceId) => {
     }
 
     async function alterSubmission(req, res) {
-      await new Promise((resolve, reject) => {
+      await new Promise((resolve) => {
         hook.alter('submission', req, res, async () => {
           if (
             (req.handlerName === 'afterPost') ||

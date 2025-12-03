@@ -470,7 +470,7 @@ module.exports = (router) => {
       cleanUp: (template, resources, done) => {
         const model = formio.resources.form.model;
 
-        async.forEachOf(resources, async (resource, machineName, next) => {
+        async.forEachOf(resources, async (resource, machineName, _next) => {
           if (!componentMachineNameToId(template, resource.components)) {
             return;
           }
@@ -686,7 +686,7 @@ module.exports = (router) => {
         try {
           _.assign(report.data, JSON.parse(reportDataString));
         }
-        catch (e) {
+        catch (ignoreErr) {
           return;
         }
 
@@ -837,9 +837,9 @@ module.exports = (router) => {
             if (!doc) {
               debug.install(`Existing not found (${document.machineName})`);
               setVid(document, 0);
-              /* eslint-disable new-cap */
+               
               return saveDoc(new model(document), true);
-              /* eslint-enable new-cap */
+               
             }
             else if (!createOnly) {
               debug.install(`Existing found`);
@@ -1105,7 +1105,7 @@ module.exports = (router) => {
           .then((projectId) => {
               tryToLoadComponents(missingComponents, template, projectId);
                 template = hook.alter('importOptions', template, req, res);
-                importTemplate(template, alters, (err, data) => {
+                importTemplate(template, alters, (err) => {
                   if (err) {
                     return next(err.message || err);
                   }
@@ -1115,7 +1115,7 @@ module.exports = (router) => {
       }
       else {
         template = hook.alter('importOptions', template, req, res);
-        importTemplate(template, alters, (err, data) => {
+        importTemplate(template, alters, (err) => {
           if (err) {
             return next(err.message || err);
           }

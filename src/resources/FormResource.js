@@ -43,7 +43,7 @@ module.exports = function(router) {
     next();
   };
 
-  /* eslint-disable new-cap */
+   
   // If the last argument is a function, hook.alter assumes it is a callback function.
   const FormResource = hook.alter('FormResource', Resource, null);
 

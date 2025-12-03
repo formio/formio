@@ -18,7 +18,7 @@ module.exports = async function(req, router, cb) {
     return `/${form.path}/submission`;
   };
 
-  /*eslint-disable camelcase*/
+   
   const addressComponent = function() {
     return {
       address: {
@@ -99,7 +99,7 @@ module.exports = async function(req, router, cb) {
       }
     };
   };
-  /*eslint-enable camelcase*/
+   
 
   /**
    * Set the body definition for a swagger spec.

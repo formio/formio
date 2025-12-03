@@ -6,7 +6,6 @@
 # hub.docker.com/r/_/node/
 FROM node:20-alpine3.19
 
-
 # Copy source dependencies
 COPY src/ /app/src/
 COPY config/ /app/config

@@ -1,5 +1,5 @@
 'use strict';
-
+const _ = require('lodash');
 /**
  * Middleware to sort the Mongoose query, using the provided settings,
  *
@@ -14,7 +14,7 @@ module.exports = function(router) {
   return function(settings) {
     return function sortMongooseQuery(req, res, next) {
       // Only filter on non empty objects.
-      if (typeof settings !== 'object' || settings === {}) {
+      if (typeof settings !== 'object' || _.isEmpty(settings)) {
         return next();
       }
 
