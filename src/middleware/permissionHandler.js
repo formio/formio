@@ -135,12 +135,29 @@ module.exports = function (router) {
 
     // Allowed actions for each permission level
     const permissions = {
-      read: ['read_all'],
-      create: ['create_all'],
-      update: ['update_all'],
-      delete: ['delete_all'],
-      write: ['read_all', 'create_all', 'update_all'],
-      admin: ['read_all', 'create_all', 'update_all', 'delete_all'],
+      read: [
+        'read_all',
+      ],
+      create: [
+        'create_all',
+      ],
+      update: [
+        'update_all',
+      ],
+      delete: [
+        'delete_all',
+      ],
+      write: [
+        'read_all',
+        'create_all',
+        'update_all',
+      ],
+      admin: [
+        'read_all',
+        'create_all',
+        'update_all',
+        'delete_all',
+      ],
     };
 
     const isConditionMet = (value, formFieldValue, operator) => {
@@ -172,31 +189,36 @@ module.exports = function (router) {
     };
 
     // Iterate through each permission level
-    Object.entries(req.submissionFieldMatchAccess).forEach(([permissionLevel, conditions]) => {
-      if (!Array.isArray(conditions)) {
-        return;
-      }
-      // Iterate through each condition within a permission level
-      conditions.forEach((condition) => {
-        // Get intersection of roles within condition and the user's roles
-        const rolesIntersection = _.intersectionWith(
-          condition.roles,
-          userRoles,
-          (role, userRole) => {
-            return role.toString() === userRole.toString();
-          },
-        ).map((role) => role.toString());
-
-        // If the user has a role specified in condition
-        if (rolesIntersection.length) {
-          const { formFieldPath, operator, value, valueType } = condition;
-          const formFieldValue = _.get(submission, formFieldPath);
-          if (isConditionMet(util.castValue(valueType, value), formFieldValue, operator)) {
-            grantAccess(permissionLevel, rolesIntersection);
-          }
+    Object.entries(req.submissionFieldMatchAccess).forEach(
+      ([
+        permissionLevel,
+        conditions,
+      ]) => {
+        if (!Array.isArray(conditions)) {
+          return;
         }
-      });
-    });
+        // Iterate through each condition within a permission level
+        conditions.forEach((condition) => {
+          // Get intersection of roles within condition and the user's roles
+          const rolesIntersection = _.intersectionWith(
+            condition.roles,
+            userRoles,
+            (role, userRole) => {
+              return role.toString() === userRole.toString();
+            },
+          ).map((role) => role.toString());
+
+          // If the user has a role specified in condition
+          if (rolesIntersection.length) {
+            const { formFieldPath, operator, value, valueType } = condition;
+            const formFieldValue = _.get(submission, formFieldPath);
+            if (isConditionMet(util.castValue(valueType, value), formFieldValue, operator)) {
+              grantAccess(permissionLevel, rolesIntersection);
+            }
+          }
+        });
+      },
+    );
   };
 
   /**
@@ -257,7 +279,9 @@ module.exports = function (router) {
         let selectValue = _.get(req.body.data, path);
         if (selectValue) {
           if (!Array.isArray(selectValue)) {
-            selectValue = [selectValue];
+            selectValue = [
+              selectValue,
+            ];
           }
 
           const createAccess = component.submissionAccess
@@ -366,15 +390,26 @@ module.exports = function (router) {
 
               // check for group permissions, only if creating submission (POST request)
               if (req.method === 'POST') {
-                getAccessBasedOnMethod(req, item, access, ['create', 'write', 'admin']);
+                getAccessBasedOnMethod(req, item, access, [
+                  'create',
+                  'write',
+                  'admin',
+                ]);
               }
 
               if (req.method === 'DELETE') {
-                getAccessBasedOnMethod(req, item, access, ['delete', 'admin']);
+                getAccessBasedOnMethod(req, item, access, [
+                  'delete',
+                  'admin',
+                ]);
               }
 
               if (req.method === 'PUT' || req.method === 'PATCH') {
-                getAccessBasedOnMethod(req, item, access, ['update', 'write', 'admin']);
+                getAccessBasedOnMethod(req, item, access, [
+                  'update',
+                  'write',
+                  'admin',
+                ]);
               }
 
               // Return the updated access list.
@@ -412,7 +447,9 @@ module.exports = function (router) {
               }
 
               // Default the access roles.
-              access.roles = [access.defaultRole];
+              access.roles = [
+                access.defaultRole,
+              ];
 
               // Ensure the user only has valid roles.
               if (req.user) {

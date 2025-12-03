@@ -17,7 +17,9 @@ module.exports = {
       enableRowGroups: false,
       initEmpty: false,
       tableView: false,
-      defaultValue: [{}],
+      defaultValue: [
+        {},
+      ],
       key: 'salesBySalesperson',
       type: 'datagrid',
       input: true,

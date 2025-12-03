@@ -124,11 +124,18 @@ module.exports = function (db, config, tools, done) {
           /**
            * Run the following sequence of async functions for each project, in order.
            */
-          async.series([getRoles, calculateAccess, saveProject], function (err, results) {
-            if (err) {
-              return callback(err);
-            }
-          });
+          async.series(
+            [
+              getRoles,
+              calculateAccess,
+              saveProject,
+            ],
+            function (err, results) {
+              if (err) {
+                return callback(err);
+              }
+            },
+          );
         },
         function (err) {
           if (err) {
@@ -272,7 +279,12 @@ module.exports = function (db, config, tools, done) {
            * Run the following sequence of async functions for each form, in order.
            */
           async.series(
-            [getRoles, calculateAccess, calculateSubmissionAccess, saveForm],
+            [
+              getRoles,
+              calculateAccess,
+              calculateSubmissionAccess,
+              saveForm,
+            ],
             function (err, results) {
               if (err) {
                 return callback(err);
@@ -293,11 +305,17 @@ module.exports = function (db, config, tools, done) {
   /**
    * The update process for the 2.0.1 access hotfix.
    */
-  async.series([fixProjects, fixForms], function (err, results) {
-    if (err) {
-      return done(err);
-    }
+  async.series(
+    [
+      fixProjects,
+      fixForms,
+    ],
+    function (err, results) {
+      if (err) {
+        return done(err);
+      }
 
-    done();
-  });
+      done();
+    },
+  );
 };

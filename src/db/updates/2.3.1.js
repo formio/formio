@@ -28,7 +28,11 @@ module.exports = function (db, config, tools, done) {
   };
 
   async.series(
-    [async.apply(dropOldIndex, 'name_1'), async.apply(dropOldIndex, 'name_1_1'), addNewNameIndex],
+    [
+      async.apply(dropOldIndex, 'name_1'),
+      async.apply(dropOldIndex, 'name_1_1'),
+      addNewNameIndex,
+    ],
     function (err) {
       if (err) {
         return done(err);

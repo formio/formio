@@ -5,8 +5,22 @@ module.exports = {
     path: 'bulkEndpointTest',
     type: 'form',
     display: 'form',
-    access: [{ type: 'create_all', roles: ['anonymous'] }],
-    submissionAccess: [{ type: 'create_all', roles: ['anonymous'] }],
+    access: [
+      {
+        type: 'create_all',
+        roles: [
+          'anonymous',
+        ],
+      },
+    ],
+    submissionAccess: [
+      {
+        type: 'create_all',
+        roles: [
+          'anonymous',
+        ],
+      },
+    ],
     components: [
       {
         label: 'TextField1',

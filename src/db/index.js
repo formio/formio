@@ -159,7 +159,9 @@ module.exports = function (formio) {
 
         if (key === 'ca') {
           // 'ca' can be an array if multiple CAs need to be trusted
-          certs.ca = [data];
+          certs.ca = [
+            data,
+          ];
         } else if (key === 'crl') {
           certs.crl = data;
         } else if (key === 'cert') {
@@ -550,7 +552,12 @@ module.exports = function (formio) {
       return false;
     } else if (
       semver.gt(database, code) &&
-      ['patch', 'prepatch', 'prerelease', 'minor'].indexOf(semver.diff(database, code)) === -1
+      [
+        'patch',
+        'prepatch',
+        'prerelease',
+        'minor',
+      ].indexOf(semver.diff(database, code)) === -1
     ) {
       await unlock();
       throw new Error(

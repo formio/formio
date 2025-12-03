@@ -388,7 +388,15 @@ module.exports = (router) => {
 
     const template = hook.alter(
       'defaultTemplate',
-      Object.assign(basicTemplate, _.pick(options, ['title', 'version', 'description', 'name'])),
+      Object.assign(
+        basicTemplate,
+        _.pick(options, [
+          'title',
+          'version',
+          'description',
+          'name',
+        ]),
+      ),
       options,
     );
 

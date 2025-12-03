@@ -42,19 +42,24 @@ module.exports = function (router) {
 
     // Map permissions to array of Mongo conditions
     const fieldsToCheck = Object.entries(req.submissionFieldMatchAccess)
-      .flatMap(([, conditions]) => {
-        return Array.isArray(conditions)
-          ? conditions.map((condition) => {
-              if (hasRolesIntersection(condition)) {
-                const { formFieldPath, operator, value, valueType } = condition;
+      .flatMap(
+        ([
+          ,
+          conditions,
+        ]) => {
+          return Array.isArray(conditions)
+            ? conditions.map((condition) => {
+                if (hasRolesIntersection(condition)) {
+                  const { formFieldPath, operator, value, valueType } = condition;
 
-                if (value) {
-                  return { [formFieldPath]: { [operator]: util.castValue(valueType, value) } };
+                  if (value) {
+                    return { [formFieldPath]: { [operator]: util.castValue(valueType, value) } };
+                  }
                 }
-              }
-            })
-          : [];
-      })
+              })
+            : [];
+        },
+      )
       .filter((condition) => !!condition);
 
     if (userId) {
@@ -66,7 +71,9 @@ module.exports = function (router) {
         ? {
             form: util.idToBson(req.formId),
             deleted: { $eq: null },
-            $or: [...fieldsToCheck],
+            $or: [
+              ...fieldsToCheck,
+            ],
           }
         : null;
 

@@ -29,7 +29,14 @@ module.exports = function (db, config, tools, done) {
    * @param callback
    */
   let updateProjects = function (callback) {
-    let projectChain = chain.on(['dropIndex', 'addIndex', 'addDeleted'], callback);
+    let projectChain = chain.on(
+      [
+        'dropIndex',
+        'addIndex',
+        'addDeleted',
+      ],
+      callback,
+    );
 
     projects
       .dropIndex('name_1')
@@ -111,7 +118,13 @@ module.exports = function (db, config, tools, done) {
    * The update process for the 2.2.0 access hotfix.
    */
   async.series(
-    [updateProjects, updateForms, updateRoles, updateActions, updateSubmissions],
+    [
+      updateProjects,
+      updateForms,
+      updateRoles,
+      updateActions,
+      updateSubmissions,
+    ],
     function (err, results) {
       if (err) {
         return done(err);

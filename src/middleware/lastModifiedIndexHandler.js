@@ -32,8 +32,18 @@ module.exports = function (router) {
           $project: {
             lastModified: {
               $cond: {
-                if: { $ne: ['$deleted', null] },
-                then: { $max: ['$modified', { $toDate: '$deleted' }] },
+                if: {
+                  $ne: [
+                    '$deleted',
+                    null,
+                  ],
+                },
+                then: {
+                  $max: [
+                    '$modified',
+                    { $toDate: '$deleted' },
+                  ],
+                },
                 else: '$modified',
               },
             },

@@ -67,9 +67,14 @@ module.exports = (router) => {
       }
     }
 
-    const [urlPath] = req.url.split('?');
+    const [
+      urlPath,
+    ] = req.url.split('?');
     return allowed.some((allow) => {
-      const [allowedMethod, allowedPath] = allow.split(':');
+      const [
+        allowedMethod,
+        allowedPath,
+      ] = allow.split(':');
       if (!allowedMethod || !allowedPath) {
         return false;
       }

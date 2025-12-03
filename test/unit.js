@@ -118,37 +118,47 @@ module.exports = function (app, template, hook) {
 
     it('Should render an email with all the form and submission variables.', function (done) {
       template.hooks.reset();
-      sendMessage(['test@example.com'], 'me@example.com', 'test1', '', (err, emails) => {
-        if (err) {
-          return done(err);
-        }
+      sendMessage(
+        [
+          'test@example.com',
+        ],
+        'me@example.com',
+        'test1',
+        '',
+        (err, emails) => {
+          if (err) {
+            return done(err);
+          }
 
-        let email = emails[0];
-        assert.equal(email.subject, 'New submission for Test Form.');
-        assert.equal(getLabel('firstName', email.html), 'First Name');
-        assert.equal(getValue('firstName', email.html), 'Joe');
-        assert.equal(getLabel('lastName', email.html), 'Last Name');
-        assert.equal(getValue('lastName', email.html), 'Smith');
-        assert.equal(getLabel('birthdate', email.html), 'Birth Date');
-        //assert.equal(getValue('birthdate', email.html), '2016-06-17');
+          let email = emails[0];
+          assert.equal(email.subject, 'New submission for Test Form.');
+          assert.equal(getLabel('firstName', email.html), 'First Name');
+          assert.equal(getValue('firstName', email.html), 'Joe');
+          assert.equal(getLabel('lastName', email.html), 'Last Name');
+          assert.equal(getValue('lastName', email.html), 'Smith');
+          assert.equal(getLabel('birthdate', email.html), 'Birth Date');
+          //assert.equal(getValue('birthdate', email.html), '2016-06-17');
 
-        assert.equal(
-          getValue('vehicles', email.html),
-          '<table border="1" style="width:100%"><tr><th style="padding: 5px 10px;">Make</th><th style="padding: 5px 10px;">Model</th><th style="padding: 5px 10px;">Year</th></tr><tr><td style="padding:5px 10px;">Chevy</td><td style="padding:5px 10px;">Suburban</td><td style="padding:5px 10px;">2014</td></tr><tr><td style="padding:5px 10px;">Chevy</td><td style="padding:5px 10px;">Tahoe</td><td style="padding:5px 10px;">2014</td></tr><tr><td style="padding:5px 10px;">Ford</td><td style="padding:5px 10px;">F150</td><td style="padding:5px 10px;">2011</td></tr></table>',
-        );
+          assert.equal(
+            getValue('vehicles', email.html),
+            '<table border="1" style="width:100%"><tr><th style="padding: 5px 10px;">Make</th><th style="padding: 5px 10px;">Model</th><th style="padding: 5px 10px;">Year</th></tr><tr><td style="padding:5px 10px;">Chevy</td><td style="padding:5px 10px;">Suburban</td><td style="padding:5px 10px;">2014</td></tr><tr><td style="padding:5px 10px;">Chevy</td><td style="padding:5px 10px;">Tahoe</td><td style="padding:5px 10px;">2014</td></tr><tr><td style="padding:5px 10px;">Ford</td><td style="padding:5px 10px;">F150</td><td style="padding:5px 10px;">2011</td></tr></table>',
+          );
 
-        assert.equal(
-          getValue('house', email.html),
-          '<table border="1" style="width:100%"><tr><th style="text-align:right;padding: 5px 10px;">Area</th><td style="width:100%;padding:5px 10px;">2500</td></tr><tr><th style="text-align:right;padding: 5px 10px;">Single Family</th><td style="width:100%;padding:5px 10px;">true</td></tr><tr><th style="text-align:right;padding: 5px 10px;">Rooms</th><td style="width:100%;padding:5px 10px;">Master, Bedroom, Full Bath, Half Bath, Kitchen, Dining, Living, Garage</td></tr><tr><th style="text-align:right;padding: 5px 10px;">Address</th><td style="width:100%;padding:5px 10px;">1234 Main, Hampton, AR 71744, USA</td></tr></table>',
-        );
-        done();
-      });
+          assert.equal(
+            getValue('house', email.html),
+            '<table border="1" style="width:100%"><tr><th style="text-align:right;padding: 5px 10px;">Area</th><td style="width:100%;padding:5px 10px;">2500</td></tr><tr><th style="text-align:right;padding: 5px 10px;">Single Family</th><td style="width:100%;padding:5px 10px;">true</td></tr><tr><th style="text-align:right;padding: 5px 10px;">Rooms</th><td style="width:100%;padding:5px 10px;">Master, Bedroom, Full Bath, Half Bath, Kitchen, Dining, Living, Garage</td></tr><tr><th style="text-align:right;padding: 5px 10px;">Address</th><td style="width:100%;padding:5px 10px;">1234 Main, Hampton, AR 71744, USA</td></tr></table>',
+          );
+          done();
+        },
+      );
     });
 
     it('Should render an email with content within the email.', function (done) {
       template.hooks.reset();
       sendMessage(
-        ['test@example.com'],
+        [
+          'test@example.com',
+        ],
         'me@example.com',
         'test2',
         '<p>Hello {{ data.firstName }} {{ data.lastName }}</p>',
@@ -173,7 +183,9 @@ module.exports = function (app, template, hook) {
       it('Should render an email with attached files inside containers and editFrids.', function (done) {
         template.hooks.reset();
         sendMessage(
-          ['test@example.com'],
+          [
+            'test@example.com',
+          ],
           'me@example.com',
           'test3',
           '<p>Hello</p>',

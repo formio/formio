@@ -151,7 +151,10 @@ module.exports = (formio) => {
       },
       type: {
         type: String,
-        enum: ['form', 'resource'],
+        enum: [
+          'form',
+          'resource',
+        ],
         required: true,
         default: 'form',
         description: 'The form type.',
@@ -166,23 +169,41 @@ module.exports = (formio) => {
         description: 'A custom action URL to submit the data to.',
       },
       tags: {
-        type: [String],
+        type: [
+          String,
+        ],
         index: true,
       },
       deleted: {
         type: Number,
         default: null,
       },
-      access: [formio.schemas.PermissionSchema],
-      submissionAccess: [formio.schemas.PermissionSchema],
+      access: [
+        formio.schemas.PermissionSchema,
+      ],
+      submissionAccess: [
+        formio.schemas.PermissionSchema,
+      ],
       fieldMatchAccess: {
         type: {
-          read: [formio.schemas.FieldMatchAccessPermissionSchema],
-          write: [formio.schemas.FieldMatchAccessPermissionSchema],
-          create: [formio.schemas.FieldMatchAccessPermissionSchema],
-          admin: [formio.schemas.FieldMatchAccessPermissionSchema],
-          delete: [formio.schemas.FieldMatchAccessPermissionSchema],
-          update: [formio.schemas.FieldMatchAccessPermissionSchema],
+          read: [
+            formio.schemas.FieldMatchAccessPermissionSchema,
+          ],
+          write: [
+            formio.schemas.FieldMatchAccessPermissionSchema,
+          ],
+          create: [
+            formio.schemas.FieldMatchAccessPermissionSchema,
+          ],
+          admin: [
+            formio.schemas.FieldMatchAccessPermissionSchema,
+          ],
+          delete: [
+            formio.schemas.FieldMatchAccessPermissionSchema,
+          ],
+          update: [
+            formio.schemas.FieldMatchAccessPermissionSchema,
+          ],
         },
       },
       owner: {
@@ -199,7 +220,9 @@ module.exports = (formio) => {
         },
       },
       components: {
-        type: [formio.mongoose.Schema.Types.Mixed],
+        type: [
+          formio.mongoose.Schema.Types.Mixed,
+        ],
         description: 'An array of components within the form.',
         validate: [
           {
@@ -249,7 +272,9 @@ module.exports = (formio) => {
         ],
       },
       pdfComponents: {
-        type: [formio.mongoose.Schema.Types.Mixed],
+        type: [
+          formio.mongoose.Schema.Types.Mixed,
+        ],
         description: 'An array of components within the form displayed on the PDF Download page.',
       },
       settings: {

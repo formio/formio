@@ -231,10 +231,18 @@ module.exports = (formio) => {
   const send = async (req, res, message, params, setActionItemMessage = () => {}) => {
     const setParams = (params, req, res, message) => {
       // Add the request params.
-      params.req = _.pick(req, ['user', 'token', 'params', 'query', 'body']);
+      params.req = _.pick(req, [
+        'user',
+        'token',
+        'params',
+        'query',
+        'body',
+      ]);
 
       // Add the response parameters.
-      params.res = _.pick(res, ['token']);
+      params.res = _.pick(res, [
+        'token',
+      ]);
 
       // Add the settings to the parameters.
       params.settings = message;
@@ -488,7 +496,9 @@ module.exports = (formio) => {
               // Make a copy of the email for each recipient.
               emails = addresses.map((address) => Object.assign({}, email, { to: address }));
             } else {
-              emails = [email];
+              emails = [
+                email,
+              ];
             }
 
             // debug.send(`emails: ${JSON.stringify(emails)}`);

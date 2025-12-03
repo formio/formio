@@ -24,13 +24,17 @@ module.exports = () => {
     access: [
       {
         type: 'read_all',
-        roles: ['anonymous'],
+        roles: [
+          'anonymous',
+        ],
       },
     ],
     submissionAccess: [
       {
         type: 'create_own',
-        roles: ['anonymous'],
+        roles: [
+          'anonymous',
+        ],
       },
     ],
     components: [
@@ -84,8 +88,12 @@ module.exports = () => {
     title: 'Email',
     form: 'user',
     priority: 0,
-    method: ['create'],
-    handler: ['after'],
+    method: [
+      'create',
+    ],
+    handler: [
+      'after',
+    ],
     settings: {
       transport: 'test',
       from: defaultEmail,
@@ -101,8 +109,13 @@ module.exports = () => {
     title: 'Save Submission',
     form: 'adminRegister',
     priority: 11,
-    method: ['create', 'update'],
-    handler: ['before'],
+    method: [
+      'create',
+      'update',
+    ],
+    handler: [
+      'before',
+    ],
     settings: {
       resource: 'admin',
       fields: {
@@ -117,10 +130,16 @@ module.exports = () => {
     title: 'Login',
     form: 'adminRegister',
     priority: 2,
-    method: ['create'],
-    handler: ['before'],
+    method: [
+      'create',
+    ],
+    handler: [
+      'before',
+    ],
     settings: {
-      resources: ['admin'],
+      resources: [
+        'admin',
+      ],
       username: 'email',
       password: 'password',
       allowedAttempts: 5,

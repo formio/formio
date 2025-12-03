@@ -160,11 +160,19 @@ module.exports = function (db, config, tools, done) {
       .catch((err) => callback(err));
   };
 
-  async.series([updateProjects, updateForms, updateActions, updateRoles], function (err) {
-    if (err) {
-      return done(err);
-    }
+  async.series(
+    [
+      updateProjects,
+      updateForms,
+      updateActions,
+      updateRoles,
+    ],
+    function (err) {
+      if (err) {
+        return done(err);
+      }
 
-    done();
-  });
+      done();
+    },
+  );
 };

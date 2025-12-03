@@ -35,13 +35,17 @@
       "access": [
         {
           "type": "read_all",
-          "roles": ["unknown"]
+          "roles": [
+            "unknown"
+          ]
         }
       ],
       "submissionAccess": [
         {
           "type": "create_own",
-          "roles": ["unknown"]
+          "roles": [
+            "unknown"
+          ]
         }
       ],
       "components": [

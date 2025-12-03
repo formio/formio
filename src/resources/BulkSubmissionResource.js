@@ -156,7 +156,9 @@ class BulkSubmission {
         } catch (error) {
           const details = Array.isArray(error.details)
             ? error.details
-            : [{ message: error.message || error, level: 'error', path: [] }];
+            : [
+                { message: error.message || error, level: 'error', path: [] },
+              ];
 
           details.forEach((e) => errors.push({ type: 'validator', message: e.message || e }));
         }
@@ -196,11 +198,9 @@ class BulkSubmission {
       this.formio.config.maxBulkSubmission &&
       payload.length > this.formio.config.maxBulkSubmission
     ) {
-      res
-        .status(413)
-        .json({
-          error: `Bulk submission limit exceeded. Maximum ${this.formio.config.maxBulkSubmission} submissions allowed per request.`,
-        });
+      res.status(413).json({
+        error: `Bulk submission limit exceeded. Maximum ${this.formio.config.maxBulkSubmission} submissions allowed per request.`,
+      });
       return null;
     }
 
@@ -290,7 +290,9 @@ class BulkSubmission {
 
     const failures = (err.writeErrors || []).map((e) => ({
       original: payload[validDocs[e.index]?.originalIndex],
-      errors: [{ type: 'insert', message: e.errmsg || e.message }],
+      errors: [
+        { type: 'insert', message: e.errmsg || e.message },
+      ],
       originalIndex: validDocs[e.index]?.originalIndex ?? e.index,
     }));
 
@@ -465,7 +467,9 @@ class BulkSubmission {
         }
         return res.status(400).json({
           insertedCount: 0,
-          failures: [{ error: err.message || String(err) }],
+          failures: [
+            { error: err.message || String(err) },
+          ],
         });
       }
 
@@ -482,7 +486,9 @@ class BulkSubmission {
     } catch (err) {
       return res.status(400).json({
         insertedCount: 0,
-        failures: [{ error: err.message || String(err) }],
+        failures: [
+          { error: err.message || String(err) },
+        ],
       });
     }
   }
@@ -616,6 +622,7 @@ class BulkSubmission {
     if (!this.isEnabled()) {
       return res.status(403).send('Bulk submission create feature is disabled.');
     }
+
     util.log('[submissions] Received bulk submission upsert request');
 
     const context = await this.prepareBulkSubmissionContext({ req, res, isUpsert: true });

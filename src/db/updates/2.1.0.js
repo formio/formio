@@ -16,7 +16,10 @@ function encrypt(secret, mixed) {
   let cipher = crypto.createCipher('aes-256-cbc', secret);
   let decryptedJSON = JSON.stringify(mixed);
 
-  return Buffer.concat([cipher.update(decryptedJSON), cipher.final()]);
+  return Buffer.concat([
+    cipher.update(decryptedJSON),
+    cipher.final(),
+  ]);
 }
 
 /**

@@ -34,6 +34,8 @@ RUN apk update && \
     apk add g++ && \
     apk add git
 
+RUN git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
+
 # install dependencies
 RUN npm i
 # build the client application

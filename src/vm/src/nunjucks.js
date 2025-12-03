@@ -101,7 +101,11 @@ const flattenComponentsForRender = (data, components) => {
       const hasRows = component.rows && Array.isArray(component.rows);
       let hasComps = component.components && Array.isArray(component.components);
       const autoAddress = isAutoAddress(data, component, path);
-      const isDataArray = ['datagrid', 'editgrid'].includes(component.type) || component.tree;
+      const isDataArray =
+        [
+          'datagrid',
+          'editgrid',
+        ].includes(component.type) || component.tree;
 
       // Address compoennt with manual mode disabled should not show the nested components.
       if (autoAddress) {
@@ -307,8 +311,14 @@ const renderComponentValue = (data, key, components, noRecurse) => {
 
       compValue.value += '<tbody>';
       _.forIn(value, (value, key) => {
-        const question = _.find(component.questions, ['value', key]);
-        const answer = _.find(component.values, ['value', value]);
+        const question = _.find(component.questions, [
+          'value',
+          key,
+        ]);
+        const answer = _.find(component.values, [
+          'value',
+          value,
+        ]);
 
         if (!question || !answer) {
           return;

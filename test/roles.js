@@ -213,7 +213,9 @@ module.exports = function (app, template, hook) {
         request(app)
           .patch(hook.alter('url', '/role/' + template.roles.tempRole._id, template))
           .set('x-jwt-token', template.users.admin.token)
-          .send([{ op: 'replace', path: 'default', value: false }])
+          .send([
+            { op: 'replace', path: 'default', value: false },
+          ])
           .expect(405)
           .end(done);
       });
@@ -604,7 +606,10 @@ module.exports = function (app, template, hook) {
       describe('Suite normalization', function () {
         it('Clean up the test forms', function (done) {
           async.each(
-            [f1, f2],
+            [
+              f1,
+              f2,
+            ],
             function (form, cb) {
               request(app)
                 .delete(hook.alter('url', '/form/' + form._id, template))
@@ -721,11 +726,15 @@ module.exports = function (app, template, hook) {
             submissionAccess: [
               {
                 type: 'create_all',
-                roles: ['anonymous'],
+                roles: [
+                  'anonymous',
+                ],
               },
               {
                 type: 'update_own',
-                roles: ['access-manager'],
+                roles: [
+                  'access-manager',
+                ],
               },
             ],
           },
@@ -733,8 +742,13 @@ module.exports = function (app, template, hook) {
         .action('access-manager', {
           title: 'Save Submission',
           name: 'save',
-          handler: ['before'],
-          method: ['create', 'update'],
+          handler: [
+            'before',
+          ],
+          method: [
+            'create',
+            'update',
+          ],
           priority: 11,
           settings: {},
         })
@@ -742,8 +756,12 @@ module.exports = function (app, template, hook) {
           title: 'Role Assignment',
           name: 'role',
           priority: 1,
-          handler: ['after'],
-          method: ['create'],
+          handler: [
+            'after',
+          ],
+          method: [
+            'create',
+          ],
           settings: {
             association: 'new',
             type: 'add',
@@ -754,8 +772,12 @@ module.exports = function (app, template, hook) {
           title: 'Role Assignment',
           name: 'role',
           priority: 2,
-          handler: ['after'],
-          method: ['create'],
+          handler: [
+            'after',
+          ],
+          method: [
+            'create',
+          ],
           settings: {
             association: 'new',
             type: 'add',
@@ -780,11 +802,15 @@ module.exports = function (app, template, hook) {
             submissionAccess: [
               {
                 type: 'create_all',
-                roles: ['anonymous'],
+                roles: [
+                  'anonymous',
+                ],
               },
               {
                 type: 'update_own',
-                roles: ['access-employee'],
+                roles: [
+                  'access-employee',
+                ],
               },
             ],
           },
@@ -792,8 +818,13 @@ module.exports = function (app, template, hook) {
         .action('access-employee', {
           title: 'Save Submission',
           name: 'save',
-          handler: ['before'],
-          method: ['create', 'update'],
+          handler: [
+            'before',
+          ],
+          method: [
+            'create',
+            'update',
+          ],
           priority: 11,
           settings: {},
         })
@@ -801,8 +832,12 @@ module.exports = function (app, template, hook) {
           title: 'Role Assignment',
           name: 'role',
           priority: 1,
-          handler: ['after'],
-          method: ['create'],
+          handler: [
+            'after',
+          ],
+          method: [
+            'create',
+          ],
           settings: {
             association: 'new',
             type: 'add',
@@ -827,7 +862,9 @@ module.exports = function (app, template, hook) {
             submissionAccess: [
               {
                 type: 'create_own',
-                roles: ['anonymous'],
+                roles: [
+                  'anonymous',
+                ],
               },
             ],
           },
@@ -835,11 +872,18 @@ module.exports = function (app, template, hook) {
         .action('access-login', {
           title: 'Login',
           name: 'login',
-          handler: ['before'],
-          method: ['create'],
+          handler: [
+            'before',
+          ],
+          method: [
+            'create',
+          ],
           priority: 0,
           settings: {
-            resources: ['access-manager', 'access-employee'],
+            resources: [
+              'access-manager',
+              'access-employee',
+            ],
             username: 'email',
             password: 'password',
           },
@@ -980,7 +1024,10 @@ module.exports = function (app, template, hook) {
     it('Should not allow an anonymous user to update the manager record', (done) => {
       manager.data.email = 'manager3@example.com';
       accessHelper
-        .submission('access-manager', manager, null, [/text\/plain/, 401])
+        .submission('access-manager', manager, null, [
+          /text\/plain/,
+          401,
+        ])
         .execute((err) => {
           if (err) {
             return done(err);
@@ -994,7 +1041,10 @@ module.exports = function (app, template, hook) {
     it('Should not allow an employee user to update the manager record', (done) => {
       manager.data.email = 'manager3@example.com';
       accessHelper
-        .submission('access-manager', manager, employee, [/text\/plain/, 401])
+        .submission('access-manager', manager, employee, [
+          /text\/plain/,
+          401,
+        ])
         .execute((err) => {
           if (err) {
             return done(err);
@@ -1027,7 +1077,9 @@ module.exports = function (app, template, hook) {
     });
 
     it('Should allow the manager to remove a role.', (done) => {
-      manager.roles = [accessHelper.template.roles['access-manager']._id.toString()];
+      manager.roles = [
+        accessHelper.template.roles['access-manager']._id.toString(),
+      ];
 
       accessHelper.submission('access-manager', manager, manager).execute((err) => {
         if (err) {

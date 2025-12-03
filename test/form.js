@@ -16,7 +16,10 @@ module.exports = function (app, template, hook) {
   var formio = hook.alter('formio', app.formio);
   var Helper = require('./helper')(app);
 
-  var ignoreFields = ['config', 'plan'];
+  var ignoreFields = [
+    'config',
+    'plan',
+  ];
 
   describe('Forms', function () {
     // Store the temp form for this test suite.
@@ -385,7 +388,9 @@ module.exports = function (app, template, hook) {
         request(app)
           .patch(hook.alter('url', '/form/' + template.forms.tempForm._id, template))
           .set('x-jwt-token', template.users.admin.token)
-          .send([{ op: 'replace', path: 'title', value: 'Patched' }])
+          .send([
+            { op: 'replace', path: 'title', value: 'Patched' },
+          ])
           // .expect('Content-Type', /json/)
           .expect(405)
           .end(done);
@@ -1040,7 +1045,9 @@ module.exports = function (app, template, hook) {
                   valueType: 'string',
                   value: 'test1',
                   operator: '$eq',
-                  roles: [template.roles.authenticated._id.toString()],
+                  roles: [
+                    template.roles.authenticated._id.toString(),
+                  ],
                 },
               ],
             },
@@ -1074,7 +1081,9 @@ module.exports = function (app, template, hook) {
                   valueType: 'string',
                   value: 'test1',
                   operator: '$eq',
-                  roles: [template.roles.anonymous._id.toString()],
+                  roles: [
+                    template.roles.anonymous._id.toString(),
+                  ],
                 },
               ],
             },
@@ -1529,13 +1538,17 @@ module.exports = function (app, template, hook) {
           access: [
             {
               type: 'read_all',
-              roles: [template.roles.anonymous._id.toString()],
+              roles: [
+                template.roles.anonymous._id.toString(),
+              ],
             },
           ],
           submissionAccess: [
             {
               type: 'create_own',
-              roles: [template.roles.anonymous._id.toString()],
+              roles: [
+                template.roles.anonymous._id.toString(),
+              ],
             },
           ],
           components: [
@@ -1632,13 +1645,17 @@ module.exports = function (app, template, hook) {
           access: [
             {
               type: 'read_all',
-              roles: [template.roles.anonymous._id.toString()],
+              roles: [
+                template.roles.anonymous._id.toString(),
+              ],
             },
           ],
           submissionAccess: [
             {
               type: 'create_own',
-              roles: [template.roles.anonymous._id.toString()],
+              roles: [
+                template.roles.anonymous._id.toString(),
+              ],
             },
           ],
           components: [
@@ -1826,7 +1843,9 @@ module.exports = function (app, template, hook) {
           access: [
             {
               type: 'read_all',
-              roles: [template.roles.administrator._id.toString()],
+              roles: [
+                template.roles.administrator._id.toString(),
+              ],
             },
           ],
           submissionAccess: [],
@@ -1888,7 +1907,9 @@ module.exports = function (app, template, hook) {
                 access: [
                   {
                     type: 'read_all',
-                    roles: [template.roles.administrator._id.toString()],
+                    roles: [
+                      template.roles.administrator._id.toString(),
+                    ],
                   },
                 ],
               })
@@ -3300,7 +3321,9 @@ module.exports = function (app, template, hook) {
             submissionAccess: [
               {
                 type: 'create_own',
-                roles: [template.roles.anonymous._id.toString()],
+                roles: [
+                  template.roles.anonymous._id.toString(),
+                ],
               },
             ],
             components: [
@@ -3623,7 +3646,9 @@ module.exports = function (app, template, hook) {
             submissionAccess: [
               {
                 type: 'create_own',
-                roles: [template.roles.anonymous._id.toString()],
+                roles: [
+                  template.roles.anonymous._id.toString(),
+                ],
               },
             ],
             components: [
@@ -4715,7 +4740,11 @@ module.exports = function (app, template, hook) {
               assert.equal(err.name, 'ValidationError');
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
-              assert.deepEqual(err.details[0].path, ['mydg', 0, 'foo']);
+              assert.deepEqual(err.details[0].path, [
+                'mydg',
+                0,
+                'foo',
+              ]);
               assert.equal(err.details[0].context.validator, 'custom');
               return done();
             });
@@ -4741,7 +4770,9 @@ module.exports = function (app, template, hook) {
               assert.equal(err.name, 'ValidationError');
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
-              assert.deepEqual(err.details[0].path, ['foo']);
+              assert.deepEqual(err.details[0].path, [
+                'foo',
+              ]);
               assert.equal(err.details[0].context.validator, 'custom');
 
               return done();
@@ -4904,7 +4935,10 @@ module.exports = function (app, template, hook) {
           components: [],
           settings: {
             one: 'true',
-            two: ['foo', 'bar'],
+            two: [
+              'foo',
+              'bar',
+            ],
             three: {
               foo: 'true',
               bar: 'true',

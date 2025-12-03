@@ -177,7 +177,10 @@ module.exports = function (app, template, hook) {
         helper.updateSubmission(
           updateSub,
           helper.owner,
-          [/application\/json/, 400],
+          [
+            /application\/json/,
+            400,
+          ],
           function (err, updated) {
             // It should fail validation.
             assert.equal(updated.name, 'ValidationError');
@@ -242,7 +245,13 @@ module.exports = function (app, template, hook) {
           objectval: {
             other: 'things',
           },
-          arrayVal: ['never', 'gonna', 'give', 'you', 'up'],
+          arrayVal: [
+            'never',
+            'gonna',
+            'give',
+            'you',
+            'up',
+          ],
         });
         helper
           .form('test', test.components)
@@ -299,7 +308,9 @@ module.exports = function (app, template, hook) {
                 },
                 message: 'Text Field does not match the mask.',
                 level: 'error',
-                path: ['textField'],
+                path: [
+                  'textField',
+                ],
               },
             ]);
             done();
@@ -851,7 +862,12 @@ module.exports = function (app, template, hook) {
           container1: Object.assign({}, test.submission, {
             extra: true,
             stuff: 'bad',
-            never: ['gonna', 'give', 'you', 'up'],
+            never: [
+              'gonna',
+              'give',
+              'you',
+              'up',
+            ],
           }),
         };
 
@@ -1011,7 +1027,10 @@ module.exports = function (app, template, hook) {
         ];
 
         var values = {
-          datagrid1: [test.submission, test.submission],
+          datagrid1: [
+            test.submission,
+            test.submission,
+          ],
         };
 
         helper
@@ -1113,7 +1132,9 @@ module.exports = function (app, template, hook) {
         var values = {
           datagrid1: [
             {
-              datagrid2: [test.submission],
+              datagrid2: [
+                test.submission,
+              ],
             },
           ],
         };
@@ -1172,7 +1193,9 @@ module.exports = function (app, template, hook) {
 
         var values = {
           container1: {
-            datagrid2: [test.submission],
+            datagrid2: [
+              test.submission,
+            ],
           },
         };
 
@@ -1374,7 +1397,9 @@ module.exports = function (app, template, hook) {
         ];
 
         var values = {
-          datagrid1: [test.submission],
+          datagrid1: [
+            test.submission,
+          ],
         };
 
         helper
@@ -1741,7 +1766,9 @@ module.exports = function (app, template, hook) {
                 },
                 message: 'Required Field is required',
                 level: 'error',
-                path: ['requiredField'],
+                path: [
+                  'requiredField',
+                ],
               },
             ]);
             done();
@@ -2215,7 +2242,9 @@ module.exports = function (app, template, hook) {
                 },
                 message: 'Required Field is required',
                 level: 'error',
-                path: ['requiredField'],
+                path: [
+                  'requiredField',
+                ],
               },
             ]);
             done();
@@ -2803,7 +2832,9 @@ module.exports = function (app, template, hook) {
 
             var submission = helper.getLastSubmission();
             assert.deepEqual(submission.data, {
-              textField: ['My Value'],
+              textField: [
+                'My Value',
+              ],
             });
             done();
           });
@@ -2895,7 +2926,13 @@ module.exports = function (app, template, hook) {
           },
         ];
         var values = {
-          textField: ['Never', 'gonna', 'give', 'you', 'up'],
+          textField: [
+            'Never',
+            'gonna',
+            'give',
+            'you',
+            'up',
+          ],
         };
 
         helper
@@ -2919,10 +2956,18 @@ module.exports = function (app, template, hook) {
                   setting: false,
                   path: 'textField',
                   validator: 'nonarray',
-                  value: ['Never', 'gonna', 'give', 'you', 'up'],
+                  value: [
+                    'Never',
+                    'gonna',
+                    'give',
+                    'you',
+                    'up',
+                  ],
                 },
                 message: 'Text Field must not be an array',
-                path: ['textField'],
+                path: [
+                  'textField',
+                ],
                 level: 'error',
               },
             ]);
@@ -3019,7 +3064,9 @@ module.exports = function (app, template, hook) {
             assert.equal(helper.lastResponse.body.name, 'ValidationError');
             assert.equal(helper.lastResponse.body.details.length, 1);
             assert.equal(helper.lastResponse.body.details[0].message, 'Text Field must be unique');
-            assert.deepEqual(helper.lastResponse.body.details[0].path, ['textField']);
+            assert.deepEqual(helper.lastResponse.body.details[0].path, [
+              'textField',
+            ]);
             done();
           });
       });
@@ -3063,9 +3110,13 @@ module.exports = function (app, template, hook) {
             assert.equal(helper.lastResponse.body.name, 'ValidationError');
             assert.equal(helper.lastResponse.body.details.length, 2);
             assert.equal(helper.lastResponse.body.details[0].message, 'Email must be unique');
-            assert.deepEqual(helper.lastResponse.body.details[0].path, ['email']);
+            assert.deepEqual(helper.lastResponse.body.details[0].path, [
+              'email',
+            ]);
             assert.equal(helper.lastResponse.body.details[1].message, 'Text Field must be unique');
-            assert.deepEqual(helper.lastResponse.body.details[1].path, ['textField']);
+            assert.deepEqual(helper.lastResponse.body.details[1].path, [
+              'textField',
+            ]);
             done();
           });
       });
@@ -3125,8 +3176,12 @@ module.exports = function (app, template, hook) {
               'Text Field must be an array',
             );
             assert.equal(helper.lastResponse.body.details[1].message, 'Text Field is required');
-            assert.deepEqual(helper.lastResponse.body.details[0].path, ['textField']);
-            assert.deepEqual(helper.lastResponse.body.details[1].path, ['textField']);
+            assert.deepEqual(helper.lastResponse.body.details[0].path, [
+              'textField',
+            ]);
+            assert.deepEqual(helper.lastResponse.body.details[1].path, [
+              'textField',
+            ]);
             done();
           });
       });
@@ -3170,10 +3225,16 @@ module.exports = function (app, template, hook) {
         helper
           .form('test', components)
           .submission({
-            textField: ['Foo', 'Bar'],
+            textField: [
+              'Foo',
+              'Bar',
+            ],
           })
           .submission({
-            textField: ['Bar', 'Baz'],
+            textField: [
+              'Bar',
+              'Baz',
+            ],
           })
           .execute(function (err) {
             if (err) {
@@ -3183,7 +3244,10 @@ module.exports = function (app, template, hook) {
             var submission = helper.getLastSubmission();
             assert(submission.hasOwnProperty('data'));
             assert.deepEqual(submission.data, {
-              textField: ['Bar', 'Baz'],
+              textField: [
+                'Bar',
+                'Baz',
+              ],
             });
             done();
           });
@@ -3193,7 +3257,10 @@ module.exports = function (app, template, hook) {
         helper
           .form('test', components)
           .submission({
-            textField: ['Bar', 'Foo'],
+            textField: [
+              'Bar',
+              'Foo',
+            ],
           })
           .expect(400)
           .execute(function (err) {
@@ -3205,7 +3272,9 @@ module.exports = function (app, template, hook) {
             assert.equal(helper.lastResponse.body.name, 'ValidationError');
             assert.equal(helper.lastResponse.body.details.length, 1);
             assert.equal(helper.lastResponse.body.details[0].message, 'Text Field must be unique');
-            assert.deepEqual(helper.lastResponse.body.details[0].path, ['textField']);
+            assert.deepEqual(helper.lastResponse.body.details[0].path, [
+              'textField',
+            ]);
             done();
           });
       });
@@ -3332,7 +3401,9 @@ module.exports = function (app, template, hook) {
             assert.equal(helper.lastResponse.body.name, 'ValidationError');
             assert.equal(helper.lastResponse.body.details.length, 1);
             assert.equal(helper.lastResponse.body.details[0].message, 'address must be unique');
-            assert.deepEqual(helper.lastResponse.body.details[0].path, ['for213']);
+            assert.deepEqual(helper.lastResponse.body.details[0].path, [
+              'for213',
+            ]);
             done();
           });
       });
@@ -3532,7 +3603,12 @@ module.exports = function (app, template, hook) {
                 !_.isEmpty(submission.metadata.headers),
               'Submission metadata should include post headers',
             );
-            assert.deepEqual(_.omit(submission.metadata, ['headers']), { testing: 'hello' });
+            assert.deepEqual(
+              _.omit(submission.metadata, [
+                'headers',
+              ]),
+              { testing: 'hello' },
+            );
             done();
           });
       });
@@ -3655,7 +3731,9 @@ module.exports = function (app, template, hook) {
                 helper.lastResponse.body.details[0].message,
                 'Select a fruit contains an invalid selection',
               );
-              assert.deepEqual(helper.lastResponse.body.details[0].path, ['fruit']);
+              assert.deepEqual(helper.lastResponse.body.details[0].path, [
+                'fruit',
+              ]);
               done();
             });
         });
@@ -3703,7 +3781,9 @@ module.exports = function (app, template, hook) {
                   helper.lastResponse.body.details[0].message,
                   'Select a fruit contains an invalid selection',
                 );
-                assert.deepEqual(helper.lastResponse.body.details[0].path, ['fruit']);
+                assert.deepEqual(helper.lastResponse.body.details[0].path, [
+                  'fruit',
+                ]);
                 done();
               });
           });
@@ -3735,7 +3815,9 @@ module.exports = function (app, template, hook) {
                   helper.lastResponse.body.details[0].message,
                   'Select a fruit contains an invalid selection',
                 );
-                assert.deepEqual(helper.lastResponse.body.details[0].path, ['fruit']);
+                assert.deepEqual(helper.lastResponse.body.details[0].path, [
+                  'fruit',
+                ]);
                 done();
               });
           });
@@ -3768,7 +3850,9 @@ module.exports = function (app, template, hook) {
                   submissionAccess: [
                     {
                       type: 'read_all',
-                      roles: [helper.template.roles.authenticated._id.toString()],
+                      roles: [
+                        helper.template.roles.authenticated._id.toString(),
+                      ],
                     },
                   ],
                 },
@@ -3929,7 +4013,9 @@ module.exports = function (app, template, hook) {
                   isSubmitData: false,
                   fetch: {
                     enableFetch: true,
-                    headers: [{}],
+                    headers: [
+                      {},
+                    ],
                     components: [
                       {
                         path: 'name',
@@ -3962,7 +4048,10 @@ module.exports = function (app, template, hook) {
       it('Should save the submission of the selected values', (done) => {
         helper
           .submission('fruitTable', {
-            dataTable: [{ name: 'Apple' }, { name: 'Pear' }],
+            dataTable: [
+              { name: 'Apple' },
+              { name: 'Pear' },
+            ],
           })
           .execute((err) => {
             if (err) {
@@ -3971,7 +4060,10 @@ module.exports = function (app, template, hook) {
 
             var submission = helper.getLastSubmission();
             assert.deepEqual(submission.data, {
-              dataTable: [{ name: 'Apple' }, { name: 'Pear' }],
+              dataTable: [
+                { name: 'Apple' },
+                { name: 'Pear' },
+              ],
             });
             done();
           });
@@ -4030,7 +4122,10 @@ module.exports = function (app, template, hook) {
       it('Should throw an error when the new field is not provided', (done) => {
         helper
           .submission('fruitTable', {
-            dataTable: [{ name: 'Apple' }, { name: 'Orange' }],
+            dataTable: [
+              { name: 'Apple' },
+              { name: 'Orange' },
+            ],
           })
           .expect(400)
           .execute((err) => {
@@ -4041,7 +4136,11 @@ module.exports = function (app, template, hook) {
             assert.equal(helper.lastResponse.body.name, 'ValidationError');
             assert.equal(helper.lastResponse.body.details.length, 2);
             assert.equal(helper.lastResponse.body.details[0].message, 'Color is required');
-            assert.deepEqual(helper.lastResponse.body.details[0].path, ['dataTable', 0, 'color']);
+            assert.deepEqual(helper.lastResponse.body.details[0].path, [
+              'dataTable',
+              0,
+              'color',
+            ]);
             done();
           });
       });
@@ -4183,7 +4282,9 @@ module.exports = function (app, template, hook) {
                 },
                 level: 'error',
                 message: 'Two is required',
-                path: ['changeme'],
+                path: [
+                  'changeme',
+                ],
               },
             ]);
             done();
@@ -4435,7 +4536,9 @@ module.exports = function (app, template, hook) {
                 },
                 level: 'error',
                 message: 'Test is required',
-                path: ['test'],
+                path: [
+                  'test',
+                ],
               },
             ]);
             done();
@@ -5230,7 +5333,10 @@ module.exports = function (app, template, hook) {
         form,
         payload,
         null,
-        [/application\/json/, 400],
+        [
+          /application\/json/,
+          400,
+        ],
         false,
         function (err, res) {
           assert.equal(
@@ -5250,7 +5356,10 @@ module.exports = function (app, template, hook) {
         form,
         payload,
         null,
-        [/application\/json/, 400],
+        [
+          /application\/json/,
+          400,
+        ],
         false,
         function (err, res) {
           assert.equal(
@@ -5270,7 +5379,10 @@ module.exports = function (app, template, hook) {
         form,
         payload,
         null,
-        [/application\/json/, 400],
+        [
+          /application\/json/,
+          400,
+        ],
         false,
         function (err, res) {
           assert.equal(
@@ -5296,7 +5408,10 @@ module.exports = function (app, template, hook) {
         form,
         batch,
         null,
-        [/application\/json/, 201],
+        [
+          /application\/json/,
+          201,
+        ],
         false,
         function (err, res) {
           assert.equal(helper.getLastBulkSubmission().insertedCount, batch.length);
@@ -5326,7 +5441,10 @@ module.exports = function (app, template, hook) {
         form,
         submissions,
         null,
-        [/application\/json/, 207],
+        [
+          /application\/json/,
+          207,
+        ],
         false,
         function (err, res) {
           assert.equal(helper.getLastBulkSubmission().insertedCount, 1);
@@ -5346,7 +5464,10 @@ module.exports = function (app, template, hook) {
         form,
         submissions,
         null,
-        [/application\/json/, 207],
+        [
+          /application\/json/,
+          207,
+        ],
         false,
         function (err, res) {
           assert.equal(helper.getLastBulkSubmission().insertedCount, 1);
@@ -5366,7 +5487,10 @@ module.exports = function (app, template, hook) {
         form,
         submissions,
         null,
-        [/application\/json/, 207],
+        [
+          /application\/json/,
+          207,
+        ],
         false,
         function (err, res) {
           assert.equal(helper.getLastBulkSubmission().insertedCount, 1);
@@ -5389,7 +5513,10 @@ module.exports = function (app, template, hook) {
         form,
         submissions,
         null,
-        [/application\/json/, 207],
+        [
+          /application\/json/,
+          207,
+        ],
         false,
         function (err, res) {
           assert.equal(helper.getLastBulkSubmission().insertedCount, 1);
@@ -5410,7 +5537,10 @@ module.exports = function (app, template, hook) {
         form,
         submissions,
         null,
-        [/application\/json/, 207],
+        [
+          /application\/json/,
+          207,
+        ],
         false,
         function (err, res) {
           assert.equal(helper.getLastBulkSubmission().insertedCount, 1);
@@ -5443,7 +5573,10 @@ module.exports = function (app, template, hook) {
         form,
         submissions,
         null,
-        [/application\/json/, 207],
+        [
+          /application\/json/,
+          207,
+        ],
         false,
         function (err, res) {
           assert.equal(helper.getLastBulkSubmission().insertedCount, 1);
@@ -5469,7 +5602,10 @@ module.exports = function (app, template, hook) {
         form,
         submissions,
         null,
-        [/application\/json/, 201],
+        [
+          /application\/json/,
+          201,
+        ],
         false,
         function (err, res) {
           assert.equal(helper.getLastBulkSubmission().insertedCount, 1);
@@ -5492,7 +5628,10 @@ module.exports = function (app, template, hook) {
         form,
         submissions,
         null,
-        [/application\/json/, 201],
+        [
+          /application\/json/,
+          201,
+        ],
         false,
         function (err, res) {
           assert.equal(helper.getLastBulkSubmission().insertedCount, 3);
@@ -5529,7 +5668,10 @@ module.exports = function (app, template, hook) {
         form,
         payload,
         null,
-        [/application\/json/, 400],
+        [
+          /application\/json/,
+          400,
+        ],
         true,
         function (err, res) {
           assert.equal(
@@ -5549,7 +5691,10 @@ module.exports = function (app, template, hook) {
         form,
         payload,
         null,
-        [/application\/json/, 400],
+        [
+          /application\/json/,
+          400,
+        ],
         true,
         function (err, res) {
           assert.equal(
@@ -5569,7 +5714,10 @@ module.exports = function (app, template, hook) {
         form,
         payload,
         null,
-        [/application\/json/, 400],
+        [
+          /application\/json/,
+          400,
+        ],
         true,
         function (err, res) {
           assert.equal(
@@ -5594,7 +5742,10 @@ module.exports = function (app, template, hook) {
         form,
         batch,
         null,
-        [/application\/json/, 200],
+        [
+          /application\/json/,
+          200,
+        ],
         true,
         function (err, res) {
           assert.equal(helper.getLastBulkSubmission().upsertedCount, 200);
@@ -5625,7 +5776,10 @@ module.exports = function (app, template, hook) {
         form,
         submissions,
         null,
-        [/application\/json/, 207],
+        [
+          /application\/json/,
+          207,
+        ],
         true,
         function (err, res) {
           assert.equal(helper.getLastBulkSubmission().upsertedCount, 1);
@@ -5663,7 +5817,10 @@ module.exports = function (app, template, hook) {
         form,
         payload,
         null,
-        [/application\/json/, 207],
+        [
+          /application\/json/,
+          207,
+        ],
         true,
         function (err, res) {
           assert.equal(helper.getLastBulkSubmission().upsertedCount, 1);
@@ -5694,7 +5851,10 @@ module.exports = function (app, template, hook) {
         form,
         payload,
         null,
-        [/application\/json/, 207],
+        [
+          /application\/json/,
+          207,
+        ],
         true,
         function (err, res) {
           assert.equal(helper.getLastBulkSubmission().upsertedCount, 1);
@@ -5722,7 +5882,10 @@ module.exports = function (app, template, hook) {
         form,
         payload,
         null,
-        [/application\/json/, 207],
+        [
+          /application\/json/,
+          207,
+        ],
         true,
         function (err, res) {
           assert.equal(helper.getLastBulkSubmission().upsertedCount, 1);
@@ -5754,7 +5917,10 @@ module.exports = function (app, template, hook) {
         form,
         payload,
         null,
-        [/application\/json/, 207],
+        [
+          /application\/json/,
+          207,
+        ],
         true,
         function (err, res) {
           assert.equal(helper.getLastBulkSubmission().upsertedCount, 1);
@@ -5785,7 +5951,10 @@ module.exports = function (app, template, hook) {
         form,
         payload,
         null,
-        [/application\/json/, 207],
+        [
+          /application\/json/,
+          207,
+        ],
         true,
         function (err, res) {
           assert.equal(helper.getLastBulkSubmission().upsertedCount, 1);
@@ -5823,7 +5992,10 @@ module.exports = function (app, template, hook) {
         form,
         payload,
         null,
-        [/application\/json/, 200],
+        [
+          /application\/json/,
+          200,
+        ],
         true,
         function (err, res) {
           assert.equal(helper.getLastBulkSubmission().upsertedCount, 3);
@@ -5848,7 +6020,10 @@ module.exports = function (app, template, hook) {
         form,
         payload,
         null,
-        [/application\/json/, 200],
+        [
+          /application\/json/,
+          200,
+        ],
         true,
         function (err, res) {
           assert.equal(helper.getLastBulkSubmission().upsertedCount, 1);
@@ -5898,7 +6073,10 @@ module.exports = function (app, template, hook) {
         upsertForm,
         updatedPayload,
         null,
-        [/application\/json/, 206],
+        [
+          /application\/json/,
+          206,
+        ],
         true,
         function (err, res) {
           assert.equal(
@@ -5942,7 +6120,10 @@ module.exports = function (app, template, hook) {
         upsertForm,
         payload,
         null,
-        [/application\/json/, 200],
+        [
+          /application\/json/,
+          200,
+        ],
         true,
         function (err, res) {
           assert.equal(helper.getLastBulkSubmission().upsertedCount, 1);
@@ -5999,13 +6180,21 @@ module.exports = function (app, template, hook) {
         },
       };
 
-      const payload = [newSubWithId1, newSubNoId, existSub, newSubWithId2];
+      const payload = [
+        newSubWithId1,
+        newSubNoId,
+        existSub,
+        newSubWithId2,
+      ];
 
       helper.bulkCreateUpsertSubmissions(
         upsertForm,
         payload,
         null,
-        [/application\/json/, 200],
+        [
+          /application\/json/,
+          200,
+        ],
         true,
         function (err, res) {
           assert.equal(res.modifiedCount, 1);
@@ -6256,7 +6445,11 @@ module.exports = function (app, template, hook) {
 
           assert.equal(helper.lastResponse.body.details.length, 1);
           assert.equal(helper.lastResponse.body.details[0].message, 'A is required');
-          assert.deepEqual(helper.lastResponse.body.details[0].path, ['childA', 'data', 'a']);
+          assert.deepEqual(helper.lastResponse.body.details[0].path, [
+            'childA',
+            'data',
+            'a',
+          ]);
           done();
         });
     });

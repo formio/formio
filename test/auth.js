@@ -1711,7 +1711,9 @@ module.exports = function (app, template, hook) {
           submissionAccess: [
             {
               type: 'read_own',
-              roles: [template.roles.authenticated._id],
+              roles: [
+                template.roles.authenticated._id,
+              ],
             },
           ],
         })
@@ -1819,7 +1821,9 @@ module.exports = function (app, template, hook) {
           submissionAccess: [
             {
               type: 'update_own',
-              roles: [template.roles.authenticated._id],
+              roles: [
+                template.roles.authenticated._id,
+              ],
             },
           ],
         })
@@ -1914,7 +1918,9 @@ module.exports = function (app, template, hook) {
           submissionAccess: [
             {
               type: 'delete_own',
-              roles: [template.roles.authenticated._id],
+              roles: [
+                template.roles.authenticated._id,
+              ],
             },
           ],
         })
@@ -2105,7 +2111,9 @@ module.exports = function (app, template, hook) {
           submissionAccess: [
             {
               type: 'read_own',
-              roles: [template.roles.authenticated._id],
+              roles: [
+                template.roles.authenticated._id,
+              ],
             },
             {
               type: 'self',
@@ -2219,7 +2227,9 @@ module.exports = function (app, template, hook) {
           submissionAccess: [
             {
               type: 'update_own',
-              roles: [template.roles.authenticated._id],
+              roles: [
+                template.roles.authenticated._id,
+              ],
             },
             {
               type: 'self',
@@ -2319,7 +2329,9 @@ module.exports = function (app, template, hook) {
           submissionAccess: [
             {
               type: 'delete_own',
-              roles: [template.roles.authenticated._id],
+              roles: [
+                template.roles.authenticated._id,
+              ],
             },
             {
               type: 'self',
@@ -2443,7 +2455,16 @@ module.exports = function (app, template, hook) {
           let response = res.body;
           assert.deepEqual(
             _.difference(
-              ['title', 'version', 'description', 'name', 'roles', 'forms', 'actions', 'resources'],
+              [
+                'title',
+                'version',
+                'description',
+                'name',
+                'roles',
+                'forms',
+                'actions',
+                'resources',
+              ],
               Object.keys(response),
             ),
             [],

@@ -5,7 +5,14 @@ module.exports =
   () =>
   async (component, data, handler, action, { validation }) => {
     // Only perform before validation has occurred.
-    if (validation && ['put', 'post', 'patch'].includes(action)) {
+    if (
+      validation &&
+      [
+        'put',
+        'post',
+        'patch',
+      ].includes(action)
+    ) {
       let value = _.get(data, component.key);
       if (value) {
         value = _.isArray(value) ? value.map((val) => (val ? new Date(val) : '')) : new Date(value);

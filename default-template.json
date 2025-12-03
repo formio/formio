@@ -34,19 +34,27 @@
       "submissionAccess": [
         {
           "type": "create_all",
-          "roles": ["administrator"]
+          "roles": [
+            "administrator"
+          ]
         },
         {
           "type": "read_all",
-          "roles": ["administrator"]
+          "roles": [
+            "administrator"
+          ]
         },
         {
           "type": "update_all",
-          "roles": ["administrator"]
+          "roles": [
+            "administrator"
+          ]
         },
         {
           "type": "delete_all",
-          "roles": ["administrator"]
+          "roles": [
+            "administrator"
+          ]
         },
         {
           "type": "create_own",
@@ -68,7 +76,11 @@
       "access": [
         {
           "type": "read_all",
-          "roles": ["anonymous", "authenticated", "administrator"]
+          "roles": [
+            "anonymous",
+            "authenticated",
+            "administrator"
+          ]
         }
       ],
       "components": [
@@ -127,19 +139,27 @@
       "submissionAccess": [
         {
           "type": "create_all",
-          "roles": ["administrator"]
+          "roles": [
+            "administrator"
+          ]
         },
         {
           "type": "read_all",
-          "roles": ["administrator"]
+          "roles": [
+            "administrator"
+          ]
         },
         {
           "type": "update_all",
-          "roles": ["administrator"]
+          "roles": [
+            "administrator"
+          ]
         },
         {
           "type": "delete_all",
-          "roles": ["administrator"]
+          "roles": [
+            "administrator"
+          ]
         },
         {
           "type": "create_own",
@@ -161,7 +181,11 @@
       "access": [
         {
           "type": "read_all",
-          "roles": ["anonymous", "authenticated", "administrator"]
+          "roles": [
+            "anonymous",
+            "authenticated",
+            "administrator"
+          ]
         }
       ],
       "components": [
@@ -222,13 +246,17 @@
       "access": [
         {
           "type": "read_all",
-          "roles": ["anonymous"]
+          "roles": [
+            "anonymous"
+          ]
         }
       ],
       "submissionAccess": [
         {
           "type": "create_own",
-          "roles": ["anonymous"]
+          "roles": [
+            "anonymous"
+          ]
         }
       ],
       "components": [
@@ -290,13 +318,17 @@
       "access": [
         {
           "type": "read_all",
-          "roles": ["anonymous"]
+          "roles": [
+            "anonymous"
+          ]
         }
       ],
       "submissionAccess": [
         {
           "type": "create_own",
-          "roles": ["anonymous"]
+          "roles": [
+            "anonymous"
+          ]
         }
       ],
       "components": [
@@ -355,13 +387,17 @@
       "access": [
         {
           "type": "read_all",
-          "roles": ["anonymous"]
+          "roles": [
+            "anonymous"
+          ]
         }
       ],
       "submissionAccess": [
         {
           "type": "create_own",
-          "roles": ["anonymous"]
+          "roles": [
+            "anonymous"
+          ]
         }
       ],
       "components": [
@@ -420,8 +456,12 @@
       "title": "Role Assignment",
       "name": "role",
       "priority": 1,
-      "handler": ["after"],
-      "method": ["create"],
+      "handler": [
+        "after"
+      ],
+      "method": [
+        "create"
+      ],
       "form": "user",
       "settings": {
         "association": "new",
@@ -433,8 +473,13 @@
       "title": "Save Submission",
       "name": "save",
       "form": "user",
-      "handler": ["before"],
-      "method": ["create", "update"],
+      "handler": [
+        "before"
+      ],
+      "method": [
+        "create",
+        "update"
+      ],
       "priority": 10
     },
     "userLogin:login": {
@@ -442,10 +487,16 @@
       "title": "Login",
       "form": "userLogin",
       "priority": 2,
-      "method": ["create"],
-      "handler": ["before"],
+      "method": [
+        "create"
+      ],
+      "handler": [
+        "before"
+      ],
       "settings": {
-        "resources": ["user"],
+        "resources": [
+          "user"
+        ],
         "username": "email",
         "password": "password",
         "allowedAttempts": 5,
@@ -457,8 +508,13 @@
       "title": "Save Submission",
       "name": "save",
       "form": "userRegister",
-      "handler": ["before"],
-      "method": ["create", "update"],
+      "handler": [
+        "before"
+      ],
+      "method": [
+        "create",
+        "update"
+      ],
       "priority": 11,
       "settings": {
         "resource": "user",
@@ -473,10 +529,16 @@
       "title": "Login",
       "form": "userRegister",
       "priority": 2,
-      "method": ["create"],
-      "handler": ["before"],
+      "method": [
+        "create"
+      ],
+      "handler": [
+        "before"
+      ],
       "settings": {
-        "resources": ["user"],
+        "resources": [
+          "user"
+        ],
         "username": "email",
         "password": "password"
       }
@@ -485,8 +547,12 @@
       "title": "Role Assignment",
       "name": "role",
       "priority": 1,
-      "handler": ["after"],
-      "method": ["create"],
+      "handler": [
+        "after"
+      ],
+      "method": [
+        "create"
+      ],
       "form": "admin",
       "settings": {
         "association": "new",
@@ -498,8 +564,13 @@
       "title": "Save Submission",
       "name": "save",
       "form": "admin",
-      "handler": ["before"],
-      "method": ["create", "update"],
+      "handler": [
+        "before"
+      ],
+      "method": [
+        "create",
+        "update"
+      ],
       "priority": 10
     },
     "adminLogin:login": {
@@ -507,10 +578,16 @@
       "title": "Login",
       "form": "adminLogin",
       "priority": 2,
-      "method": ["create"],
-      "handler": ["before"],
+      "method": [
+        "create"
+      ],
+      "handler": [
+        "before"
+      ],
       "settings": {
-        "resources": ["admin"],
+        "resources": [
+          "admin"
+        ],
         "username": "email",
         "password": "password",
         "allowedAttempts": 5,
@@ -522,19 +599,27 @@
   "access": [
     {
       "type": "create_all",
-      "roles": ["administrator"]
+      "roles": [
+        "administrator"
+      ]
     },
     {
       "type": "read_all",
-      "roles": ["administrator"]
+      "roles": [
+        "administrator"
+      ]
     },
     {
       "type": "update_all",
-      "roles": ["administrator"]
+      "roles": [
+        "administrator"
+      ]
     },
     {
       "type": "delete_all",
-      "roles": ["administrator"]
+      "roles": [
+        "administrator"
+      ]
     }
   ]
 }

@@ -60,7 +60,13 @@ module.exports = function (db, config, tools, done) {
 
   // Get all the auth and role actions in the system.
   let getAllActions = function (cb) {
-    let query = { deleted: { $eq: null }, $or: [{ name: 'auth' }, { name: 'role' }] };
+    let query = {
+      deleted: { $eq: null },
+      $or: [
+        { name: 'auth' },
+        { name: 'role' },
+      ],
+    };
     actions
       .find(query)
       .toArray()
@@ -344,7 +350,13 @@ module.exports = function (db, config, tools, done) {
 
     let checkBothActions = function (callback) {
       actions
-        .find({ $or: [{ name: 'auth' }, { name: 'role' }], deleted: { $eq: null } })
+        .find({
+          $or: [
+            { name: 'auth' },
+            { name: 'role' },
+          ],
+          deleted: { $eq: null },
+        })
         .toArray()
         .then((documents) => {
           if (!documents || documents.length === 0) {
@@ -374,13 +386,19 @@ module.exports = function (db, config, tools, done) {
         .catch((err) => callback(err));
     };
 
-    async.series([checkAuthActions, checkBothActions], function (err) {
-      if (err) {
-        return cb(err);
-      }
+    async.series(
+      [
+        checkAuthActions,
+        checkBothActions,
+      ],
+      function (err) {
+        if (err) {
+          return cb(err);
+        }
 
-      cb();
-    });
+        cb();
+      },
+    );
   };
 
   // Consolidate the actions for all forms.

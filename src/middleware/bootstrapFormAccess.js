@@ -48,7 +48,13 @@ module.exports = function (router) {
       await router.formio.resources.form.model
         .updateOne(
           { _id: res.resource.item._id, deleted: { $eq: null } },
-          { $set: { access: [{ type: 'read_all', roles: roles }] } },
+          {
+            $set: {
+              access: [
+                { type: 'read_all', roles: roles },
+              ],
+            },
+          },
         )
         .exec();
       const form = await router.formio.resources.form.model

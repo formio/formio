@@ -39,7 +39,10 @@ const components: SubmissionTableProps['components'] = {
 type Submission = NonNullable<FormProps['submission']> & { _id: string };
 
 export const ViewData = ({ formId }: { formId: string }) => {
-  const [submission, setSubmission] = useState<Submission | null>(null);
+  const [
+    submission,
+    setSubmission,
+  ] = useState<Submission | null>(null);
   const { Formio, token } = useFormioContext();
 
   const handleSubmissionRowClick = async (id: string) => {
@@ -82,9 +85,14 @@ export const ViewData = ({ formId }: { formId: string }) => {
       }
       if (exportType === 'json') {
         const data = await response.json();
-        const blob = new Blob([JSON.stringify(data, null, 2)], {
-          type: 'application/json',
-        });
+        const blob = new Blob(
+          [
+            JSON.stringify(data, null, 2),
+          ],
+          {
+            type: 'application/json',
+          },
+        );
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -139,7 +147,9 @@ export const ViewData = ({ formId }: { formId: string }) => {
       {submission ? (
         <>
           <SubmissionTable
-            submissions={[submission]}
+            submissions={[
+              submission,
+            ]}
             formId={formId}
             limit={10}
             components={{

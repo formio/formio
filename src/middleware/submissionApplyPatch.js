@@ -45,7 +45,10 @@ module.exports = (router) => (req, res, next) => {
           operation.path = `/metadata${operation.path}`;
           return operation;
         });
-      patch = [...dataPatch, ...metadataPatch];
+      patch = [
+        ...dataPatch,
+        ...metadataPatch,
+      ];
     }
 
     try {

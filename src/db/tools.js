@@ -40,7 +40,10 @@ module.exports = function (db, schema) {
       const cipher = crypto.createCipher('aes-256-cbc', secret);
       const decryptedJSON = JSON.stringify(mixed);
 
-      return Buffer.concat([cipher.update(decryptedJSON), cipher.final()]);
+      return Buffer.concat([
+        cipher.update(decryptedJSON),
+        cipher.final(),
+      ]);
     },
     decrypt(secret, cipherbuffer) {
       if (cipherbuffer === undefined) {

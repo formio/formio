@@ -205,7 +205,15 @@ module.exports = (router) => {
       req.noValidate = req.noValidate || (req.isAdmin && req.query.noValidate);
 
       // No need to validate on GET requests.
-      if (!(['POST', 'PUT', 'PATCH'].includes(req.method) && req.body)) {
+      if (
+        !(
+          [
+            'POST',
+            'PUT',
+            'PATCH',
+          ].includes(req.method) && req.body
+        )
+      ) {
         return;
       }
 
@@ -307,9 +315,14 @@ module.exports = (router) => {
               data &&
               component.hasOwnProperty('persistent') &&
               (!component.persistent || component.persistent === 'client-only') &&
-              !['columns', 'fieldset', 'panel', 'table', 'tabs', 'datasource'].includes(
-                component.type,
-              )
+              ![
+                'columns',
+                'fieldset',
+                'panel',
+                'table',
+                'tabs',
+                'datasource',
+              ].includes(component.type)
             ) {
               util.deleteProp(component.key)(data);
             }

@@ -10,8 +10,13 @@
       "name": "save",
       "form": "customer",
       "priority": 10,
-      "method": ["create", "update"],
-      "handler": ["before"]
+      "method": [
+        "create",
+        "update"
+      ],
+      "handler": [
+        "before"
+      ]
     }
   },
   "resources": {

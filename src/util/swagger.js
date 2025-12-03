@@ -207,7 +207,11 @@ module.exports = async function (req, router, cb) {
       route: resourceUrl(form),
       model: {
         schema: {
-          paths: _.omit(originalPaths, ['deleted', '__v', 'machineName']),
+          paths: _.omit(originalPaths, [
+            'deleted',
+            '__v',
+            'machineName',
+          ]),
         },
       },
       methods: _.clone(router.formio.resources.submission.methods),
@@ -222,7 +226,9 @@ module.exports = async function (req, router, cb) {
 
     // Override the body definition.
     if (swagger.definitions) {
-      swagger.definitions[resource.modelName].required = ['data'];
+      swagger.definitions[resource.modelName].required = [
+        'data',
+      ];
       swagger.definitions[resource.modelName].properties.data = {
         $ref: `#/definitions/${resource.modelName}Data`,
       };
@@ -263,7 +269,9 @@ module.exports = async function (req, router, cb) {
       options.host = router.formio.config.baseUrl;
     }
     if (!options.schemes) {
-      options.schemes = [router.formio.config.protocol];
+      options.schemes = [
+        router.formio.config.protocol,
+      ];
     }
     if (!options.basePath) {
       options.basePath = '/';
@@ -299,8 +307,12 @@ module.exports = async function (req, router, cb) {
       host: options.host,
       basePath: options.basePath,
       schemes: options.schemes,
-      consumes: ['application/json'],
-      produces: ['application/json'],
+      consumes: [
+        'application/json',
+      ],
+      produces: [
+        'application/json',
+      ],
       paths: paths,
       definitions: definitions,
       securityDefinitions: {

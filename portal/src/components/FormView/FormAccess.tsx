@@ -341,9 +341,18 @@ const mapAccessToSubmission = (access: Access[]) => {
 
 export const FormAccess = ({ id }: { id: string }) => {
   const { token, Formio } = useFormioContext();
-  const [formAccess, setFormAccess] = useState<Access[] | undefined>();
-  const [submissionAccess, setSubmissionAccess] = useState<Access[] | undefined>();
-  const [roles, setRoles] = useState<Role[] | null>(null);
+  const [
+    formAccess,
+    setFormAccess,
+  ] = useState<Access[] | undefined>();
+  const [
+    submissionAccess,
+    setSubmissionAccess,
+  ] = useState<Access[] | undefined>();
+  const [
+    roles,
+    setRoles,
+  ] = useState<Role[] | null>(null);
 
   useEffect(() => {
     const fetchFormRolesAndAccessSettings = async () => {
@@ -351,7 +360,13 @@ export const FormAccess = ({ id }: { id: string }) => {
         const formio = new Formio(`/form/${id}`);
         const formPromise: Promise<FormType> = formio.loadForm();
         const rolesPromise: Promise<Role[]> = fetchRoles(token);
-        const [form, roles] = await Promise.all([formPromise, rolesPromise]);
+        const [
+          form,
+          roles,
+        ] = await Promise.all([
+          formPromise,
+          rolesPromise,
+        ]);
         setRoles(roles);
         setFormAccess(form.access);
         setSubmissionAccess(form.submissionAccess);
@@ -360,7 +375,11 @@ export const FormAccess = ({ id }: { id: string }) => {
       }
     };
     fetchFormRolesAndAccessSettings();
-  }, [Formio, id, token]);
+  }, [
+    Formio,
+    id,
+    token,
+  ]);
 
   const handleCustomEvent: FormProps['onCustomEvent'] = async ({ type, data }) => {
     if (type === 'saveSettings') {
@@ -368,17 +387,25 @@ export const FormAccess = ({ id }: { id: string }) => {
         const formio = new Formio(`/form/${id}`);
         const form = await formio.loadForm();
         const updatedAccess = Object.entries(data.access as Record<string, string[]>).map(
-          ([type, roles]) => ({
+          ([
+            type,
+            roles,
+          ]) => ({
             type,
             roles,
           }),
         );
         const updatedSubmissionAccess = Object.entries(
           data.submissionAccess as Record<string, string[]>,
-        ).map(([type, roles]) => ({
-          type,
-          roles,
-        }));
+        ).map(
+          ([
+            type,
+            roles,
+          ]) => ({
+            type,
+            roles,
+          }),
+        );
         await formio.saveForm({
           ...form,
           access: updatedAccess,

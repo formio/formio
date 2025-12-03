@@ -30,7 +30,10 @@ module.exports = function () {
     // If the self access flag was enabled in the permissionHandler, allow resources to access themselves.
     if (req.selfAccess) {
       query = {
-        $or: [query, { _id: req.token.user._id }],
+        $or: [
+          query,
+          { _id: req.token.user._id },
+        ],
       };
     }
 

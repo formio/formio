@@ -1505,22 +1505,40 @@ module.exports = {
     data: {
       fillInTheField: 'test',
       selectValues: 3,
-      selectValues1: [1, 2],
+      selectValues1: [
+        1,
+        2,
+      ],
       selectResource: 'ch',
-      selectResource1: ['ap', 'ba'],
+      selectResource1: [
+        'ap',
+        'ba',
+      ],
       selectUrl: 'AK',
-      selectUrl1: ['AZ', 'CO'],
+      selectUrl1: [
+        'AZ',
+        'CO',
+      ],
       selectRawJson: 'Jane',
-      selectRawJson1: ['John', 'Jane'],
+      selectRawJson1: [
+        'John',
+        'Jane',
+      ],
       selectValues2: 2,
       selectResource2: 'ch',
       selectUrl2: 'GU',
       selectRawJson2: 'John',
       selectValues3: '2',
       selectValues5: '1',
-      selectValues4: [3, 4],
+      selectValues4: [
+        3,
+        4,
+      ],
       selectResource3: 'st',
-      selectUrl3: ['AK', 'CO'],
+      selectUrl3: [
+        'AK',
+        'CO',
+      ],
       selectRawJson3: 25,
       selectEntireObjectChoicesJs: {
         label: 'Strawberry',
@@ -1570,7 +1588,10 @@ module.exports = {
           },
         ],
         select1: 'hansenSchulist',
-        selectMult: ['blockHermistonAndMayer', 'corkerySchinner'],
+        selectMult: [
+          'blockHermistonAndMayer',
+          'corkerySchinner',
+        ],
         radio1: 'legacyWebEngineer',
       },
     },

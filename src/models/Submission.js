@@ -46,7 +46,9 @@ module.exports = function (formio) {
         // The roles associated with this submission, if any.
         // Useful for complex custom resources.
         roles: {
-          type: [formio.mongoose.Schema.Types.Mixed],
+          type: [
+            formio.mongoose.Schema.Types.Mixed,
+          ],
           ref: 'role',
           index: true,
           set(roles) {
@@ -61,12 +63,16 @@ module.exports = function (formio) {
         // The access associated with this submission.
         // Useful for complex custom permissions.
         access: {
-          type: [formio.schemas.AccessSchema],
+          type: [
+            formio.schemas.AccessSchema,
+          ],
           index: true,
         },
 
         // An array of external Id's.
-        externalIds: [ExternalIdSchema],
+        externalIds: [
+          ExternalIdSchema,
+        ],
 
         // Configurable meta data associated with a submission.
         metadata: {

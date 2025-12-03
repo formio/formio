@@ -51,7 +51,9 @@ test('Creating a new form should take you to edit form', async () => {
         path: 'test',
         type: 'form',
         display: 'form',
-        tags: [''],
+        tags: [
+          '',
+        ],
         owner: '679bc6e961e9293dee60f7fd',
         components: [],
         pdfComponents: [],
@@ -79,7 +81,9 @@ test('Creating a new form should take you to edit form', async () => {
         path: 'test',
         type: 'form',
         display: 'form',
-        tags: [''],
+        tags: [
+          '',
+        ],
         owner: '679bc6e961e9293dee60f7fd',
         components: [],
         pdfComponents: [],

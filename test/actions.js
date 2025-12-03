@@ -96,11 +96,17 @@ module.exports = (app, template, hook) => {
             tempAction = {
               title: 'Login',
               name: 'login',
-              handler: ['before'],
-              method: ['create'],
+              handler: [
+                'before',
+              ],
+              method: [
+                'create',
+              ],
               priority: 0,
               settings: {
-                resources: [tempForm._id.toString()],
+                resources: [
+                  tempForm._id.toString(),
+                ],
                 username: 'username',
                 password: 'password',
               },
@@ -197,7 +203,9 @@ module.exports = (app, template, hook) => {
         request(app)
           .patch(hook.alter('url', `/form/${tempForm._id}/action/${tempAction._id}`, template))
           .set('x-jwt-token', template.users.admin.token)
-          .send([{ op: 'replace', path: 'title', value: 'Patched' }])
+          .send([
+            { op: 'replace', path: 'title', value: 'Patched' },
+          ])
           // .expect('Content-Type', /json/)
           .expect(405)
           .end(done);
@@ -398,8 +406,13 @@ module.exports = (app, template, hook) => {
           machineName: 'saveActionFormSave',
           settings: {},
           defaults: {
-            handler: ['before'],
-            method: ['create', 'update'],
+            handler: [
+              'before',
+            ],
+            method: [
+              'create',
+              'update',
+            ],
           },
         };
 
@@ -409,10 +422,19 @@ module.exports = (app, template, hook) => {
           .send({ data: action });
 
         assert.equal(response.status, 201);
-        assert.deepEqual(response.body.handler, ['before'], 'Default handler should be applied');
+        assert.deepEqual(
+          response.body.handler,
+          [
+            'before',
+          ],
+          'Default handler should be applied',
+        );
         assert.deepEqual(
           response.body.method,
-          ['create', 'update'],
+          [
+            'create',
+            'update',
+          ],
           'Default method should be applied',
         );
       });
@@ -427,8 +449,12 @@ module.exports = (app, template, hook) => {
           handler: [],
           method: [],
           defaults: {
-            handler: ['after'],
-            method: ['create'],
+            handler: [
+              'after',
+            ],
+            method: [
+              'create',
+            ],
           },
         };
 
@@ -490,8 +516,13 @@ module.exports = (app, template, hook) => {
             custom: '',
           },
           submit: true,
-          handler: ['before'],
-          method: ['create', 'update'],
+          handler: [
+            'before',
+          ],
+          method: [
+            'create',
+            'update',
+          ],
         };
         const clonedForFormCreation = {
           ..._.cloneDeep(testMappingDataForm),
@@ -658,8 +689,13 @@ module.exports = (app, template, hook) => {
             custom: '',
           },
           submit: true,
-          handler: ['before'],
-          method: ['create', 'update'],
+          handler: [
+            'before',
+          ],
+          method: [
+            'create',
+            'update',
+          ],
         };
 
         const resultAction = await request(app)
@@ -771,8 +807,14 @@ module.exports = (app, template, hook) => {
           .action({
             title: 'Webhook',
             name: 'webhook',
-            handler: ['after'],
-            method: ['create', 'update', 'delete'],
+            handler: [
+              'after',
+            ],
+            method: [
+              'create',
+              'update',
+              'delete',
+            ],
             priority: 1,
             settings: {
               url: 'example.com',
@@ -1069,8 +1111,14 @@ module.exports = (app, template, hook) => {
                   title: 'Webhook',
                   name: 'webhook',
                   form: webhookForm._id.toString(),
-                  handler: ['after'],
-                  method: ['create', 'update', 'delete'],
+                  handler: [
+                    'after',
+                  ],
+                  method: [
+                    'create',
+                    'update',
+                    'delete',
+                  ],
                   priority: 1,
                   settings: {
                     url: server.url,
@@ -1270,8 +1318,14 @@ module.exports = (app, template, hook) => {
                   title: 'Webhook',
                   name: 'webhook',
                   form: webhookForm1._id.toString(),
-                  handler: ['after'],
-                  method: ['create', 'update', 'delete'],
+                  handler: [
+                    'after',
+                  ],
+                  method: [
+                    'create',
+                    'update',
+                    'delete',
+                  ],
                   priority: 1,
                   settings: {
                     url: server.url,
@@ -1372,8 +1426,14 @@ module.exports = (app, template, hook) => {
                   title: 'Webhook',
                   name: 'webhook',
                   form: webhookForm2._id.toString(),
-                  handler: ['after'],
-                  method: ['create', 'update', 'delete'],
+                  handler: [
+                    'after',
+                  ],
+                  method: [
+                    'create',
+                    'update',
+                    'delete',
+                  ],
                   priority: 1,
                   settings: {
                     url: server.url,
@@ -1537,8 +1597,14 @@ module.exports = (app, template, hook) => {
                     title: 'Webhook',
                     name: 'webhook',
                     form: webhookForm2._id.toString(),
-                    handler: ['after'],
-                    method: ['create', 'update', 'delete'],
+                    handler: [
+                      'after',
+                    ],
+                    method: [
+                      'create',
+                      'update',
+                      'delete',
+                    ],
                     priority: 1,
                     settings: {
                       url: `${webhookServer.url}/plain-text`,
@@ -1635,8 +1701,12 @@ module.exports = (app, template, hook) => {
       const emailAction = {
         title: 'Email',
         name: 'email',
-        handler: ['after'],
-        method: ['create'],
+        handler: [
+          'after',
+        ],
+        method: [
+          'create',
+        ],
         priority: 1,
         settings: {},
       };
@@ -2101,13 +2171,19 @@ module.exports = (app, template, hook) => {
       const createTestAction = () => ({
         title: 'Email',
         name: 'email',
-        handler: ['after'],
-        method: ['delete'],
+        handler: [
+          'after',
+        ],
+        method: [
+          'delete',
+        ],
         priority: 1,
         settings: {
           from: 'no-reply@example.com',
           replyTo: '',
-          emails: ['test@example.com'],
+          emails: [
+            'test@example.com',
+          ],
           sendEach: false,
           subject: 'Hello',
           message: '{{ submission(data, form.components) }}',
@@ -2206,13 +2282,19 @@ module.exports = (app, template, hook) => {
         let testAction = {
           title: 'Email',
           name: 'email',
-          handler: ['after'],
-          method: ['create'],
+          handler: [
+            'after',
+          ],
+          method: [
+            'create',
+          ],
           priority: 1,
           settings: {
             from: 'travis@form.io',
             replyTo: '',
-            emails: ['test@form.io'],
+            emails: [
+              'test@form.io',
+            ],
             sendEach: false,
             subject: 'Hello',
             message: '{{ submission(data, form.components) }}',
@@ -2570,8 +2652,12 @@ module.exports = (app, template, hook) => {
           const emailAction = {
             title: 'Email',
             name: 'email',
-            handler: ['after'],
-            method: ['create'],
+            handler: [
+              'after',
+            ],
+            method: [
+              'create',
+            ],
             priority: 1,
             settings: {},
           };
@@ -2735,8 +2821,12 @@ module.exports = (app, template, hook) => {
       let addAction = {
         title: 'Add Role',
         name: 'role',
-        handler: ['before'],
-        method: ['create'],
+        handler: [
+          'before',
+        ],
+        method: [
+          'create',
+        ],
         priority: 1,
         settings: {
           association: 'existing',
@@ -2748,8 +2838,12 @@ module.exports = (app, template, hook) => {
       let removeAction = {
         title: 'Remove Role',
         name: 'role',
-        handler: ['before'],
-        method: ['create'],
+        handler: [
+          'before',
+        ],
+        method: [
+          'create',
+        ],
         priority: 1,
         settings: {
           association: 'existing',
@@ -2761,8 +2855,12 @@ module.exports = (app, template, hook) => {
       let submissionAction = {
         title: 'Add Role',
         name: 'role',
-        handler: ['after'],
-        method: ['create'],
+        handler: [
+          'after',
+        ],
+        method: [
+          'create',
+        ],
         priority: 1,
         settings: {
           association: 'new',
@@ -2823,13 +2921,38 @@ module.exports = (app, template, hook) => {
           // Attach the dummy role to the submission action before starting its tests.
           before(() => {
             submissionForm.access = [
-              { type: 'read_all', roles: [template.roles.anonymous._id.toString()] },
+              {
+                type: 'read_all',
+                roles: [
+                  template.roles.anonymous._id.toString(),
+                ],
+              },
             ];
             submissionForm.submissionAccess = [
-              { type: 'create_own', roles: [template.roles.anonymous._id.toString()] },
-              { type: 'read_own', roles: [dummyRole._id] },
-              { type: 'update_own', roles: [dummyRole._id] },
-              { type: 'delete_own', roles: [dummyRole._id] },
+              {
+                type: 'create_own',
+                roles: [
+                  template.roles.anonymous._id.toString(),
+                ],
+              },
+              {
+                type: 'read_own',
+                roles: [
+                  dummyRole._id,
+                ],
+              },
+              {
+                type: 'update_own',
+                roles: [
+                  dummyRole._id,
+                ],
+              },
+              {
+                type: 'delete_own',
+                roles: [
+                  dummyRole._id,
+                ],
+              },
             ];
 
             submissionAction.settings.role = dummyRole._id;
@@ -3670,8 +3793,12 @@ module.exports = (app, template, hook) => {
             title: 'Role Assignment',
             name: 'role',
             priority: 1,
-            handler: ['after'],
-            method: ['create'],
+            handler: [
+              'after',
+            ],
+            method: [
+              'create',
+            ],
             settings: {
               association: 'new',
               type: 'add',
@@ -3763,8 +3890,13 @@ module.exports = (app, template, hook) => {
           let authAction = {
             title: 'Save Submission',
             name: 'save',
-            handler: ['before'],
-            method: ['create', 'update'],
+            handler: [
+              'before',
+            ],
+            method: [
+              'create',
+              'update',
+            ],
             priority: 11,
             settings: {
               resource: dummyResource._id.toString(),
@@ -3807,11 +3939,17 @@ module.exports = (app, template, hook) => {
           let authLoginAction = {
             title: 'Login',
             name: 'login',
-            handler: ['before'],
-            method: ['create'],
+            handler: [
+              'before',
+            ],
+            method: [
+              'create',
+            ],
             priority: 0,
             settings: {
-              resources: [dummyResource._id.toString()],
+              resources: [
+                dummyResource._id.toString(),
+              ],
               username: 'username',
               password: 'password',
               allowedAttempts: 5,
@@ -3989,11 +4127,17 @@ module.exports = (app, template, hook) => {
         actionLogin = {
           title: 'Login',
           name: 'login',
-          handler: ['before'],
-          method: ['create'],
+          handler: [
+            'before',
+          ],
+          method: [
+            'create',
+          ],
           priority: 0,
           settings: {
-            resources: [template.resources.user._id.toString()],
+            resources: [
+              template.resources.user._id.toString(),
+            ],
             username: 'username',
             password: 'password',
             allowedAttempts: 5,
@@ -4050,11 +4194,17 @@ module.exports = (app, template, hook) => {
         actionRegister = {
           title: 'Login',
           name: 'login',
-          handler: ['before'],
-          method: ['create'],
+          handler: [
+            'before',
+          ],
+          method: [
+            'create',
+          ],
           priority: 0,
           settings: {
-            resources: [template.resources.user._id.toString()],
+            resources: [
+              template.resources.user._id.toString(),
+            ],
             username: 'username',
             password: 'password',
             allowedAttempts: 5,
@@ -4111,8 +4261,12 @@ module.exports = (app, template, hook) => {
         actionRole = {
           title: 'Role Assignment',
           name: 'role',
-          handler: ['after'],
-          method: ['create'],
+          handler: [
+            'after',
+          ],
+          method: [
+            'create',
+          ],
           priority: 1,
           settings: {
             association: 'new',
@@ -4213,8 +4367,12 @@ module.exports = (app, template, hook) => {
             title: 'Role Assignment',
             name: 'role',
             priority: 1,
-            handler: ['after'],
-            method: ['create'],
+            handler: [
+              'after',
+            ],
+            method: [
+              'create',
+            ],
             condition: {
               field: 'email',
               eq: 'equals',
@@ -4230,8 +4388,12 @@ module.exports = (app, template, hook) => {
             title: 'Role Assignment',
             name: 'role',
             priority: 1,
-            handler: ['after'],
-            method: ['create'],
+            handler: [
+              'after',
+            ],
+            method: [
+              'create',
+            ],
             condition: {
               field: 'email',
               eq: 'equals',
@@ -4247,8 +4409,12 @@ module.exports = (app, template, hook) => {
             title: 'Role Assignment',
             name: 'role',
             priority: 1,
-            handler: ['after'],
-            method: ['create'],
+            handler: [
+              'after',
+            ],
+            method: [
+              'create',
+            ],
             condition: {
               custom: 'execute = (data.roles.indexOf("administrator") !== -1)',
             },
@@ -4262,8 +4428,12 @@ module.exports = (app, template, hook) => {
             title: 'Role Assignment',
             name: 'role',
             priority: 1,
-            handler: ['after'],
-            method: ['create'],
+            handler: [
+              'after',
+            ],
+            method: [
+              'create',
+            ],
             condition: {
               custom: 'execute = (data.roles.indexOf("authenticated") !== -1)',
             },
@@ -4280,7 +4450,9 @@ module.exports = (app, template, hook) => {
         helper
           .submission({
             email: 'test@example.com',
-            roles: ['administrator'],
+            roles: [
+              'administrator',
+            ],
           })
           .execute((err) => {
             if (err) {
@@ -4299,7 +4471,9 @@ module.exports = (app, template, hook) => {
         helper
           .submission({
             email: 'test@example.com',
-            roles: ['authenticated'],
+            roles: [
+              'authenticated',
+            ],
           })
           .execute((err) => {
             if (err) {
@@ -4354,7 +4528,9 @@ module.exports = (app, template, hook) => {
         helper
           .submission({
             email: 'auth@example.com',
-            roles: ['administrator'],
+            roles: [
+              'administrator',
+            ],
           })
           .execute((err) => {
             if (err) {
@@ -4373,7 +4549,9 @@ module.exports = (app, template, hook) => {
         helper
           .submission({
             email: 'test@example.com',
-            roles: ['test'],
+            roles: [
+              'test',
+            ],
           })
           .execute((err) => {
             if (err) {
@@ -4430,8 +4608,12 @@ module.exports = (app, template, hook) => {
             title: 'Role Assignment',
             name: 'role',
             priority: 1,
-            handler: ['after'],
-            method: ['create'],
+            handler: [
+              'after',
+            ],
+            method: [
+              'create',
+            ],
             condition: {
               field: 'email',
               eq: 'notEqual',
@@ -4519,8 +4701,12 @@ module.exports = (app, template, hook) => {
             title: 'Role Assignment',
             name: 'role',
             priority: 1,
-            handler: ['after'],
-            method: ['create'],
+            handler: [
+              'after',
+            ],
+            method: [
+              'create',
+            ],
             condition: {
               field: 'email',
               eq: 'equals',
@@ -4772,7 +4958,9 @@ module.exports = (app, template, hook) => {
               enableRowGroups: false,
               initEmpty: false,
               tableView: false,
-              defaultValue: [{}],
+              defaultValue: [
+                {},
+              ],
               key: 'dataGrid',
               type: 'datagrid',
               input: true,
@@ -4907,7 +5095,10 @@ module.exports = (app, template, hook) => {
                 textField: 'test',
               },
               helper.owner,
-              [/application\/json/, 200],
+              [
+                /application\/json/,
+                200,
+              ],
             )
             .execute((err) => {
               if (err) {
@@ -4973,7 +5164,10 @@ module.exports = (app, template, hook) => {
                 },
               },
               helper.owner,
-              [/application\/json/, 200],
+              [
+                /application\/json/,
+                200,
+              ],
             )
             .execute((err) => {
               if (err) {
@@ -5033,7 +5227,10 @@ module.exports = (app, template, hook) => {
                 checkbox: false,
               },
               helper.owner,
-              [/application\/json/, 200],
+              [
+                /application\/json/,
+                200,
+              ],
             )
             .execute((err) => {
               if (err) {
@@ -5084,7 +5281,10 @@ module.exports = (app, template, hook) => {
                 radio: 'val2',
               },
               helper.owner,
-              [/application\/json/, 200],
+              [
+                /application\/json/,
+                200,
+              ],
             )
             .execute((err) => {
               if (err) {
@@ -5144,7 +5344,10 @@ module.exports = (app, template, hook) => {
                 },
               },
               helper.owner,
-              [/application\/json/, 201],
+              [
+                /application\/json/,
+                201,
+              ],
             )
             .execute((err) => {
               if (err) {
@@ -5165,7 +5368,10 @@ module.exports = (app, template, hook) => {
                     },
                   },
                   helper.owner,
-                  [/application\/json/, 200],
+                  [
+                    /application\/json/,
+                    200,
+                  ],
                 )
                 .execute((err) => {
                   if (err) {
@@ -5186,7 +5392,10 @@ module.exports = (app, template, hook) => {
                         },
                       },
                       helper.owner,
-                      [/application\/json/, 200],
+                      [
+                        /application\/json/,
+                        200,
+                      ],
                     )
                     .execute((err) => {
                       if (err) {
@@ -5226,7 +5435,10 @@ module.exports = (app, template, hook) => {
                 number: 20,
               },
               helper.owner,
-              [/application\/json/, 200],
+              [
+                /application\/json/,
+                200,
+              ],
             )
             .execute((err) => {
               if (err) {
@@ -5277,7 +5489,10 @@ module.exports = (app, template, hook) => {
                 number: null,
               },
               helper.owner,
-              [/application\/json/, 200],
+              [
+                /application\/json/,
+                200,
+              ],
             )
             .execute((err) => {
               if (err) {
@@ -5328,7 +5543,10 @@ module.exports = (app, template, hook) => {
                 number: 40,
               },
               helper.owner,
-              [/application\/json/, 200],
+              [
+                /application\/json/,
+                200,
+              ],
             )
             .execute((err) => {
               if (err) {
@@ -5379,7 +5597,10 @@ module.exports = (app, template, hook) => {
                 number: 23,
               },
               helper.owner,
-              [/application\/json/, 200],
+              [
+                /application\/json/,
+                200,
+              ],
             )
             .execute((err) => {
               if (err) {
@@ -5430,7 +5651,10 @@ module.exports = (app, template, hook) => {
                 textField: 'Nothing',
               },
               helper.owner,
-              [/application\/json/, 200],
+              [
+                /application\/json/,
+                200,
+              ],
             )
             .execute((err) => {
               if (err) {
@@ -5481,7 +5705,10 @@ module.exports = (app, template, hook) => {
                 textField: 'Nothing test',
               },
               helper.owner,
-              [/application\/json/, 200],
+              [
+                /application\/json/,
+                200,
+              ],
             )
             .execute((err) => {
               if (err) {
@@ -5532,7 +5759,10 @@ module.exports = (app, template, hook) => {
                 textField: 'Somethingtest',
               },
               helper.owner,
-              [/application\/json/, 200],
+              [
+                /application\/json/,
+                200,
+              ],
             )
             .execute((err) => {
               if (err) {
@@ -5583,7 +5813,10 @@ module.exports = (app, template, hook) => {
                 textField: 'testSomething',
               },
               helper.owner,
-              [/application\/json/, 200],
+              [
+                /application\/json/,
+                200,
+              ],
             )
             .execute((err) => {
               if (err) {
@@ -5633,7 +5866,10 @@ module.exports = (app, template, hook) => {
                 textField: 'Tee',
               },
               helper.owner,
-              [/application\/json/, 200],
+              [
+                /application\/json/,
+                200,
+              ],
             )
             .execute((err) => {
               if (err) {
@@ -5696,7 +5932,10 @@ module.exports = (app, template, hook) => {
                 number: 0,
               },
               helper.owner,
-              [/application\/json/, 200],
+              [
+                /application\/json/,
+                200,
+              ],
             )
             .execute((err) => {
               if (err) {
@@ -5763,7 +6002,10 @@ module.exports = (app, template, hook) => {
                 },
               },
               helper.owner,
-              [/application\/json/, 200],
+              [
+                /application\/json/,
+                200,
+              ],
             )
             .execute((err) => {
               if (err) {
@@ -5817,7 +6059,10 @@ module.exports = (app, template, hook) => {
                 dateTime: '2023-07-01T12:00:00+03:00',
               },
               helper.owner,
-              [/application\/json/, 200],
+              [
+                /application\/json/,
+                200,
+              ],
             )
             .execute((err) => {
               if (err) {
@@ -5868,7 +6113,10 @@ module.exports = (app, template, hook) => {
                 day: '02/01/2025',
               },
               helper.owner,
-              [/application\/json/, 200],
+              [
+                /application\/json/,
+                200,
+              ],
             )
             .execute((err) => {
               if (err) {
@@ -5919,7 +6167,10 @@ module.exports = (app, template, hook) => {
                 day: '01/01/2025',
               },
               helper.owner,
-              [/application\/json/, 200],
+              [
+                /application\/json/,
+                200,
+              ],
             )
             .execute((err) => {
               if (err) {
@@ -5970,7 +6221,10 @@ module.exports = (app, template, hook) => {
                 day1: '02/00/2025',
               },
               helper.owner,
-              [/application\/json/, 200],
+              [
+                /application\/json/,
+                200,
+              ],
             )
             .execute((err) => {
               if (err) {
@@ -6021,7 +6275,10 @@ module.exports = (app, template, hook) => {
                 day1: '01/00/2025',
               },
               helper.owner,
-              [/application\/json/, 200],
+              [
+                /application\/json/,
+                200,
+              ],
             )
             .execute((err) => {
               if (err) {
@@ -6071,7 +6328,10 @@ module.exports = (app, template, hook) => {
                 day2: '02/01/0000',
               },
               helper.owner,
-              [/application\/json/, 200],
+              [
+                /application\/json/,
+                200,
+              ],
             )
             .execute((err) => {
               if (err) {
@@ -6122,7 +6382,10 @@ module.exports = (app, template, hook) => {
                 day2: '01/01/0000',
               },
               helper.owner,
-              [/application\/json/, 200],
+              [
+                /application\/json/,
+                200,
+              ],
             )
             .execute((err) => {
               if (err) {
@@ -6173,7 +6436,10 @@ module.exports = (app, template, hook) => {
                 dateTime: '2023-07-01T12:00:00.000Z',
               },
               helper.owner,
-              [/application\/json/, 200],
+              [
+                /application\/json/,
+                200,
+              ],
             )
             .execute((err) => {
               if (err) {
@@ -6224,7 +6490,10 @@ module.exports = (app, template, hook) => {
                 dateTime: '2023-06-01T12:00:00.000Z',
               },
               helper.owner,
-              [/application\/json/, 200],
+              [
+                /application\/json/,
+                200,
+              ],
             )
             .execute((err) => {
               if (err) {
@@ -6275,7 +6544,10 @@ module.exports = (app, template, hook) => {
                 dateTime: '2023-07-03T12:00:00.000Z',
               },
               helper.owner,
-              [/application\/json/, 200],
+              [
+                /application\/json/,
+                200,
+              ],
             )
             .execute((err) => {
               if (err) {
@@ -6326,7 +6598,10 @@ module.exports = (app, template, hook) => {
                 dateTime: '2023-07-04T12:00:00.000Z',
               },
               helper.owner,
-              [/application\/json/, 200],
+              [
+                /application\/json/,
+                200,
+              ],
             )
             .execute((err) => {
               if (err) {
@@ -6389,7 +6664,10 @@ module.exports = (app, template, hook) => {
                 checkbox: false,
               },
               helper.owner,
-              [/application\/json/, 200],
+              [
+                /application\/json/,
+                200,
+              ],
             )
             .execute((err) => {
               if (err) {
@@ -6454,7 +6732,10 @@ module.exports = (app, template, hook) => {
                 checkbox: false,
               },
               helper.owner,
-              [/application\/json/, 200],
+              [
+                /application\/json/,
+                200,
+              ],
             )
             .execute((err) => {
               if (err) {

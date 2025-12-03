@@ -2,7 +2,10 @@ import { createContext, useContext, useState, ReactNode } from 'react';
 import { useBodyClassName } from './useBodyClassName';
 
 const useInfoPanel = () => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [
+    isOpen,
+    setIsOpen,
+  ] = useState(false);
   useBodyClassName(isOpen ? '' : 'context-toggled');
 
   return { isOpen, setIsOpen };

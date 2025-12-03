@@ -5,7 +5,11 @@ let _ = require('lodash');
 const { Utils } = require('@formio/core/utils');
 const formioUtils = Utils;
 var docker = process.env.DOCKER;
-const ignoredFormProps = ['revisions', 'submissionRevisions', 'esign'];
+const ignoredFormProps = [
+  'revisions',
+  'submissionRevisions',
+  'esign',
+];
 
 module.exports = (app, template, hook) => {
   describe('Template Imports', function () {
@@ -376,8 +380,17 @@ module.exports = (app, template, hook) => {
             assert.deepEqual(exportData.reports, {});
           }
           assert.deepEqual(
-            _.omit(exportData, ['version', 'tag', 'access', 'reports']),
-            _.omit(testTemplate, ['version', 'tag', 'access']),
+            _.omit(exportData, [
+              'version',
+              'tag',
+              'access',
+              'reports',
+            ]),
+            _.omit(testTemplate, [
+              'version',
+              'tag',
+              'access',
+            ]),
           );
         });
       });
@@ -551,8 +564,17 @@ module.exports = (app, template, hook) => {
             assert.deepEqual(exportData.reports, {});
           }
           assert.deepEqual(
-            _.omit(exportData, ['version', 'tag', 'access', 'reports']),
-            _.omit(testTemplate, ['version', 'tag', 'access']),
+            _.omit(exportData, [
+              'version',
+              'tag',
+              'access',
+              'reports',
+            ]),
+            _.omit(testTemplate, [
+              'version',
+              'tag',
+              'access',
+            ]),
           );
         });
       });
@@ -670,8 +692,17 @@ module.exports = (app, template, hook) => {
             assert.deepEqual(exportData.reports, {});
           }
           assert.deepEqual(
-            _.omit(exportData, ['version', 'tag', 'access', 'reports']),
-            _.omit(testTemplate, ['version', 'tag', 'access']),
+            _.omit(exportData, [
+              'version',
+              'tag',
+              'access',
+              'reports',
+            ]),
+            _.omit(testTemplate, [
+              'version',
+              'tag',
+              'access',
+            ]),
           );
         });
       });
@@ -789,8 +820,17 @@ module.exports = (app, template, hook) => {
             assert.deepEqual(exportData.reports, {});
           }
           assert.deepEqual(
-            _.omit(exportData, ['version', 'tag', 'access', 'reports']),
-            _.omit(testTemplate, ['version', 'tag', 'access']),
+            _.omit(exportData, [
+              'version',
+              'tag',
+              'access',
+              'reports',
+            ]),
+            _.omit(testTemplate, [
+              'version',
+              'tag',
+              'access',
+            ]),
           );
         });
       });
@@ -908,8 +948,17 @@ module.exports = (app, template, hook) => {
             assert.deepEqual(exportData.reports, {});
           }
           assert.deepEqual(
-            _.omit(exportData, ['version', 'tag', 'access', 'reports']),
-            _.omit(testTemplate, ['version', 'tag', 'access']),
+            _.omit(exportData, [
+              'version',
+              'tag',
+              'access',
+              'reports',
+            ]),
+            _.omit(testTemplate, [
+              'version',
+              'tag',
+              'access',
+            ]),
           );
         });
       });
@@ -1027,8 +1076,17 @@ module.exports = (app, template, hook) => {
             assert.deepEqual(exportData.reports, {});
           }
           assert.deepEqual(
-            _.omit(exportData, ['version', 'tag', 'access', 'reports']),
-            _.omit(testTemplate, ['version', 'tag', 'access']),
+            _.omit(exportData, [
+              'version',
+              'tag',
+              'access',
+              'reports',
+            ]),
+            _.omit(testTemplate, [
+              'version',
+              'tag',
+              'access',
+            ]),
           );
         });
       });
@@ -1146,8 +1204,17 @@ module.exports = (app, template, hook) => {
             assert.deepEqual(exportData.reports, {});
           }
           assert.deepEqual(
-            _.omit(exportData, ['version', 'tag', 'access', 'reports']),
-            _.omit(testTemplate, ['version', 'tag', 'access']),
+            _.omit(exportData, [
+              'version',
+              'tag',
+              'access',
+              'reports',
+            ]),
+            _.omit(testTemplate, [
+              'version',
+              'tag',
+              'access',
+            ]),
           );
         });
       });
@@ -1265,8 +1332,17 @@ module.exports = (app, template, hook) => {
             assert.deepEqual(exportData.reports, {});
           }
           assert.deepEqual(
-            _.omit(exportData, ['version', 'tag', 'access', 'reports']),
-            _.omit(testTemplate, ['version', 'tag', 'access']),
+            _.omit(exportData, [
+              'version',
+              'tag',
+              'access',
+              'reports',
+            ]),
+            _.omit(testTemplate, [
+              'version',
+              'tag',
+              'access',
+            ]),
           );
         });
       });
@@ -1384,8 +1460,17 @@ module.exports = (app, template, hook) => {
             assert.deepEqual(exportData.reports, {});
           }
           assert.deepEqual(
-            _.omit(exportData, ['version', 'tag', 'access', 'reports']),
-            _.omit(testTemplate, ['version', 'tag', 'access']),
+            _.omit(exportData, [
+              'version',
+              'tag',
+              'access',
+              'reports',
+            ]),
+            _.omit(testTemplate, [
+              'version',
+              'tag',
+              'access',
+            ]),
           );
         });
       });
@@ -1503,8 +1588,17 @@ module.exports = (app, template, hook) => {
             assert.deepEqual(exportData.reports, {});
           }
           assert.deepEqual(
-            _.omit(exportData, ['version', 'tag', 'access', 'reports']),
-            _.omit(testTemplate, ['version', 'tag', 'access']),
+            _.omit(exportData, [
+              'version',
+              'tag',
+              'access',
+              'reports',
+            ]),
+            _.omit(testTemplate, [
+              'version',
+              'tag',
+              'access',
+            ]),
           );
         });
       });
@@ -1626,8 +1720,17 @@ module.exports = (app, template, hook) => {
           }
 
           assert.deepEqual(
-            _.omit(exportData, ['version', 'tag', 'access', 'reports']),
-            _.omit(testTemplate, ['version', 'tag', 'access']),
+            _.omit(exportData, [
+              'version',
+              'tag',
+              'access',
+              'reports',
+            ]),
+            _.omit(testTemplate, [
+              'version',
+              'tag',
+              'access',
+            ]),
           );
         });
       });
@@ -1749,8 +1852,17 @@ module.exports = (app, template, hook) => {
           }
 
           assert.deepEqual(
-            _.omit(exportData, ['version', 'tag', 'access', 'reports']),
-            _.omit(testTemplate, ['version', 'tag', 'access']),
+            _.omit(exportData, [
+              'version',
+              'tag',
+              'access',
+              'reports',
+            ]),
+            _.omit(testTemplate, [
+              'version',
+              'tag',
+              'access',
+            ]),
           );
         });
       });
@@ -1978,8 +2090,17 @@ module.exports = (app, template, hook) => {
             assert.deepEqual(exportData.reports, {});
           }
           assert.deepEqual(
-            _.omit(exportData, ['version', 'tag', 'access', 'reports']),
-            _.omit(testTemplate, ['version', 'tag', 'access']),
+            _.omit(exportData, [
+              'version',
+              'tag',
+              'access',
+              'reports',
+            ]),
+            _.omit(testTemplate, [
+              'version',
+              'tag',
+              'access',
+            ]),
           );
         });
       });
@@ -2099,8 +2220,19 @@ module.exports = (app, template, hook) => {
             assert.deepEqual(exportData.reports, {});
           }
           assert.deepEqual(
-            _.omit(exportData, ['version', 'tag', 'access', 'roles', 'reports']),
-            _.omit(testTemplate, ['version', 'tag', 'access', 'roles']),
+            _.omit(exportData, [
+              'version',
+              'tag',
+              'access',
+              'roles',
+              'reports',
+            ]),
+            _.omit(testTemplate, [
+              'version',
+              'tag',
+              'access',
+              'roles',
+            ]),
           );
         });
       });
@@ -2219,8 +2351,19 @@ module.exports = (app, template, hook) => {
             assert.deepEqual(exportData.reports, {});
           }
           assert.deepEqual(
-            _.omit(exportData, ['version', 'tag', 'access', 'resources', 'reports']),
-            _.omit(testTemplate, ['version', 'tag', 'access', 'resources']),
+            _.omit(exportData, [
+              'version',
+              'tag',
+              'access',
+              'resources',
+              'reports',
+            ]),
+            _.omit(testTemplate, [
+              'version',
+              'tag',
+              'access',
+              'resources',
+            ]),
           );
         });
       });
@@ -2339,8 +2482,19 @@ module.exports = (app, template, hook) => {
             assert.deepEqual(exportData.reports, {});
           }
           assert.deepEqual(
-            _.omit(exportData, ['version', 'tag', 'access', 'forms', 'reports']),
-            _.omit(testTemplate, ['version', 'tag', 'access', 'forms']),
+            _.omit(exportData, [
+              'version',
+              'tag',
+              'access',
+              'forms',
+              'reports',
+            ]),
+            _.omit(testTemplate, [
+              'version',
+              'tag',
+              'access',
+              'forms',
+            ]),
           );
         });
       });
@@ -2460,8 +2614,19 @@ module.exports = (app, template, hook) => {
             assert.deepEqual(exportData.reports, {});
           }
           assert.deepEqual(
-            _.omit(exportData, ['version', 'tag', 'access', 'actions', 'reports']),
-            _.omit(testTemplate, ['version', 'tag', 'access', 'actions']),
+            _.omit(exportData, [
+              'version',
+              'tag',
+              'access',
+              'actions',
+              'reports',
+            ]),
+            _.omit(testTemplate, [
+              'version',
+              'tag',
+              'access',
+              'actions',
+            ]),
           );
         });
       });
@@ -2580,8 +2745,19 @@ module.exports = (app, template, hook) => {
             assert.deepEqual(exportData.reports, {});
           }
           assert.deepEqual(
-            _.omit(exportData, ['version', 'tag', 'access', 'title', 'reports']),
-            _.omit(testTemplate, ['version', 'tag', 'access', 'title']),
+            _.omit(exportData, [
+              'version',
+              'tag',
+              'access',
+              'title',
+              'reports',
+            ]),
+            _.omit(testTemplate, [
+              'version',
+              'tag',
+              'access',
+              'title',
+            ]),
           );
         });
       });
@@ -2699,8 +2875,19 @@ module.exports = (app, template, hook) => {
             assert.deepEqual(exportData.reports, {});
           }
           assert.deepEqual(
-            _.omit(exportData, ['version', 'tag', 'access', 'name', 'reports']),
-            _.omit(testTemplate, ['version', 'tag', 'access', 'name']),
+            _.omit(exportData, [
+              'version',
+              'tag',
+              'access',
+              'name',
+              'reports',
+            ]),
+            _.omit(testTemplate, [
+              'version',
+              'tag',
+              'access',
+              'name',
+            ]),
           );
         });
       });
@@ -2818,8 +3005,19 @@ module.exports = (app, template, hook) => {
             assert.deepEqual(exportData.reports, {});
           }
           assert.deepEqual(
-            _.omit(exportData, ['version', 'tag', 'access', 'description', 'reports']),
-            _.omit(testTemplate, ['version', 'tag', 'access', 'description']),
+            _.omit(exportData, [
+              'version',
+              'tag',
+              'access',
+              'description',
+              'reports',
+            ]),
+            _.omit(testTemplate, [
+              'version',
+              'tag',
+              'access',
+              'description',
+            ]),
           );
         });
       });
@@ -2937,8 +3135,17 @@ module.exports = (app, template, hook) => {
             assert.deepEqual(exportData.reports, {});
           }
           assert.deepEqual(
-            _.omit(exportData, ['version', 'tag', 'access', 'reports']),
-            _.omit(testTemplate, ['version', 'tag', 'access']),
+            _.omit(exportData, [
+              'version',
+              'tag',
+              'access',
+              'reports',
+            ]),
+            _.omit(testTemplate, [
+              'version',
+              'tag',
+              'access',
+            ]),
           );
         });
       });
@@ -3060,8 +3267,19 @@ module.exports = (app, template, hook) => {
             assert.deepEqual(exportData.reports, {});
           }
           assert.deepEqual(
-            _.omit(exportData, ['version', 'tag', 'access', 'foo', 'reports']),
-            _.omit(testTemplate, ['version', 'tag', 'access', 'foo']),
+            _.omit(exportData, [
+              'version',
+              'tag',
+              'access',
+              'foo',
+              'reports',
+            ]),
+            _.omit(testTemplate, [
+              'version',
+              'tag',
+              'access',
+              'foo',
+            ]),
           );
         });
       });
@@ -3180,8 +3398,19 @@ module.exports = (app, template, hook) => {
             assert.deepEqual(exportData.reports, {});
           }
           assert.deepEqual(
-            _.omit(exportData, ['version', 'tag', 'access', 'roles', 'reports']),
-            _.omit(testTemplate, ['version', 'tag', 'access', 'roles']),
+            _.omit(exportData, [
+              'version',
+              'tag',
+              'access',
+              'roles',
+              'reports',
+            ]),
+            _.omit(testTemplate, [
+              'version',
+              'tag',
+              'access',
+              'roles',
+            ]),
           );
         });
       });
@@ -3299,8 +3528,19 @@ module.exports = (app, template, hook) => {
             assert.deepEqual(exportData.reports, {});
           }
           assert.deepEqual(
-            _.omit(exportData, ['version', 'tag', 'access', 'resources', 'reports']),
-            _.omit(testTemplate, ['version', 'tag', 'access', 'resources']),
+            _.omit(exportData, [
+              'version',
+              'tag',
+              'access',
+              'resources',
+              'reports',
+            ]),
+            _.omit(testTemplate, [
+              'version',
+              'tag',
+              'access',
+              'resources',
+            ]),
           );
         });
       });
@@ -3418,8 +3658,19 @@ module.exports = (app, template, hook) => {
             assert.deepEqual(exportData.reports, {});
           }
           assert.deepEqual(
-            _.omit(exportData, ['version', 'tag', 'access', 'forms', 'reports']),
-            _.omit(testTemplate, ['version', 'tag', 'access', 'forms']),
+            _.omit(exportData, [
+              'version',
+              'tag',
+              'access',
+              'forms',
+              'reports',
+            ]),
+            _.omit(testTemplate, [
+              'version',
+              'tag',
+              'access',
+              'forms',
+            ]),
           );
         });
       });
@@ -3537,8 +3788,19 @@ module.exports = (app, template, hook) => {
             assert.deepEqual(exportData.reports, {});
           }
           assert.deepEqual(
-            _.omit(exportData, ['version', 'tag', 'access', 'actions', 'reports']),
-            _.omit(testTemplate, ['version', 'tag', 'access', 'actions']),
+            _.omit(exportData, [
+              'version',
+              'tag',
+              'access',
+              'actions',
+              'reports',
+            ]),
+            _.omit(testTemplate, [
+              'version',
+              'tag',
+              'access',
+              'actions',
+            ]),
           );
         });
       });
@@ -3638,7 +3900,9 @@ module.exports = (app, template, hook) => {
             'project',
             ...ignoredFormProps,
           ]),
-          _.omit(testTemplate.forms.inner, ['revisions']),
+          _.omit(testTemplate.forms.inner, [
+            'revisions',
+          ]),
         );
         assert.deepEqual(
           _.omit(project.forms.outer, [
@@ -3656,11 +3920,18 @@ module.exports = (app, template, hook) => {
             'project',
             ...ignoredFormProps,
           ]),
-          _.omit(testTemplate.forms.outer, ['revisions', 'components']),
+          _.omit(testTemplate.forms.outer, [
+            'revisions',
+            'components',
+          ]),
         );
         assert.deepEqual(
-          _.omit(project.forms.outer.components[0], ['form']),
-          _.omit(testTemplate.forms.outer.components[0], ['form']),
+          _.omit(project.forms.outer.components[0], [
+            'form',
+          ]),
+          _.omit(testTemplate.forms.outer.components[0], [
+            'form',
+          ]),
         );
         assert.deepEqual(project.forms.outer.components[1], testTemplate.forms.outer.components[1]);
         done();
@@ -3708,7 +3979,9 @@ module.exports = (app, template, hook) => {
             'submissionRevisions',
             ...ignoredFormProps,
           ]),
-          _.omit(testTemplate.forms.inner, ['revisions']),
+          _.omit(testTemplate.forms.inner, [
+            'revisions',
+          ]),
         );
         assert.deepEqual(
           _.omit(project.forms.outer, [
@@ -3728,11 +4001,18 @@ module.exports = (app, template, hook) => {
             'submissionRevisions',
             ...ignoredFormProps,
           ]),
-          _.omit(testTemplate.forms.outer, ['revisions', 'components']),
+          _.omit(testTemplate.forms.outer, [
+            'revisions',
+            'components',
+          ]),
         );
         assert.deepEqual(
-          _.omit(project.forms.outer.components[0], ['form']),
-          _.omit(testTemplate.forms.outer.components[0], ['form']),
+          _.omit(project.forms.outer.components[0], [
+            'form',
+          ]),
+          _.omit(testTemplate.forms.outer.components[0], [
+            'form',
+          ]),
         );
         assert.deepEqual(project.forms.outer.components[1], testTemplate.forms.outer.components[1]);
         done();

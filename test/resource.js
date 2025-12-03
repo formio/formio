@@ -6,7 +6,10 @@ var assert = require('assert');
 var _ = require('lodash');
 
 module.exports = function (app, template, hook) {
-  var ignoreFields = ['config', 'plan'];
+  var ignoreFields = [
+    'config',
+    'plan',
+  ];
 
   describe('Resources', function () {
     // Store the temp resource for this test suite.
@@ -415,15 +418,21 @@ module.exports = function (app, template, hook) {
           submissionAccess: [
             {
               type: 'read_own',
-              roles: [template.roles.authenticated._id.toString()],
+              roles: [
+                template.roles.authenticated._id.toString(),
+              ],
             },
             {
               type: 'update_own',
-              roles: [template.roles.authenticated._id.toString()],
+              roles: [
+                template.roles.authenticated._id.toString(),
+              ],
             },
             {
               type: 'delete_own',
-              roles: [template.roles.authenticated._id.toString()],
+              roles: [
+                template.roles.authenticated._id.toString(),
+              ],
             },
           ],
           components: [

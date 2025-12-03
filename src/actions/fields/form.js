@@ -49,7 +49,12 @@ module.exports = (router) => {
     }
 
     let url = '/form/:formId/submission';
-    if (['PUT', 'PATCH'].includes(req.method)) {
+    if (
+      [
+        'PUT',
+        'PATCH',
+      ].includes(req.method)
+    ) {
       url += '/:submissionId';
     }
     const childRes = router.formio.util.createSubResponse((err) => {

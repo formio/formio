@@ -365,7 +365,9 @@ async function renderEmail({ render, context = {}, vm }) {
     const result = processSync({
       ...context,
       components: context.form.components,
-      processors: [renderEmailProcessorInfo],
+      processors: [
+        renderEmailProcessorInfo,
+      ],
     });
     data.submissionTableHtml = result.emailDom.window.document.body.innerHTML;
   }

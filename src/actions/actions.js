@@ -916,7 +916,13 @@ module.exports = (router) => {
 
   // Build the middleware stack.
   const handlers = {};
-  const methods = ['Post', 'Get', 'Put', 'Index', 'Delete'];
+  const methods = [
+    'Post',
+    'Get',
+    'Put',
+    'Index',
+    'Delete',
+  ];
   methods.forEach((method) => {
     handlers[`before${method}`] = [
       (req, res, next) => {
@@ -936,7 +942,11 @@ module.exports = (router) => {
       actionPayload,
     ];
     handlers[`after${method}`] = [
-      router.formio.middleware.filterResourcejsResponse(['deleted', '__v', 'externalTokens']),
+      router.formio.middleware.filterResourcejsResponse([
+        'deleted',
+        '__v',
+        'externalTokens',
+      ]),
     ];
   });
   handlers['beforePatch'] = (req, res, next) => {
@@ -951,7 +961,9 @@ module.exports = (router) => {
   handlers['beforeDelete'] = handlers['beforeDelete'].concat([
     router.formio.middleware.deleteActionHandler,
   ]);
-  handlers['afterIndex'] = handlers['afterIndex'].concat([indexPayload]);
+  handlers['afterIndex'] = handlers['afterIndex'].concat([
+    indexPayload,
+  ]);
   handlers['afterGet'] = handlers['afterGet'].concat([
     (req, res, next) => {
       if (req.params && req.params.actionId && res.resource && res.resource.item) {

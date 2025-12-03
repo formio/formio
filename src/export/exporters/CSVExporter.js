@@ -46,7 +46,14 @@ class CSVExporter extends Exporter {
     const formattedView = req.query.view === 'formatted';
     this.formattedView = formattedView;
 
-    const ignore = ['password', 'button', 'container', 'datagrid', 'editgrid', 'dynamicWizard'];
+    const ignore = [
+      'password',
+      'button',
+      'container',
+      'datagrid',
+      'editgrid',
+      'dynamicWizard',
+    ];
     try {
       util.eachComponent(
         form.components,
@@ -128,7 +135,10 @@ class CSVExporter extends Exporter {
           } else if (component.type === 'selectboxes') {
             _.each(component.values, (option) => {
               items.push({
-                label: [path, option.value].join('.'),
+                label: [
+                  path,
+                  option.value,
+                ].join('.'),
                 subpath: option.value,
                 type: 'boolean',
               });
@@ -151,7 +161,13 @@ class CSVExporter extends Exporter {
                   : componentValue.value;
               },
             });
-          } else if (formattedView && ['currency', 'number'].includes(component.type)) {
+          } else if (
+            formattedView &&
+            [
+              'currency',
+              'number',
+            ].includes(component.type)
+          ) {
             const currency = component.type === 'currency';
 
             const formatOptions = {
@@ -186,7 +202,10 @@ class CSVExporter extends Exporter {
           } else if (component.type === 'survey') {
             _.each(component.questions, (question) => {
               items.push({
-                label: [path, question.value].join('.'),
+                label: [
+                  path,
+                  question.value,
+                ].join('.'),
                 subpath: question.value,
                 preprocessor: (value) => {
                   if (_.isObject(value)) {
@@ -204,7 +223,12 @@ class CSVExporter extends Exporter {
                 },
               });
             });
-          } else if (['select', 'resource'].includes(component.type)) {
+          } else if (
+            [
+              'select',
+              'resource',
+            ].includes(component.type)
+          ) {
             // Prepare the Lodash template by deleting tags and html entities
             const clearTemplate = Entities.decode(
               component.template.replace(/<\/?[^>]+(>|$)/g, ''),
@@ -441,18 +465,24 @@ class CSVExporter extends Exporter {
   start(resolve) {
     let row = null;
     this.stringifier.on('readable', () => {
-       
       while ((row = this.stringifier.read())) {
         this.res.write(row.toString());
       }
-       
 
       resolve();
     });
 
     const labels = this.formattedView
-      ? ['ID', 'Created', 'Modified']
-      : ['_id', 'created', 'modified'];
+      ? [
+          'ID',
+          'Created',
+          'Modified',
+        ]
+      : [
+          '_id',
+          'created',
+          'modified',
+        ];
     this.fields.forEach((item) => {
       if (item.hasOwnProperty('rename')) {
         if (_.isFunction(item.rename)) {
@@ -577,7 +607,12 @@ class CSVExporter extends Exporter {
       data = data.toString();
     }
 
-    const riskyChars = ['=', '+', '-', '@'];
+    const riskyChars = [
+      '=',
+      '+',
+      '-',
+      '@',
+    ];
     const regexStr = `(?<=(?:^|"|“)\\s*)([${riskyChars.join('\\')}])`;
     const regExp = new RegExp(regexStr, 'gm');
 

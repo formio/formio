@@ -157,7 +157,9 @@ module.exports = function (config) {
       if (!router.formio.hook.invoke('init', 'current', router.formio)) {
         router.get(
           '/current',
-          router.formio.hook.alter('currentUser', [router.formio.auth.currentUser]),
+          router.formio.hook.alter('currentUser', [
+            router.formio.auth.currentUser,
+          ]),
         );
       }
 
@@ -252,7 +254,12 @@ module.exports = function (config) {
               }
               // If query params present, filter components that match params
               const filter =
-                Object.keys(req.query).length !== 0 ? _.omit(req.query, ['limit', 'skip']) : null;
+                Object.keys(req.query).length !== 0
+                  ? _.omit(req.query, [
+                      'limit',
+                      'skip',
+                    ])
+                  : null;
               res.json(
                 _(util.flattenComponents(form.components))
                   .filter(function (component) {

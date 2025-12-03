@@ -24,8 +24,13 @@ module.exports = function (router) {
         description: 'Saves the submission into the database.',
         priority: 10,
         defaults: {
-          handler: ['before'],
-          method: ['create', 'update'],
+          handler: [
+            'before',
+          ],
+          method: [
+            'create',
+            'update',
+          ],
         },
         access: {
           handler: false,
@@ -273,7 +278,10 @@ module.exports = function (router) {
       // Skip this resource.
       req.skipResource = true;
       async.series(
-        [async.apply(loadResource, cache), async.apply(loadSubmission, cache)],
+        [
+          async.apply(loadResource, cache),
+          async.apply(loadSubmission, cache),
+        ],
         function (err) {
           if (err) {
             log(req, err);
@@ -285,7 +293,10 @@ module.exports = function (router) {
           }
 
           async.series(
-            [async.apply(saveToResource, cache.resource, cache.submission), assignResource],
+            [
+              async.apply(saveToResource, cache.resource, cache.submission),
+              assignResource,
+            ],
             next,
           );
         }.bind(this),

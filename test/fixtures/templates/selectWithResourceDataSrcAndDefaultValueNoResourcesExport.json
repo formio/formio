@@ -14,13 +14,17 @@
       "access": [
         {
           "type": "read_all",
-          "roles": ["anonymous"]
+          "roles": [
+            "anonymous"
+          ]
         }
       ],
       "submissionAccess": [
         {
           "type": "create_own",
-          "roles": ["anonymous"]
+          "roles": [
+            "anonymous"
+          ]
         }
       ],
       "components": [

@@ -31,8 +31,13 @@ module.exports = function (router) {
               title: 'Save Submission',
               form: res.resource.item._id,
               priority: 10,
-              handler: ['before'],
-              method: ['create', 'update'],
+              handler: [
+                'before',
+              ],
+              method: [
+                'create',
+                'update',
+              ],
               settings: {},
             });
             return next();

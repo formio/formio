@@ -118,7 +118,11 @@ module.exports = function (app, template, hook) {
         .form('testTags', testTags.components)
         .submission({
           data: {
-            tags: ['tag1', 'tag2', 'tag3'],
+            tags: [
+              'tag1',
+              'tag2',
+              'tag3',
+            ],
           },
         })
         .execute((err) => {
@@ -174,7 +178,9 @@ module.exports = function (app, template, hook) {
         .form('radioWithCondition', testRadio.form2.components)
         .submission({
           data: {
-            select: [2],
+            select: [
+              2,
+            ],
           },
         })
         .execute((err) => {

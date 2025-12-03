@@ -23,9 +23,15 @@ export const FormView = ({
 }) => {
   useBodyClassName(`item-open ${type}-open`);
   const { id } = params;
-  const [location, setLocation] = useLocation();
+  const [
+    location,
+    setLocation,
+  ] = useLocation();
   const setHashLocation = useHashLocation()[1];
-  const [formDisplayData, setFormDisplayData] = useState<FormDisplayData | undefined>();
+  const [
+    formDisplayData,
+    setFormDisplayData,
+  ] = useState<FormDisplayData | undefined>();
   const formUrl = `/form/${id}`;
   const name = type === 'form' ? 'Form' : 'Resource';
   const { token } = useFormioContext();
@@ -47,7 +53,9 @@ export const FormView = ({
       setFormDisplayData(data);
     };
     fetchFormDisplayData();
-  }, [formUrl]);
+  }, [
+    formUrl,
+  ]);
 
   const onSaveForm = useCallback(
     (data: any) => {
@@ -55,7 +63,9 @@ export const FormView = ({
         setFormDisplayData(data);
       }
     },
-    [setFormDisplayData],
+    [
+      setFormDisplayData,
+    ],
   );
 
   return (

@@ -13,11 +13,15 @@ module.exports = (router) => {
     }
 
     if (!Array.isArray(input)) {
-      input = [input];
+      input = [
+        input,
+      ];
     }
 
     if (!Array.isArray(roles)) {
-      roles = [roles];
+      roles = [
+        roles,
+      ];
     }
 
     roles = roles.filter(_.identity);
@@ -65,7 +69,9 @@ module.exports = (router) => {
             }
 
             if (!Array.isArray(value)) {
-              value = [value];
+              value = [
+                value,
+              ];
             }
 
             component.submissionAccess.map((access) => {

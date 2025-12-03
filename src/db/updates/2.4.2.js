@@ -99,10 +99,30 @@ module.exports = function (db, config, tools, done) {
                 // Update the access for each project.
                 function (role, cb) {
                   let access = [
-                    { type: 'create_all', roles: [role._id] },
-                    { type: 'read_all', roles: [role._id] },
-                    { type: 'update_all', roles: [role._id] },
-                    { type: 'delete_all', roles: [role._id] },
+                    {
+                      type: 'create_all',
+                      roles: [
+                        role._id,
+                      ],
+                    },
+                    {
+                      type: 'read_all',
+                      roles: [
+                        role._id,
+                      ],
+                    },
+                    {
+                      type: 'update_all',
+                      roles: [
+                        role._id,
+                      ],
+                    },
+                    {
+                      type: 'delete_all',
+                      roles: [
+                        role._id,
+                      ],
+                    },
                   ];
 
                   projects
@@ -389,7 +409,12 @@ module.exports = function (db, config, tools, done) {
   };
 
   async.series(
-    [updateProjectAccess, pruneProjectSettings, cleanFormComponentKeys, verifyFormComponents],
+    [
+      updateProjectAccess,
+      pruneProjectSettings,
+      cleanFormComponentKeys,
+      verifyFormComponents,
+    ],
     function (err) {
       if (err) {
         return done(err);

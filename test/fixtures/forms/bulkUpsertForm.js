@@ -5,12 +5,32 @@ module.exports = {
     type: 'form',
     display: 'form',
     access: [
-      { type: 'create_all', roles: ['anonymous'] },
-      { type: 'update_all', roles: ['anonymous'] },
+      {
+        type: 'create_all',
+        roles: [
+          'anonymous',
+        ],
+      },
+      {
+        type: 'update_all',
+        roles: [
+          'anonymous',
+        ],
+      },
     ],
     submissionAccess: [
-      { type: 'create_all', roles: ['anonymous'] },
-      { type: 'update_all', roles: ['anonymous'] },
+      {
+        type: 'create_all',
+        roles: [
+          'anonymous',
+        ],
+      },
+      {
+        type: 'update_all',
+        roles: [
+          'anonymous',
+        ],
+      },
     ],
     components: [
       {

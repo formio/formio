@@ -268,12 +268,31 @@ module.exports = {
     },
   ],
   submission: {
-    textField3: ['test value', 'anther value'],
-    number3: [300, 400, 500],
-    textArea3: ['This is the contents', 'more Contents'],
-    select3: ['one', 'three'],
-    email3: ['none@example.com', 'test@example.com'],
-    phoneNumber3: ['(030) 303-0304', '(209) 473-9403'],
+    textField3: [
+      'test value',
+      'anther value',
+    ],
+    number3: [
+      300,
+      400,
+      500,
+    ],
+    textArea3: [
+      'This is the contents',
+      'more Contents',
+    ],
+    select3: [
+      'one',
+      'three',
+    ],
+    email3: [
+      'none@example.com',
+      'test@example.com',
+    ],
+    phoneNumber3: [
+      '(030) 303-0304',
+      '(209) 473-9403',
+    ],
     address3: [
       {
         mode: 'autocomplete',
@@ -283,47 +302,70 @@ module.exports = {
               {
                 long_name: '123',
                 short_name: '123',
-                types: ['street_number'],
+                types: [
+                  'street_number',
+                ],
               },
               {
                 long_name: 'Fake Drive',
                 short_name: 'Fake Dr',
-                types: ['route'],
+                types: [
+                  'route',
+                ],
               },
               {
                 long_name: 'Luray',
                 short_name: 'Luray',
-                types: ['locality', 'political'],
+                types: [
+                  'locality',
+                  'political',
+                ],
               },
               {
                 long_name: '1, West Luray',
                 short_name: '1, West Luray',
-                types: ['administrative_area_level_3', 'political'],
+                types: [
+                  'administrative_area_level_3',
+                  'political',
+                ],
               },
               {
                 long_name: 'Page County',
                 short_name: 'Page County',
-                types: ['administrative_area_level_2', 'political'],
+                types: [
+                  'administrative_area_level_2',
+                  'political',
+                ],
               },
               {
                 long_name: 'Virginia',
                 short_name: 'VA',
-                types: ['administrative_area_level_1', 'political'],
+                types: [
+                  'administrative_area_level_1',
+                  'political',
+                ],
               },
               {
                 long_name: 'United States',
                 short_name: 'US',
-                types: ['country', 'political'],
+                types: [
+                  'country',
+                  'political',
+                ],
               },
               {
                 long_name: '22835',
                 short_name: '22835',
-                types: ['postal_code'],
+                types: [
+                  'postal_code',
+                ],
               },
               {
                 long_name: '2722',
                 short_name: '2722',
-                types: ['postal_code_suffix'],
+                types: [
+                  'postal_code_suffix',
+                ],
               },
             ],
             formatted_address: '123 Fake Dr, Luray, VA 22835, USA',
@@ -356,13 +398,22 @@ module.exports = {
             },
             partial_match: true,
             place_id: 'EiExMjMgRmFrZSBEciwgTHVyYXksIFZBIDIyODM1LCBVU0E',
-            types: ['street_address'],
+            types: [
+              'street_address',
+            ],
           },
         ],
       },
     ],
-    currency3: ['3,000', '500', '1,000,000'],
-    resource3: [{}, {}],
+    currency3: [
+      '3,000',
+      '500',
+      '1,000,000',
+    ],
+    resource3: [
+      {},
+      {},
+    ],
     file3: [
       {
         storage: 's3',

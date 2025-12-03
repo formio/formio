@@ -23,7 +23,9 @@ module.exports = function (formio) {
           'A permission type is required to associate an available permission with a given role.',
       },
       roles: {
-        type: [formio.mongoose.Schema.Types.ObjectId],
+        type: [
+          formio.mongoose.Schema.Types.ObjectId,
+        ],
         ref: 'role',
       },
     }),

@@ -26,7 +26,15 @@ module.exports = function (db, config, tools, done) {
     [
       function findBrokenForms(next) {
         formCollection
-          .find({ type: { $nin: ['form', 'resource'] }, deleted: { $eq: null } })
+          .find({
+            type: {
+              $nin: [
+                'form',
+                'resource',
+              ],
+            },
+            deleted: { $eq: null },
+          })
           .snapshot(true)
           .toArray()
           .then((forms) => {

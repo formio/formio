@@ -22,14 +22,22 @@ module.exports = function (router) {
         const createRoles = _.chain(req.body.groupPermissions)
           .filter(
             (permission) =>
-              permission.type && ['admin', 'write', 'create'].includes(permission.type),
+              permission.type &&
+              [
+                'admin',
+                'write',
+                'create',
+              ].includes(permission.type),
           )
           .map((permission) => permission.roles)
           .flattenDeep()
           .value();
 
         req.user.roles.forEach(function (roleEntity) {
-          const [groupId, role] = roleEntity.split(':');
+          const [
+            groupId,
+            role,
+          ] = roleEntity.split(':');
 
           if (role && groupId && createRoles.includes(role) && req.body.groupId === groupId) {
             req.permissionsChecked = true;

@@ -169,7 +169,12 @@ module.exports = {
             country: 'United States',
             country_code: 'us',
           },
-          boundingbox: ['45.5437314', '49.0024392', '-124.8360916', '-116.9159938'],
+          boundingbox: [
+            '45.5437314',
+            '49.0024392',
+            '-124.8360916',
+            '-116.9159938',
+          ],
         },
       },
       address: {
@@ -193,7 +198,12 @@ module.exports = {
           country: 'United States',
           country_code: 'us',
         },
-        boundingbox: ['40.4765780', '40.9176300', '-74.2588430', '-73.7002330'],
+        boundingbox: [
+          '40.4765780',
+          '40.9176300',
+          '-74.2588430',
+          '-73.7002330',
+        ],
       },
       submit: true,
     },
