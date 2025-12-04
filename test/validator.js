@@ -646,6 +646,61 @@ module.exports = function (app, template, hook) {
       });
     });
 
+    it('Instance should be available in evaluation context for content components', async function () {
+      const form = {
+        components: [
+          {
+            label: 'HTML',
+            attrs: [
+              {
+                attr: '',
+                value: '',
+              },
+            ],
+            content: 'rewrw',
+            refreshOnChange: false,
+            key: 'html',
+            customConditional:'show = !instance.component.customConditional;\n',
+            type: 'htmlelement',
+            input: false,
+            tableView: false,
+          },
+          {
+            label: 'Text Field',
+            applyMaskOn: 'change',
+            tableView: true,
+            validateWhenHidden: false,
+            key: 'textField',
+            type: 'textfield',
+            input: true,
+          },
+          {
+            type: 'button',
+            label: 'Submit',
+            key: 'submit',
+            disableOnInvalid: true,
+            input: true,
+            tableView: false,
+          },
+        ],
+      };
+      const validator = new Validator(
+        {
+          headers: {
+            'x-jwt-token': template.users.admin.token,
+          },
+          currentForm: form,
+        },
+        formio,
+      );
+      const submission = {
+        data: { textField: 'test' },
+      };
+      await validator.validate(submission, (err, data) => {
+        assert.equal(submission.scope?.conditionals[0]?.conditionallyHidden, true);
+      });
+    });
+    
     after(function (done) {
       request(app)
         .delete(hook.alter('url', `/form/${resourceWithFlatComponentsId}`, template))
