@@ -34,7 +34,7 @@ export const ActionsPanel = ({ type }: { type: 'form' | 'resource' }) => {
                 </li>
                 <li className="enterprise">
                   <span className="strong">Email Action</span> dynamically updated after Email
-                  Sending Provider is setup.
+                  Sending Provider is set up.
                 </li>
                 <li className="enterprise">
                   <span className="strong">Logs</span> of each action that&apos;s executed, who,

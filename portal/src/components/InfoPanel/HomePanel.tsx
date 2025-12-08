@@ -33,7 +33,7 @@ export const HomePanel = () => {
                 to get a license key.
               </p>
               <p className="enterprise mclear">
-                This icon incidates a feature only available in our{' '}
+                This icon indicates a feature only available in our{' '}
                 <span className="strong underline">enterprise</span> offerings.
               </p>
               <div className="section">
@@ -45,11 +45,11 @@ export const HomePanel = () => {
                     members.
                   </li>
                   <li className="enterprise">
-                    <span className="strong">CORS Configuration:</span> Built-in user-interface to
+                    <span className="strong">CORS Configuration:</span> Built-in user interface to
                     configure your CORS settings globally.
                   </li>
                   <li className="enterprise">
-                    <span className="strong">Reprting UI:</span> Sort, filter, and visualize your
+                    <span className="strong">Reporting UI:</span> Sort, filter, and visualize your
                     data.
                   </li>
                   <li className="enterprise">

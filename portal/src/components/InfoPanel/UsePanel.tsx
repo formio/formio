@@ -31,7 +31,7 @@ export const UsePanel = ({ type }: { type: 'form' | 'resource' }) => {
                   The <span className="strong">Developer Portal</span> provides{' '}
                   <span className="strong">inline documentation</span> about embedding
                   forms/resources. <span className="item-type-label">{name}</span>s are rendered via
-                  an API call to your commericial deployment.
+                  an API call to your commercial deployment.
                 </li>
                 <li className="enterprise">
                   Quick inline <span className="strong">embed script</span> for easy embedding.

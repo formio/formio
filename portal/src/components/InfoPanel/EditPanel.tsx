@@ -20,7 +20,7 @@ export const EditPanel = ({ type }: { type: 'resource' | 'form' }) => {
               <p>
                 Take greater control over your software development lifecycle through deploying as
                 many environments as you need and giving you 100% control of your forms and data.
-                This allows for the process and storing of sensitive data, scaling up for future
+                This allows for the processing and storing of sensitive data, scaling up for future
                 usage, and upgrading the platform on your timelines. 90% of our customers self-host
                 the Form.io platform in their own environment, including the enterprise developer
                 portal application.
