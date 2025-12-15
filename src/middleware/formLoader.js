@@ -12,28 +12,40 @@ const _ = require('lodash');
 module.exports = function (router) {
   const hook = require('../util/hook')(router.formio);
   return async function formLoader(req, res, next) {
-    if (
-      req.method !== 'GET' ||
-      Array.isArray(res.resource.item) ||
-      _.get(req, '__rMethod', 'get') !== 'get'
-    ) {
+    // Only process GET requests
+    if (req.method !== 'GET') {
       return next();
     }
 
-    let shouldLoadSubForms = true;
-    // Only process on GET request, and if they provide full query.
-    if (!req.full || !res.resource || !res.resource.item) {
-      shouldLoadSubForms = false;
+    const rMethod = _.get(req, '__rMethod', 'get');
+    const isArray = Array.isArray(res.resource.item);
+    
+    if (!req.full && (isArray || rMethod !== 'get')) {
+      return next();
     }
 
-    // Allow modules to hook into the form loader middleware.
+    // Process array of forms when full=true
+    if (req.full && isArray) {
+      for (let i = 0; i < res.resource.item.length; i++) {
+        await hook.alter('formResponse', res.resource.item[i], req);
+        await router.formio.cache.loadSubForms(res.resource.item[i], req);
+      }
+      return next();
+    }
+
+    // Process single form
+    if (!res.resource || !res.resource.item) {
+      return next();
+    }
+
+    // Allow modules to hook into the form loader middleware
     await hook.alter('formResponse', res.resource.item, req);
-    // Load all subforms recursively.
-    if (shouldLoadSubForms) {
+    
+    // Load all subforms recursively if full=true
+    if (req.full) {
       await router.formio.cache.loadSubForms(res.resource.item, req);
-      return next();
-    } else {
-      return next();
     }
+    
+    return next();
   };
 };

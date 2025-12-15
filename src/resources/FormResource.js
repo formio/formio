@@ -59,6 +59,13 @@ module.exports = function (router) {
           }
           next();
         },
+        (req, res, next) => {
+          if (req.query.full) {
+            req.full = true;
+            delete req.query.full;
+          }
+          next();
+        },
         router.formio.middleware.filterIdCreate,
         router.formio.middleware.filterMongooseExists({ field: 'deleted', isNull: true }),
         router.formio.middleware.bootstrapEntityOwner,
