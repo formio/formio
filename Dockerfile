@@ -4,7 +4,7 @@
 
 # Use Node image, maintained by Docker:
 # hub.docker.com/r/_/node/
-FROM node:20-alpine3.19
+FROM node:24-alpine
 
 # Copy source dependencies
 COPY src/ /app/src/
@@ -21,7 +21,6 @@ COPY portal/package.json /app/portal/package.json
 COPY portal/package-lock.json /app/portal/package-lock.json
 COPY portal/tsconfig.json /app/portal/tsconfig.json
 COPY portal/webpack.config.mjs /app/portal/webpack.config.mjs
-
 
 WORKDIR /app
 
