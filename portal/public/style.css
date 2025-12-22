@@ -4762,7 +4762,7 @@ input.notop {
   }
   .panel-wrap.content .panel-title i,
   .panel-wrap.content .panel-title img {
-    top: 5px;
+    display: none;
   }
 
   .panel-wrap.content .panel-header-section.top {

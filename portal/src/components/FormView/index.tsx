@@ -3,16 +3,11 @@ import { Params, Route, Switch, useLocation } from 'wouter';
 import { EnterData } from './EnterData';
 import { ViewData } from './ViewData';
 import { EditForm } from './EditForm';
-import { useHashLocation } from 'wouter/use-hash-location';
 import { FormActions } from './FormActions';
 import { FormAccess } from './FormAccess';
 import { useBodyClassName } from '../../hooks/useBodyClassName';
 import { useFormioContext } from '@formio/react';
-
-type FormDisplayData = {
-  title: string;
-  name: string;
-};
+import { FormDisplayData, FormMenu } from './FormMenu';
 
 export const FormView = ({
   params,
@@ -24,16 +19,10 @@ export const FormView = ({
   useBodyClassName(`item-open ${type}-open`);
   const { id } = params;
   const [
-    location,
-    setLocation,
-  ] = useLocation();
-  const setHashLocation = useHashLocation()[1];
-  const [
     formDisplayData,
     setFormDisplayData,
   ] = useState<FormDisplayData | undefined>();
   const formUrl = `/form/${id}`;
-  const name = type === 'form' ? 'Form' : 'Resource';
   const { token } = useFormioContext();
 
   useEffect(() => {
@@ -74,58 +63,7 @@ export const FormView = ({
     >
       <button className="reverse-tab" aria-hidden="true"></button>
       <button className="forward-landing" aria-hidden="true"></button>
-      <div className="panel-header">
-        <div className="panel-header-section top">
-          <div className="panel-title icon">
-            <img src={`icon-${type}.svg`} alt="" />{' '}
-            {formDisplayData?.title || formDisplayData?.name}
-          </div>
-          <button
-            type="button"
-            onClick={() => setHashLocation('/')}
-            className="close-button close-item transition last-focused"
-          >
-            <i className="ri-close-line"></i>
-          </button>
-          <button className="content-menu-button">
-            <i className="ri-menu-line"></i>Menu
-          </button>
-        </div>
-        <div className="panel-header-section bottom">
-          <div className="content-menu">
-            <button
-              className={`menu-item enter-data${location === '/edit' || location === '/' ? ' active' : ''}`}
-              onClick={() => setLocation('/edit')}
-            >
-              Edit {name}
-            </button>
-            <button
-              className={`menu-item enter-data${location === '/use' ? ' active' : ''}`}
-              onClick={() => setLocation('/use')}
-            >
-              Enter Data
-            </button>
-            <button
-              className={`menu-item enter-data${location === '/view' ? ' active' : ''}`}
-              onClick={() => setLocation('/view')}
-            >
-              View Data
-            </button>
-            <button
-              className={`menu-item enter-data${location === '/actions' ? ' active' : ''}`}
-              onClick={() => setLocation('/actions')}
-            >
-              <span className="item-type-label">{name} Actions</span>
-            </button>
-            <button
-              className={`menu-item enter-data${location === '/access' ? ' active' : ''}`}
-              onClick={() => setLocation('/access')}
-            >
-              Access
-            </button>
-          </div>
-        </div>
-      </div>
+      <FormMenu type={type} formDisplayData={formDisplayData} />
       <Switch>
         <Route path="/use">
           <EnterData url={formUrl} />
