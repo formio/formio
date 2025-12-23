@@ -1,5 +1,29 @@
 # formio
 
+## 4.5.6
+
+### Patch Changes
+
+- 0779236: FIO-10696: fixed an issue where submission revision is not created when submission is updated with PATCH request
+- Updated dependencies [45989b3]
+- Updated dependencies [375eab2]
+- Updated dependencies [e5515fa]
+- Updated dependencies [13da2ae]
+  - @formio/js@5.2.4
+  - @formio/core@2.5.3
+
+## 4.5.6-rc.0
+
+### Patch Changes
+
+- 0779236: FIO-10696: fixed an issue where submission revision is not created when submission is updated with PATCH request
+- Updated dependencies [45989b3]
+- Updated dependencies [375eab2]
+- Updated dependencies [e5515fa]
+- Updated dependencies [13da2ae]
+  - @formio/js@5.2.4-rc.0
+  - @formio/core@2.5.3-rc.0
+
 ## 4.5.5
 
 ### Patch Changes
