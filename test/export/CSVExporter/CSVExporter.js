@@ -15,6 +15,8 @@ module.exports = function (app, template, hook) {
   const testNominatimAddress = require('../../fixtures/forms/nominatimAddressComponent');
   const formWithLayoutComponents = require('../../fixtures/forms/formWithLayoutComponents.js');
   const testTimeDate = require('../../fixtures/forms/timeDateComponent.js');
+  const formToTestCSV = require('../../fixtures/forms/formToTestCSV.js');
+  const formWithMultSelect = require('../../fixtures/forms/formWithMultSelect.js');
   function getComponentValue(exportedText, compKey, submissionIndex) {
     const rows = exportedText.split('\n');
     const headerRow = rows[0];
@@ -290,6 +292,83 @@ module.exports = function (app, template, hook) {
               '"phoneNumber"',
               '"container.signature"',
             ]);
+
+            done();
+          });
+        });
+    });
+
+    it('Should display data for selectboxes url, radio url, datamap, tagpad, datatable', (done) => {
+      let owner = app.hasProjects || docker ? template.formio.owner : template.users.admin;
+      helper = new Helper(owner);
+      helper
+        .project()
+        .form(formToTestCSV.dataTableResource)
+        .execute((err) => {
+          if (err) {
+            return done(err);
+          }
+          const dataTableRes = formToTestCSV.form.components.find(
+            (comp) => comp.key === 'dataTableRes',
+          );
+          dataTableRes.fetch.resource = helper.template.forms.datatableresource._id;
+          helper
+            .form(formToTestCSV.form)
+            .submission(formToTestCSV.submission)
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+              helper.getExport(helper.template.forms.testcsvform, 'csv', (error, result) => {
+                if (error) {
+                  return done(error);
+                }
+                assert.strictEqual(
+                  getComponentValue(result.text, 'SelectBoxesURL', 0),
+                  '"California,Massachusetts,Montana"',
+                );
+                assert.strictEqual(getComponentValue(result.text, 'radioUrl', 0), '"Kansas"');
+                assert.strictEqual(getComponentValue(result.text, 'dataMap.key', 0), '"key,key1"');
+                assert.strictEqual(
+                  getComponentValue(result.text, 'dataMap.value', 0),
+                  '"test1,test2"',
+                );
+                assert.strictEqual(
+                  getComponentValue(result.text, 'tagpad.textFieldTagpad', 0),
+                  '"test1tagpad,test2tagpad"',
+                );
+                assert.strictEqual(
+                  getComponentValue(result.text, 'dataTableRes.textField', 0),
+                  '"unique"',
+                );
+                assert.strictEqual(
+                  getComponentValue(result.text, 'dataTableRes.textArea', 0),
+                  '"uniq"',
+                );
+
+                done();
+              });
+            });
+        });
+    });
+
+    it('Should display data for multiple select resource and url', (done) => {
+      let owner = app.hasProjects || docker ? template.formio.owner : template.users.admin;
+      helper = new Helper(owner);
+      helper
+        .form(formWithMultSelect.form)
+        .submission(formWithMultSelect.submission)
+        .execute((err) => {
+          if (err) {
+            return done(err);
+          }
+          helper.getExport(helper.template.forms.testmultiplecsv, 'csv', (error, result) => {
+            if (error) {
+              return done(error);
+            }
+            assert.strictEqual(getComponentValue(result.text, 'SelectUrl', 0), '"Alaska,California,Connecticut"');
+            assert.strictEqual(getComponentValue(result.text, 'SelectRawJson', 0), '"Banana,Pineapple,Pear"');
+            assert.strictEqual(getComponentValue(result.text, 'SelectResource', 0), '"Apple,Strawberry"');
 
             done();
           });
