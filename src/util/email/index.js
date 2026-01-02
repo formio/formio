@@ -1,6 +1,7 @@
 'use strict';
 
 const nodemailer = require('nodemailer');
+const xss = require('xss');
 const debug = {
   email: require('debug')('formio:settings:email'),
   send: require('debug')('formio:settings:send'),
@@ -122,6 +123,34 @@ module.exports = (formio) => {
    */
   const getParams = (req, res, form, submission) =>
     new Promise((resolve, reject) => {
+
+      function sanitizeFormData(components, data) {      
+        const XSS_OPTIONS = {
+          whiteList: {},
+          stripIgnoreTag: true,
+          stripIgnoreTagBody: ['script', 'style']
+        };  
+        util.eachComponentData(
+          components,
+          data,
+          (component, data, row, path, components, index, parent) => {
+            const value = _.get(data, path);
+
+            if (value === null || value === undefined) {
+              return false;
+            }
+            
+            if (typeof value === 'string') {
+              const sanitized = xss(value, XSS_OPTIONS);
+              _.set(data, path, sanitized || '');
+            }
+
+            return false; // Continue iteration
+          },
+          true  // Process all components
+        );
+      }
+
       let params = submission;
       if (res && res.resource && res.resource.item) {
         if (typeof res.resource.item.toObject === 'function') {
@@ -132,6 +161,11 @@ module.exports = (formio) => {
         params.id = params._id.toString();
       }
       params = JSON.parse(JSON.stringify(params));
+      
+      if (params.data) {
+        sanitizeFormData(form.components, params.data);
+      }
+    
       // The form components.
       params.components = {};
       params.componentsWithPath = {};

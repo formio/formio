@@ -193,6 +193,18 @@ const Utils = {
   eachComponent: Formio.Utils.eachComponent.bind(Formio.Utils),
 
   /**
+ * Iterates through each component as well as its data, and triggers a callback for every component along
+ * with the contextual data for that component in addition to the absolute path for that component.
+ * @param components - The array of JSON components to iterate through.
+ * @param data - The contextual data object for the components.
+ * @param fn - The callback function to trigger for each component following the signature (component, data, row, path, components, index, parent).
+ * @param parent - The parent component.
+ * @param includeAll
+ * @returns
+ */
+  eachComponentData: Formio.Utils.eachComponentData.bind(Formio.Utils),
+
+  /**
    * Get a component by its key
    *
    * @param {Object} components
@@ -881,6 +893,10 @@ const Utils = {
         })
         .value(),
     );
+  },
+  getServerConfig() {
+    const hook = require('../util/hook')(Formio);
+    return hook.alter('getServerConfig') || require('../../config/default.cjs');
   },
 };
 
