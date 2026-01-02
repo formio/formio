@@ -1,6 +1,6 @@
 'use strict';
 
-module.exports = (schema, options = { index: { created: true, modified: true } }) => {
+module.exports = (schema, options = {index: {created: true, modified: true}}) => {
   const created = {
     type: Date,
     index: true,
