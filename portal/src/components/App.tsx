@@ -54,7 +54,7 @@ const App = () => {
                   <FormList type="form" />
                   <FormView type="resource" params={params} />
                   {(location === `/resource/${params.id}` ||
-                    location === `/resource/${params.id}/edit/`) && <EditPanel type="resource" />}
+                    location === `/resource/${params.id}/edit`) && <EditPanel type="resource" />}
                   {location === `/resource/${params.id}/use` && <UsePanel type="resource" />}
                   {location === `/resource/${params.id}/view` && <ViewDataPanel />}
                   {location === `/resource/${params.id}/actions` && (
