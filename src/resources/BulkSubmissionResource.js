@@ -299,6 +299,10 @@ class BulkSubmission {
     return { successes, failures };
   }
 
+  async createSubmissionsRevisions(req, upserted, modified){
+    return await this.hook.alter('createSubmissionRevisionsForBulkOperations', req, upserted, modified);
+  }
+
   /**
    * Handle Bulk Create Submissions Endpoint - POST /form/:formId/submissions
    *
@@ -433,14 +437,6 @@ class BulkSubmission {
 
     const { form, submissionModel, failures, validDocs, payload } = context;
 
-    if (form.submissionRevisions) {
-      return res
-        .status(501)
-        .send(
-          'The functionality has not been implemented for forms with enabled submissions revisions',
-        );
-    }
-
     try {
       if (failures.length > 0 && validDocs.length === 0) {
         return res.status(400).json({ insertedCount: 0, failures });
@@ -473,14 +469,20 @@ class BulkSubmission {
         });
       }
 
+      const upserted = result.map((doc, i) => ({
+        original: payload[validDocs[i].originalIndex],
+        submission: { _id: doc._id.toString() },
+      }));
+
       const responseBody = {
         insertedCount: result.length,
-        successes: result.map((doc, i) => ({
-          original: payload[validDocs[i].originalIndex],
-          submission: { _id: doc._id.toString() },
-        })),
+        successes: upserted,
         failures,
       };
+
+      if (form.submissionRevisions) {
+        responseBody.revisionsCreated = await this.createSubmissionsRevisions(req, upserted, []);
+      }
 
       return res.status(failures.length > 0 ? 207 : 201).json(responseBody);
     } catch (err) {
@@ -630,14 +632,6 @@ class BulkSubmission {
 
     const { form, submissionModel, failures, validDocs, payload } = context;
 
-    if (form.submissionRevisions) {
-      return res
-        .status(501)
-        .send(
-          'The functionality has not been implemented for forms with enabled submissions revisions',
-        );
-    }
-
     try {
       if (failures.length > 0 && validDocs.length === 0) {
         return res.status(400).json({ upsertedCount: 0, failures });
@@ -686,6 +680,10 @@ class BulkSubmission {
         modified,
         failures,
       };
+
+      if (form.submissionRevisions) {
+        responseBody.revisionsCreated = await this.createSubmissionsRevisions(req, upserted, modified);
+      }
 
       return res.status(failures.length > 0 ? 207 : 200).json(responseBody);
     } catch (err) {
