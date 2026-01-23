@@ -218,7 +218,8 @@ module.exports = (router) => {
           update.modified = new Date();
 
           options.hooks.put.before.call(this, req, res, update, () => {
-            router.formio.resources.submission.model
+            const model = req.model || router.formio.resources.submission.model;
+            model
               .findOneAndUpdate(
                 { _id: req.params[`${this.name}Id`] },
                 { $set: update },
