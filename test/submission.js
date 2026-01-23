@@ -3944,6 +3944,210 @@ module.exports = function (app, template, hook) {
         });
       });
 
+      describe('Select resource with reference enabled', () => {
+        let referenceSubmissionId = null;
+        before((done) => {
+          // Create a resource to keep records.
+          helper
+            .form('resourceForm', [
+              {
+                label: 'Ref Id',
+                applyMaskOn: 'change',
+                tableView: true,
+                validateWhenHidden: false,
+                key: 'refId',
+                type: 'textfield',
+                input: true,
+              },
+              {
+                label: 'Code',
+                applyMaskOn: 'change',
+                tableView: true,
+                validateWhenHidden: false,
+                key: 'code',
+                type: 'textfield',
+                input: true,
+              },
+              {
+                label: 'Description',
+                applyMaskOn: 'change',
+                tableView: true,
+                validateWhenHidden: false,
+                key: 'description',
+                type: 'textfield',
+                input: true,
+              },
+              {
+                type: 'button',
+                label: 'Submit',
+                key: 'submit',
+                disableOnInvalid: true,
+                input: true,
+                tableView: false,
+              },
+            ])
+            .submission('resourceForm', { refId: '004', code: 'a', description: 'AAA' })
+
+            .execute(function (err) {
+              if (err) {
+                return done(err);
+              }
+
+              referenceSubmissionId = helper.getLastSubmission()._id;
+              helper
+                .form('selectRefTestForm', [
+                  {
+                    label: 'Select',
+                    widget: 'choicesjs',
+                    tableView: true,
+                    dataSrc: 'resource',
+                    data: {
+                      resource: helper.template.forms['resourceForm']._id,
+                    },
+                    template: '<span>{{ item.data.code }} - {{ item.data.description }}</span>',
+                    noRefreshOnScroll: false,
+                    addResource: false,
+                    reference: true,
+                    validate: {
+                      required: true,
+                    },
+                    validateWhenHidden: false,
+                    key: 'select',
+                    type: 'select',
+                    input: true,
+                  },
+                  {
+                    label: 'Field A',
+                    applyMaskOn: 'change',
+                    tableView: true,
+                    validate: {
+                      required: true,
+                    },
+                    validateWhenHidden: false,
+                    key: 'fieldA',
+                    conditional: {
+                      show: true,
+                      conjunction: 'all',
+                      conditions: [
+                        {
+                          component: 'select',
+                          operator: 'isEqual',
+                          value: {
+                            data: {
+                              code: 'a',
+                              description: 'AAA',
+                            },
+                          },
+                        },
+                      ],
+                    },
+                    type: 'textfield',
+                    input: true,
+                    'widget.type': 'input',
+                  },
+                  {
+                    type: 'button',
+                    label: 'Submit',
+                    key: 'submit',
+                    disableOnInvalid: true,
+                    input: true,
+                    tableView: false,
+                  },
+                ])
+                .execute((err) => {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  done();
+                });
+            });
+        });
+
+        it('Should return validation error on attempt to submit empty value for conditionally visible required field when correct select reference data is provided', (done) => {
+          helper
+            .submission('selectRefTestForm', {
+              data: {
+                select: {
+                  _id: referenceSubmissionId,
+                  data: {
+                    refId: '004',
+                    code: 'a',
+                    description: 'AAA',
+                  },
+                },
+                fieldA: null,
+              },
+            })
+            .expect(400)
+            .execute((err, res) => {
+              if (err) {
+                return done(err);
+              }
+              const response = res.lastSubmission;
+              assert.equal(response.name, 'ValidationError');
+              assert.equal(response.details[0].message, 'Field A is required');
+
+              done();
+            });
+        });
+
+        it('Should return validation error on attempt to submit empty value for conditionally visible required field when INcorrect select reference data is provided', (done) => {
+          helper
+            .submission('selectRefTestForm', {
+              data: {
+                select: {
+                  _id: referenceSubmissionId,
+                  data: {
+                    refId: '004',
+                  },
+                },
+                fieldA: null,
+              },
+            })
+            .expect(400)
+            .execute((err, res) => {
+              if (err) {
+                return done(err);
+              }
+              const response = res.lastSubmission;
+              assert.equal(response.name, 'ValidationError');
+              assert.equal(response.details[0].message, 'Field A is required');
+
+              done();
+            });
+        });
+
+        it('Should create submission when INcorrect select reference data is provided and return correct data', (done) => {
+          helper
+            .submission('selectRefTestForm', {
+              data: {
+                select: {
+                  _id: referenceSubmissionId,
+                  data: {
+                    refId: '004',
+                  },
+                },
+                fieldA: 'test',
+              },
+            })
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+              const submission = helper.getLastSubmission();
+              assert.equal(submission.data.select._id, referenceSubmissionId);
+              assert.deepEqual(submission.data.select.data, {
+                refId: '004',
+                code: 'a',
+                description: 'AAA',
+              });
+
+              done();
+            });
+        });
+      });
+
     describe('Data table validation', () => {
       before((done) => {
         // Create a resource to keep records.

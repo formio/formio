@@ -133,7 +133,7 @@ module.exports = (formio) => {
         util.eachComponentData(
           components,
           data,
-          (component, data, row, path, components, index, parent) => {
+          (component, data, row, path) => {
             const value = _.get(data, path);
 
             if (value === null || value === undefined) {

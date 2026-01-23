@@ -249,7 +249,7 @@ module.exports = (router) => {
       await new Promise((resolve, reject) => {
         hook.alter('validateSubmissionForm', req.currentForm, req.body, req, async () => {
           // Validate the request.
-          const validator = new Validator(req, router.formio);
+          const validator = new Validator(req, router);
           await validator.validate(req.body, (err, data) => {
             if (req.noValidate) {
               return resolve();

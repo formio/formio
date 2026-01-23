@@ -331,7 +331,7 @@ module.exports = function (app, template, hook) {
             'x-jwt-token': template.users.admin.token,
           },
         },
-        formio,
+        { formio },
       );
       const dataTableComponent = {
         type: 'datatable',
@@ -387,7 +387,7 @@ module.exports = function (app, template, hook) {
             'x-jwt-token': template.users.admin.token,
           },
         },
-        formio,
+        { formio },
       );
       const dataTableComponent = {
         type: 'datatable',
@@ -591,7 +591,7 @@ module.exports = function (app, template, hook) {
           },
           currentForm: form,
         },
-        formio,
+        { formio },
       );
       const submission = {
         data: {},
@@ -633,7 +633,7 @@ module.exports = function (app, template, hook) {
           },
           currentForm: form,
         },
-        formio,
+        { formio },
       );
       const submission = {
         data: {
@@ -691,7 +691,7 @@ module.exports = function (app, template, hook) {
           },
           currentForm: form,
         },
-        formio,
+        { formio },
       );
       const submission = {
         data: { textField: 'test' },
