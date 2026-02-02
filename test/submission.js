@@ -9,6 +9,9 @@ var _ = require('lodash');
 var docker = process.env.DOCKER;
 const nock = require('nock');
 const mongoose = require('mongoose');
+const { describe } = require('nyc/lib/commands/merge');
+const test = require('./fixtures/forms/singlecomponents1');
+const form = require('./fixtures/forms/formForSubmissionSearch');
 
 module.exports = function (app, template, hook) {
   var Helper = require('./helper')(app);
@@ -7578,6 +7581,63 @@ module.exports = function (app, template, hook) {
             submit: true,
           });
           helper.deleteSubmission(helper.lastSubmission, undefined, undefined, done);
+        });
+    });
+  });
+
+  describe('Submissions filtering', function () {
+    it('Test submissions search using query string', function (done) {
+      const form = require('./fixtures/forms/formForSubmissionSearch.js');
+      const components = form.components;
+      let batch = Array.from({ length: 10 }, (_, i) => ({
+        data: {
+          name: `Name${i + 1}`,
+          age: i + 10,
+        },
+      }));
+      const submission = {
+        name: `Name1`,
+        age: 18,
+      };
+      batch = [
+        ...batch,
+        {
+          data: submission,
+        },
+      ];
+
+      helper
+        .form('submissionsSearch', components)
+        .bulkCreateUpsertSubmissions(
+          batch,
+          null,
+          [
+            /application\/json/,
+            201,
+          ],
+          false)
+        .execute(function (err) {
+          if (err) {
+            return done(err);
+          }
+
+          assert.equal(helper.getLastBulkSubmission().insertedCount, batch.length);
+
+          helper.getSubmissions('data.name__eq=Name1&data.age__eq=18', (err, submissions) => {
+            if (err) {
+              done(err);
+            }
+            assert.equal(submissions.length, 1);
+            assert.deepEqual(submission, submissions[0].data);
+            helper.getSubmissions('__or=data.name__eq=Name1,data.age__eq=18', (err, submissions) => {
+              if (err) {
+                done(err);
+              }
+              assert.equal(submissions.length, 3);
+              done();
+            });
+            done();
+          });
         });
     });
   });

@@ -1252,9 +1252,13 @@ module.exports = function (app) {
     });
   };
 
-  Helper.prototype.getSubmissions = function (form, user, expect, done) {
-    if (typeof form === 'object') {
+  Helper.prototype.getSubmissions = function (form, query, user, expect, done) {
+    if (typeof form === 'string' || typeof form === 'object') {
       form = this.contextName;
+    }
+
+    if (typeof query === 'object') {
+      user = query;
     }
 
     if (typeof user === 'function') {
@@ -1284,7 +1288,7 @@ module.exports = function (app) {
     if (this.template.project && this.template.project._id) {
       url += `/project/${this.template.project._id}`;
     }
-    url += `/form/${this.template.forms[form]._id}/submission?limit=10&skip=0`;
+    url += `/form/${this.template.forms[form]._id}/submission?${query || ''}limit=10&skip=0`;
 
     let currentRequest = request(app).get(url).send();
     if (user) {
