@@ -1180,6 +1180,97 @@ module.exports = function (app, template, hook) {
           done();
         });
     });
+
+    it('A user who has update form definition permissions should be able to create actions on the form', function(done) {
+      const adminToken = template.users.admin.token;
+      const authenticatedUserRole = template.users.user1.roles[0];
+      request(app)
+        .post(hook.alter('url', '/form', template))
+        .set('x-jwt-token', adminToken)
+        .expect(201)
+        .send({
+          'title': 'createActionTesting',
+          'display': 'form',
+          'type': 'form',
+          'name': 'createActionTesting',
+          'path': 'createactiontesting',
+          'access': [
+            {
+              'type': 'update_all',
+              'roles': [
+                authenticatedUserRole
+              ]
+            }
+          ]
+        })
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+          const formId = res.body._id;
+          const authenticatedUserToken = template.users.user1.token;
+          const emailAction = {
+            'data': {
+              'priority': 0,
+              'name': 'email',
+              'title': 'Email',
+              'settings': {
+                'transport': 'smtp',
+                'from': 'no-reply@example.com',
+                'replyTo': '',
+                'emails': [
+                  'test@example.com'
+                ],
+                'sendEach': false,
+                'cc': [
+                  ''
+                ],
+                'bcc': [
+                  ''
+                ],
+                'subject': 'New submission for {{ form.title }}.',
+                'template': 'https://pro.formview.io/assets/email.html',
+                'message': '{{ submission(data, form.components) }}',
+                'renderingMethod': 'dynamic',
+                'attachFiles': false,
+                'attachPDF': false
+              },
+              'handler': [
+                'after'
+              ],
+              'method': [
+                'create'
+              ],
+              'condition': {
+                'conjunction': '',
+                'conditions': [],
+                'custom': ''
+              },
+              'submit': true
+            }
+          };
+          request(app)
+            .post(hook.alter('url', `/form/${formId}/action`, template))
+            .set('x-jwt-token', authenticatedUserToken)
+            .expect(201)
+            .send(emailAction)
+            .end((err) => {
+              if (err) {
+                return done(err);
+              }
+              request(app)
+                .delete(hook.alter('url', `/form/${formId}`, template))
+                .set('x-jwt-token', adminToken)
+                .expect(200)
+                .end((err) => {
+                  if (err) {
+                    return done(err);
+                  }
+                  done();
+                });
+            });
+        });
+    });
   });
 
   if (!customer) {

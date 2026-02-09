@@ -637,7 +637,12 @@ module.exports = function (router) {
 
       // Using the given method, iterate the 8 available entity access. Compare the given roles with the roles
       // defined by the entity to have access. If this roleId is found within the defined roles, grant access.
-      const search = methods[method];
+      let search = methods[method];
+      // If we are dealing with form actions then all permissions are based on the put permissions
+      // of the form
+      if(entity?.type === 'form' && req.url.match(/\/action($|\/)/)){
+        search = methods.PUT;
+      }
       if (!search || typeof search === 'undefined') {
         router.formio.util.error({
           method: req.method,
