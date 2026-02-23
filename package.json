@@ -65,7 +65,8 @@
     "semver": "^7.3.8",
     "superagent-retry": "^0.6.0",
     "through": "^2.3.8",
-    "vanilla-text-mask": "^5.1.1"
+    "vanilla-text-mask": "^5.1.1",
+    "xss": "^1.0.15"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
