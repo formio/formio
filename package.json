@@ -25,7 +25,7 @@
     "@formio/core": "https://github.com/formio/core.git#main",
     "@formio/js": "https://github.com/formio/formio.js.git#main",
     "@formio/node-fetch-http-proxy": "^1.1.0",
-    "@formio/vm": "2",
+    "@formio/vm": "https://github.com/formio/vm#main",
     "adm-zip": "^0.5.9",
     "async": "^3.2.4",
     "bcryptjs": "^2.4.3",
