@@ -44,6 +44,8 @@ RUN npm run build
 
 RUN apk del git
 
+WORKDIR /app
+
 # Set this to inspect more from the application. Examples:
 #   DEBUG=formio:db (see index.js for more)
 #   DEBUG=formio:*
