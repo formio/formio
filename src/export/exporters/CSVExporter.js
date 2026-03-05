@@ -467,7 +467,7 @@ class CSVExporter extends Exporter {
           } else if (component.type === 'file') {
             items.push({
               preprocessor: (value) => {
-                if (!value || !value.length) {
+                if (!Array.isArray(value) || !value.length) {
                   return '';
                 }
                 const formatted = value
