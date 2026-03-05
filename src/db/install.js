@@ -101,8 +101,34 @@ module.exports = async function (db, config) {
           owner: 1,
         },
         name: 'owner_1',
-      },
+      }
     ]);
+
+    try {
+      await collection.createIndexes([
+        {
+          key: {
+            project: 1,
+            title: 1,
+            deleted: 1,
+          },
+          name: 'project_1_title_collation_1_deleted_1',
+          collation: { locale: 'en', strength: 2 },
+        }
+      ])
+    } catch (err) {
+      util.log(`Collation index not supported (${err.message}).`);
+      await collection.createIndexes([
+        {
+          key: {
+            project: 1,
+            title: 1,
+            deleted: 1,
+          },
+          name: 'project_1_title_1_deleted_1',
+        }
+      ]);
+    }
   };
 
   async function createRolesCollection () {

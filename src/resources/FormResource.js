@@ -41,7 +41,10 @@ module.exports = function (router) {
   // If the last argument is a function, hook.alter assumes it is a callback function.
   const FormResource = hook.alter('FormResource', Resource, null);
 
-  return FormResource(router, '', 'form', router.formio.mongoose.model('form')).rest(
+  return FormResource(router, '', 'form', router.formio.mongoose.model('form'),
+   router.formio.mongoFeatures?.collation
+    ? { collation: { locale: 'en', strength: 2 } }
+    : {}).rest(
     hook.alter('formRoutes', {
       before: [
         (req, res, next) => {
