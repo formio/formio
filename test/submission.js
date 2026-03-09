@@ -58,22 +58,6 @@ module.exports = function (app, template, hook) {
             done();
           });
       });
-      it('Custom conditional components that rely on fetched data should work correctly', function (done) {
-        const test = require('./fixtures/forms/customConditionalComponents.js');
-        helper
-          .form('test', test.components)
-          .submission({ data: test.submission })
-          .execute(function (err) {
-            if (err) {
-              return done(err);
-            }
-            const submission = helper.getLastSubmission();
-            assert.strictEqual(Object.keys(submission.data).length, 2);
-            assert('aaPocCheckboxStage' in submission.data);
-            assert('stageData' in submission.data);
-            done();
-          });
-      });
 
       it('Saves values for each single value component type2', function (done) {
         var test = require('./fixtures/forms/singlecomponents2.js');
@@ -333,6 +317,92 @@ module.exports = function (app, template, hook) {
           });
       });
     });
+
+    describe ('Submissions with Data Source components', function () {
+      const forms = require('./fixtures/forms/dataSourceComponents.js');
+      
+      it('Data Source component with Trigger on Server: false should not be triggered on server', function (done) {
+        const test = forms.triggerOnServer;
+
+        helper
+          .form('test', test.components)
+          .submission({ data: test.submission })
+          .execute(function (err) {
+            if (err) {
+              return done(err);
+            }
+            const submission = helper.getLastSubmission();
+            assert.strictEqual(Object.keys(submission.data).length, 1);
+            assert('textArea' in submission.data);
+            assert.equal(submission.data.textArea, 'should be displayed');
+            done();
+          });
+      });
+
+      it('Data Source component with Trigger on Server: true should be triggered on server', function (done) {
+        const test = forms.notTriggerOnServer;
+        helper
+          .form('test', test.components)
+          .submission({ data: test.submission })
+          .execute(function (err) {
+            if (err) {
+              return done(err);
+            }
+
+            const submission = helper.getLastSubmission();
+            assert.strictEqual(Object.keys(submission.data).length, 0);
+            done();
+          });
+      });
+
+      it('Data from None Persistent Data Source component is not saved, even if it was received from client', function (done) {
+        const test = forms.nonePersistent;
+        helper
+          .form('test', test.components)
+          .submission({ data: test.submission })
+          .execute(function (err) {
+            if (err) {
+              return done(err);
+            }
+            const submission = helper.getLastSubmission();
+            assert.strictEqual(Object.keys(submission.data).length, 1);
+            assert.strictEqual('dataSource' in submission.data, false);
+            done();
+          });
+      });
+
+      it('Data from Server Persistent Data Source component is saved', function (done) {
+        const test = forms.persistent;
+        helper
+          .form('test', test.components)
+          .submission({ data: test.submission })
+          .execute(function (err) {
+            if (err) {
+              return done(err);
+            }
+            const submission = helper.getLastSubmission();
+            assert.strictEqual(Object.keys(submission.data).length, 2);
+            assert.strictEqual('dataSource' in submission.data, true);
+            done();
+          });
+      });
+
+      it('Data from Client Only Persistent Data Source component is not saved', function (done) {
+        const test = forms.clientOnly;
+        helper
+          .form('test', test.components)
+          .submission({ data: test.submission })
+          .execute(function (err) {
+            if (err) {
+              return done(err);
+            }
+            const submission = helper.getLastSubmission();
+            assert.strictEqual(Object.keys(submission.data).length, 1);
+            assert.strictEqual('dataSource' in submission.data, false);
+            done();
+          });
+      });
+    })
 
     describe('Server Calculated', function () {
       it('Recalculate value on server', function (done) {
