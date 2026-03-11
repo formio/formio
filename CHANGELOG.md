@@ -1,5 +1,372 @@
 # formio
 
+## 4.6.1
+
+### Patch Changes
+
+- b867420: FIO-10662: removed IP data from submission metadata by default
+- f6e33b8: FIO-10564: Fix lock duplication by converting db/install script to async/await
+- 4e88b7a: FIO-10899: fixed an issue where instance is not available for evaluations on server-side for content components
+- af9e509: allow actions to be created if you have update form definition permissions
+- 73058a8: FIO-10786: sanitize email data
+- cc8eb1c: FIO-11051: fixed an issue where Select components with save as reference don't dereference their data on programmatic submission, resulting in validation errors
+- Updated dependencies [4b6b065]
+- Updated dependencies [8c13733]
+- Updated dependencies [3ea92c5]
+- Updated dependencies [9e53993]
+- Updated dependencies [83f3a1b]
+- Updated dependencies [409a807]
+- Updated dependencies [4e88b7a]
+- Updated dependencies [f5fa215]
+- Updated dependencies [a5bd18b]
+- Updated dependencies [550e172]
+- Updated dependencies [cde1d5b]
+- Updated dependencies [d85c263]
+- Updated dependencies [c93015f]
+- Updated dependencies [5fffacd]
+- Updated dependencies [5afcf81]
+- Updated dependencies [75db166]
+- Updated dependencies [cc8eb1c]
+  - @formio/js@5.3.1
+  - @formio/core@2.6.1
+
+## 4.6.1-api97.4
+
+### Patch Changes
+
+- Updated dependencies [550e172]
+  - @formio/js@5.3.1-api97.4
+
+## 4.6.1-api97.3
+
+### Patch Changes
+
+- Updated dependencies [a5bd18b]
+  - @formio/js@5.3.1-api97.3
+
+## 4.6.1-api97.2
+
+### Patch Changes
+
+- Updated dependencies [f5fa215]
+  - @formio/js@5.3.1-api97.2
+
+## 4.6.1-api97.1
+
+### Patch Changes
+
+- Updated dependencies [83f3a1b]
+- Updated dependencies [cde1d5b]
+  - @formio/js@5.3.1-api97.1
+
+## 4.6.1-api97.0
+
+### Patch Changes
+
+- b867420: FIO-10662: removed IP data from submission metadata by default
+- f6e33b8: FIO-10564: Fix lock duplication by converting db/install script to async/await
+- 4e88b7a: FIO-10899: fixed an issue where instance is not available for evaluations on server-side for content components
+- af9e509: allow actions to be created if you have update form definition permissions
+- 73058a8: FIO-10786: sanitize email data
+- cc8eb1c: FIO-11051: fixed an issue where Select components with save as reference don't dereference their data on programmatic submission, resulting in validation errors
+- Updated dependencies [4b6b065]
+- Updated dependencies [8c13733]
+- Updated dependencies [3ea92c5]
+- Updated dependencies [9e53993]
+- Updated dependencies [409a807]
+- Updated dependencies [4e88b7a]
+- Updated dependencies [d85c263]
+- Updated dependencies [c93015f]
+- Updated dependencies [5fffacd]
+- Updated dependencies [5afcf81]
+- Updated dependencies [75db166]
+- Updated dependencies [cc8eb1c]
+  - @formio/js@5.3.1-api97.0
+  - @formio/core@2.6.1-api97.0
+
+## 4.6.0
+
+### Minor Changes
+
+- 06b4398: FIO-10620 fixed issues with form revisions while importing and exporting templates
+- cf7093d: FIO-10807: setup feature flags for formio, put bulk submissions endpoints behind feature flag
+- e2c1675: FIO-10569: added post and put bulk submissions endpoints
+
+### Patch Changes
+
+- 319d032: Integrate previous OSS portal work into nirvana
+- 03303d5: FIO-10903: fixed an issue where trnalstion function is not available in evaluations on server
+- b8dbfc8: FIO-10881: fixed an issue where server crashes when getting form revisions
+- 61dd4b0: Re-introduced OSS portal
+- 63e1e81: changeset for CVE dependency bumps
+- 89d642b: Upgraded body-parser to version 2.x
+- 7dde85a: fix variable problem in recaptcha middleware
+- 0d1d804: Provide options to timestamps plugin to avoid duplicated indew warning when we need to modify indexes on timestamps
+- 956f83b: Update select metadata in nested form submissions when using patch request
+- 456bff6: Prevent server crush in case fetch issues (email send)
+- 305c27e: update cache method to prevent 504 timeout
+- ca380bf: FIO-9727: Allow admin users to override created and modified dates when making POST/PUT requests to the submission endpoint
+- fb6536f: FIO-10790: fixed an issue where modified date is not updated when deploying tag
+- 8548458: Upgrade nodemailer from 6.10.1 to 7.0.7
+- 4e71ab5: FIO-10995 Update jsonwebtoken to resolve jws CVEs
+- Updated dependencies [319d032]
+- Updated dependencies [98f7031]
+- Updated dependencies [8eab74f]
+- Updated dependencies [be2c44c]
+- Updated dependencies [dc1a681]
+- Updated dependencies [03303d5]
+- Updated dependencies [93e6373]
+- Updated dependencies [2181508]
+- Updated dependencies [61dd4b0]
+- Updated dependencies [c7af089]
+- Updated dependencies [d34c952]
+- Updated dependencies [e91c866]
+- Updated dependencies [cf7056e]
+- Updated dependencies [6ffefd3]
+- Updated dependencies [c165d83]
+- Updated dependencies [52e802a]
+- Updated dependencies [63e1e81]
+- Updated dependencies [9a0dabb]
+- Updated dependencies [17b2b95]
+- Updated dependencies [3126796]
+- Updated dependencies [3125a98]
+- Updated dependencies [5334cf2]
+- Updated dependencies [cf7093d]
+- Updated dependencies [6cd8e45]
+- Updated dependencies [02cbf6f]
+- Updated dependencies [65d5e88]
+- Updated dependencies [3ed475c]
+- Updated dependencies [7aebcd1]
+- Updated dependencies [add846e]
+- Updated dependencies [8769114]
+- Updated dependencies [14985be]
+- Updated dependencies [df5ec66]
+- Updated dependencies [077b05d]
+- Updated dependencies [685a230]
+- Updated dependencies [a430668]
+- Updated dependencies [8394bee]
+- Updated dependencies [291d7d9]
+- Updated dependencies [cd847a7]
+- Updated dependencies [5c87b17]
+- Updated dependencies [a715804]
+- Updated dependencies [eda912c]
+- Updated dependencies [8e621a6]
+- Updated dependencies [7a6a3e7]
+- Updated dependencies [349f791]
+- Updated dependencies [384a8da]
+- Updated dependencies [a6c9755]
+- Updated dependencies [c979f93]
+- Updated dependencies [bc152a0]
+- Updated dependencies [5a600df]
+- Updated dependencies [e4673b7]
+- Updated dependencies [73e3abd]
+- Updated dependencies [bd39aee]
+- Updated dependencies [c8639d0]
+- Updated dependencies [7dd259e]
+  - @formio/js@5.3.0
+  - @formio/core@2.6.0
+  - @formio/vm@2.0.2
+  - @formio/feature-flags@1.1.0
+
+## 4.6.0-rc.9
+
+### Patch Changes
+
+- 63e1e81: changeset for CVE dependency bumps
+- Updated dependencies [63e1e81]
+  - @formio/vm@2.0.2-rc.0
+
+## 4.6.0-rc.8
+
+### Patch Changes
+
+- Updated dependencies [9a0dabb]
+  - @formio/js@5.3.0-rc.8
+
+## 4.6.0-rc.7
+
+### Patch Changes
+
+- Updated dependencies [be2c44c]
+- Updated dependencies [5a600df]
+  - @formio/js@5.3.0-rc.7
+  - @formio/core@2.6.0-rc.5
+
+## 4.6.0-rc.6
+
+### Patch Changes
+
+- Updated dependencies [98f7031]
+- Updated dependencies [cf7056e]
+- Updated dependencies [14985be]
+- Updated dependencies [7dd259e]
+  - @formio/core@2.6.0-rc.4
+  - @formio/js@5.3.0-rc.6
+
+## 4.6.0-rc.5
+
+### Patch Changes
+
+- Updated dependencies [cd847a7]
+  - @formio/js@5.3.0-rc.5
+
+## 4.6.0-rc.4
+
+### Patch Changes
+
+- 03303d5: FIO-10903: fixed an issue where trnalstion function is not available in evaluations on server
+- 4e71ab5: FIO-10995 Update jsonwebtoken to resolve jws CVEs
+- Updated dependencies [03303d5]
+- Updated dependencies [07f50ff]
+- Updated dependencies [65d5e88]
+- Updated dependencies [7aebcd1]
+- Updated dependencies [8394bee]
+- Updated dependencies [397b524]
+  - @formio/core@2.6.0-rc.3
+  - @formio/js@5.3.0-rc.4
+
+## 4.6.0-rc.3
+
+### Patch Changes
+
+- Updated dependencies [2181508]
+- Updated dependencies [eda912c]
+  - @formio/js@5.3.0-rc.3
+
+## 4.6.0-rc.2
+
+### Patch Changes
+
+- Updated dependencies [3126796]
+  - @formio/core@2.6.0-rc.2
+  - @formio/js@5.3.0-rc.2
+
+## 4.6.0-rc.1
+
+### Minor Changes
+
+- cf7093d: FIO-10807: setup feature flags for formio, put bulk submissions endpoints behind feature flag
+- e2c1675: FIO-10569: added post and put bulk submissions endpoints
+
+### Patch Changes
+
+- b8dbfc8: FIO-10881: fixed an issue where server crashes when getting form revisions
+- Updated dependencies [cf7093d]
+- Updated dependencies [bc152a0]
+- Updated dependencies [73e3abd]
+  - @formio/feature-flags@1.1.0-rc.1
+  - @formio/core@2.5.3-rc.1
+  - @formio/js@5.3.0-rc.1
+
+## 4.6.0-rc.0
+
+### Minor Changes
+
+- 06b4398: FIO-10620 fixed issues with form revisions while importing and exporting templates
+
+### Patch Changes
+
+- 319d032: Integrate previous OSS portal work into nirvana
+- 61dd4b0: Re-introduced OSS portal
+- 89d642b: Upgraded body-parser to version 2.x
+- 7dde85a: fix variable problem in recaptcha middleware
+- 0d1d804: Provide options to timestamps plugin to avoid duplicated indew warning when we need to modify indexes on timestamps
+- 956f83b: Update select metadata in nested form submissions when using patch request
+- 456bff6: Prevent server crush in case fetch issues (email send)
+- 305c27e: update cache method to prevent 504 timeout
+- ca380bf: FIO-9727: Allow admin users to override created and modified dates when making POST/PUT requests to the submission endpoint
+- fb6536f: FIO-10790: fixed an issue where modified date is not updated when deploying tag
+- 3f3e4bc: FIO-10696: fixed an issue where submission revision is not created when submission is updated with PATCH request
+- 8548458: Upgrade nodemailer from 6.10.1 to 7.0.7
+- Updated dependencies [319d032]
+- Updated dependencies [8eab74f]
+- Updated dependencies [dc1a681]
+- Updated dependencies [93e6373]
+- Updated dependencies [61dd4b0]
+- Updated dependencies [c7af089]
+- Updated dependencies [d34c952]
+- Updated dependencies [e91c866]
+- Updated dependencies [6ffefd3]
+- Updated dependencies [c165d83]
+- Updated dependencies [52e802a]
+- Updated dependencies [17b2b95]
+- Updated dependencies [3125a98]
+- Updated dependencies [5334cf2]
+- Updated dependencies [6cd8e45]
+- Updated dependencies [02cbf6f]
+- Updated dependencies [3ed475c]
+- Updated dependencies [add846e]
+- Updated dependencies [8769114]
+- Updated dependencies [df5ec66]
+- Updated dependencies [3645f62]
+- Updated dependencies [685a230]
+- Updated dependencies [a430668]
+- Updated dependencies [291d7d9]
+- Updated dependencies [5c87b17]
+- Updated dependencies [a715804]
+- Updated dependencies [8e621a6]
+- Updated dependencies [7a6a3e7]
+- Updated dependencies [349f791]
+- Updated dependencies [384a8da]
+- Updated dependencies [a6c9755]
+- Updated dependencies [c979f93]
+- Updated dependencies [35ad101]
+- Updated dependencies [e4673b7]
+- Updated dependencies [bd39aee]
+- Updated dependencies [c8639d0]
+  - @formio/js@5.3.0-rc.0
+
+## 4.5.8
+
+### Patch Changes
+
+- 97ed1ec: Dependency updates
+- Updated dependencies [97ed1ec]
+- Updated dependencies [17bcb81]
+- Updated dependencies [8a72cc9]
+- Updated dependencies [82f4609]
+- Updated dependencies [b17f74d]
+- Updated dependencies [34c2885]
+- Updated dependencies [09d79e6]
+  - @formio/vm@2.0.1
+  - @formio/core@2.5.4
+  - @formio/js@5.2.6
+
+## 4.5.8-api96.1
+
+### Patch Changes
+
+- 97ed1ec: Dependency updates
+- Updated dependencies [97ed1ec]
+  - @formio/vm@2.0.1-api96.0
+
+## 4.5.8-api96.0
+
+### Patch Changes
+
+- Updated dependencies [17bcb81]
+- Updated dependencies [8a72cc9]
+- Updated dependencies [82f4609]
+- Updated dependencies [b17f74d]
+- Updated dependencies [34c2885]
+- Updated dependencies [09d79e6]
+  - @formio/core@2.5.4-api96.0
+  - @formio/js@5.2.6-api96.0
+
+## 4.5.7
+
+### Patch Changes
+
+- Updated dependencies [92a1c5d]
+  - @formio/js@5.2.5
+
+## 4.5.7-api96.0
+
+### Patch Changes
+
+- Updated dependencies [92a1c5d]
+  - @formio/js@5.2.5-api96.0
+
 ## 4.5.6
 
 ### Patch Changes
