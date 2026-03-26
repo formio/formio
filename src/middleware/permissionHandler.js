@@ -719,7 +719,7 @@ module.exports = function (router) {
       if (hasAllAccess) {
         const submissionResourceAdmin = _.get(req, 'submissionResourceAccessAdminBlock') || [];
         if (
-          (req.method === 'POST' || req.method === 'PUT') &&
+          (req.method === 'POST' || req.method === 'PUT' || (req.method === 'PATCH' && entity.type === 'submission')) &&
           !_.intersection(submissionResourceAdmin, access.roles).length
         ) {
           // Allow them to assign the owner.

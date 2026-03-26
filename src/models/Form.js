@@ -106,7 +106,7 @@ module.exports = (formio) => {
     "characters or must be equal to 'Enter' or 'Esc'";
 
   const model = require('./BaseModel')({
-    schema: new formio.mongoose.Schema({
+    schema: new formio.mongoose.Schema(hook.alter('formSchema', {
       title: {
         type: String,
         description: 'The title for the form.',
@@ -290,7 +290,7 @@ module.exports = (formio) => {
         type: formio.mongoose.Schema.Types.Mixed,
         description: 'Custom form properties.',
       },
-    }),
+    })),
   });
 
   model.schema.index(hook.alter('schemaIndex', { type: 1, deleted: 1, modified: -1 }));
