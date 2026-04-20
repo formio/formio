@@ -1,6 +1,6 @@
 'use strict';
-const async = require('async');
 const _ = require('lodash');
+const { ObjectId } = require('mongodb');
 const debug = {
   form: require('debug')('formio:cache:form'),
   loadForm: require('debug')('formio:cache:loadForm'),
@@ -115,13 +115,28 @@ module.exports = function (router) {
         return [];
       }
 
+      // Use whatever forms are already cached and only look up the rest.
+      const cache = this.cache(req);
+      const cached = [];
+      const missingIds = [];
+      ids.forEach((id) => {
+        const form = cache.forms[id];
+        if (form) {
+          cached.push(form);
+        } else {
+          missingIds.push(id);
+        }
+      });
+
+      if (!missingIds.length) return cached;
+
       try {
         const result = await router.formio.resources.form.model
           .find(
             await hook.alter(
               'formQuery',
               {
-                _id: { $in: ids.map((formId) => util.idToBson(formId)) },
+                _id: { $in: missingIds.map((formId) => util.idToBson(formId)) },
                 deleted: { $eq: null },
               },
               req,
@@ -131,10 +146,11 @@ module.exports = function (router) {
           .exec();
 
         if (!result || !result.length) {
-          return [];
+          return cached;
         }
 
-        return result;
+        result.forEach((form) => this.updateCache(req, cache, form));
+        return cached.concat(result);
       } catch (err) {
         debug.loadForms(err);
         throw err;
@@ -148,9 +164,8 @@ module.exports = function (router) {
       }
 
       const formRevs = {};
-      async.each(
-        revs,
-        async (rev) => {
+      try {
+        await Promise.all(revs.map(async (rev) => {
           const formRevision = rev.revision || rev.formRevision;
           debug.loadSubForms(`Loading form ${util.idToBson(rev.form)} revision ${formRevision}`);
           const loadRevision =
@@ -180,17 +195,14 @@ module.exports = function (router) {
 
           debug.loadSubForms(`Loaded revision for form ${rev.form} revision ${formRevision}`);
           formRevs[rev.form.toString()] = result;
-        },
-        (err) => {
-          if (err) {
-            debug.loadSubForms(err);
-            debug.loadFormRevisions(err);
-            throw err;
-          }
-
-          return formRevs;
-        },
-      );
+        }));
+      }
+      catch (err) {
+        debug.loadSubForms(err);
+        debug.loadFormRevisions(err);
+        throw err;
+      }
+      return formRevs;
     },
 
     getCurrentFormId(req) {
@@ -466,7 +478,7 @@ module.exports = function (router) {
         let revs = await this.loadFormRevisions(req, formRevs);
         // Iterate through all subforms.
         revs = revs || {};
-        return async.each(result, async (subForm) => {
+        return Promise.all(result.map(async (subForm) => {
           const formId = subForm._id.toString();
           if (forms[formId]) {
             debug.loadSubForms(`Subforms already loaded for ${formId}.`);
@@ -474,7 +486,7 @@ module.exports = function (router) {
           }
           forms[formId] = revs[formId] ? revs[formId] : subForm;
           await this.loadAllForms(subForm, req, depth + 1, forms);
-        });
+        }));
       } catch (ignoreErr) {
         return;
       }
@@ -515,9 +527,13 @@ module.exports = function (router) {
      * @param req
      * @param next
      * @param depth
+     * @param {Object} options
+     * @param {boolean} options.resolveNestedFormRevisions - When true, nested form components with
+     *   useOriginalRevision will have their component schemas replaced with the form revision that
+     *   the submission was originally created against.
      * @return {*}
      */
-    async loadSubSubmissions(form, submission, req, depth) {
+    async loadSubSubmissions(form, submission, req, depth, options = {}) {
       depth = depth || 0;
 
       // Only allow 5 deep.
@@ -567,14 +583,13 @@ module.exports = function (router) {
         if (!submissions || !submissions.length) {
           return;
         }
-        return async.eachSeries(submissions, async (sub) => {
+        for (const sub of submissions) {
           if (!sub || !sub._id) {
-            return;
+            continue;
           }
           const subId = sub._id.toString();
           if (subs[subId]) {
-            const submissionPromises = [];
-            _.each(subs[subId], (subInfo) => {
+            await Promise.all(subs[subId].map(async (subInfo) => {
               // Set the subform data if it contains more data... legacy renderers don't fare well with sub-data.
               if (
                 !subInfo.data ||
@@ -582,17 +597,86 @@ module.exports = function (router) {
               ) {
                 _.set(submission.data, subInfo.path, sub);
               }
+              if (options.resolveNestedFormRevisions && subInfo.component.useOriginalRevision) {
+                await this.resolveOriginalRevision(req, subInfo.component, sub);
+              }
               // Load all subdata within this submission.
-              submissionPromises.push(
-                this.loadSubSubmissions(subInfo.component, sub, req, depth + 1),
-              );
-            });
-            await Promise.all(submissionPromises);
+              await this.loadSubSubmissions(subInfo.component, sub, req, depth + 1, options);
+            }));
           }
-        });
+        }
       } catch (ignoreErr) {
         return;
       }
+    },
+
+    /**
+     * Resolve the original form revision for a nested form submission.
+     * Uses the submission's _frid/_fvid to find the revision the submission was created against,
+     * then swaps the component's schema with the revision's.
+     *
+     * @param req
+     * @param component - the nested form component (must have component.form set)
+     * @param submission - the hydrated submission object (with _frid/_fvid)
+     */
+    async resolveOriginalRevision(req, component, submission) {
+      // todo: if this function is used for other cases in the future, a PDF proxy flag could be added
+      // Always delete so the PDF server doesn't try to re-fetch when rendering the form
+      delete component.useOriginalRevision;
+
+      // Check if the base form has revisions enabled
+      let baseForm;
+      try {
+        baseForm = await this.loadForm(req, null, component.form);
+      }
+      catch (err) {
+        return;
+      }
+      if (!baseForm || !baseForm.revisions) return;
+
+      const formRevisionId = submission._frid || submission._fvid;
+      // no need to load the original revision if the form component is already using it
+      if (_.isNil(formRevisionId) || formRevisionId === baseForm._vid) return;
+
+      try {
+        // todo: possible enhancement–– add form revisions to the cache
+        const revision = await this.loadFormRevision(component.form, formRevisionId);
+        if (!revision) return;
+        component.components = revision.components;
+        component.settings = revision.settings;
+        // Re-hydrate subforms that may exist in the restored revision but not in the current version
+        await this.loadSubForms(component, req);
+      }
+      catch (err) {
+        debug.loadFormRevisions(`Error resolving original revision for form ${component.form}: ${err}`);
+      }
+    },
+
+    /**
+     * Find a form revision by its revision ID. Returns the revision document (lean) or null.
+     *
+     * @param {string} formId - The form's _id to match against form revision _rid
+     * @param {string|number} revisionId - Either a 24-char ObjectId (_frid) or an integer version (_fvid) from the submission
+     * @returns {Promise<Object|null>}
+     */
+    async loadFormRevision(formId, revisionId) {
+      if (_.isNil(revisionId)) return null;
+
+      const revId = String(revisionId);
+      const query = {
+        _rid: util.idToBson(formId),
+      };
+
+      if (ObjectId.isValid(revId)) {
+        query._id = util.idToBson(revId);
+      }
+      else {
+        const vid = parseInt(revId, 10);
+        if (Number.isNaN(vid)) return null;
+        query._vid = vid;
+      }
+
+      return router.formio.resources.formrevision.model.findOne(query).lean().exec();
     },
   };
 };
