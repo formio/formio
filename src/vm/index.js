@@ -24,7 +24,11 @@ class IsolateVMEvaluator extends DefaultEvaluator {
    */
   constructor(options, hook) {
     super(options);
-    this.vm = new IsolateVM({ env: CORE_LODASH_MOMENT_INPUTMASK });
+    const vmOptions = { env: CORE_LODASH_MOMENT_INPUTMASK };
+    if (options?.memoryLimitMb) {
+      vmOptions.memoryLimitMb = options.memoryLimitMb;
+    }
+    this.vm = new IsolateVM(vmOptions);
     this.hook = hook;
   }
 

@@ -336,7 +336,7 @@ module.exports = function (config) {
 
     function configureEvaluator() {
       // Configure the evaluator
-      const evaluator = new IsolateVMEvaluator({ timeoutMs: config.vmTimeout }, router.formio.hook);
+      const evaluator = new IsolateVMEvaluator({ timeoutMs: config.vmTimeout, memoryLimitMb: config.vmMemoryLimitMb }, router.formio.hook);
       registerEvaluator(evaluator);
     }
 
