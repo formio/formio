@@ -15,6 +15,7 @@ const debug = {
   idToBson: require('debug')('formio:util:idToBson'),
   getUrlParams: require('debug')('formio:util:getUrlParams'),
   removeProtectedFields: require('debug')('formio:util:removeProtectedFields'),
+  uniqueMachineName: require('debug')('formio:util:uniqueMachineName'),
 };
 
 const Utils = {
@@ -652,7 +653,22 @@ const Utils = {
     }
 
     try {
-      const records = await model.find(query).lean().exec();
+      let records;
+      try {
+        records = await model.find(query).hint({ machineName: 1, deleted: 1 }).lean().exec();
+      }
+      catch (err) {
+        // Fallback if bad hint or index not found
+        if (err.code === 2 || err.code === 291) {
+          records = await model.find(query).lean().exec();
+          debug.uniqueMachineName(
+            `Hint rejected (code ${err.code}) on ${model.modelName}; falling back to non-hinted query.`,
+          );
+        } else {
+          throw err;
+        }
+      }
+
       if (!records || !records.length) {
         return next();
       }

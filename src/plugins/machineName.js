@@ -19,6 +19,10 @@ module.exports = (modelName, formio) => {
       { unique: true, partialFilterExpression: { deleted: { $eq: null } } },
     );
 
+    // Plain compound index used by uniqueMachineName's regex query, which
+    // partialFilterExpression indexes can't satisfy on DocumentDB.
+    schema.index({ machineName: 1, deleted: 1 });
+
     // Set the machine name for a record.
     schema.pre('save', function (next) {
       // Do not alter an already established machine name.
