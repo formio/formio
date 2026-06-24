@@ -12,7 +12,10 @@ module.exports = class LessThan extends ConditionOperator {
     return 'Less Than';
   }
 
-  execute({ value, comparedValue }) {
+  execute({
+    value,
+    comparedValue,
+  }) {
     return _.isNumber(value) && value < comparedValue;
   }
 };

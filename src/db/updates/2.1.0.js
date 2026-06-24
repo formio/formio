@@ -1,7 +1,6 @@
 'use strict';
 
 let crypto = require('crypto');
-const { deriveKeyAndIv } = require('../util');
 
 /**
  * Encrypt some text
@@ -14,15 +13,14 @@ function encrypt(secret, mixed) {
     return undefined;
   }
 
-  const { key, iv } = deriveKeyAndIv(secret);
-  const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
+  let cipher = crypto.createCipher('aes-256-cbc', secret);
   let decryptedJSON = JSON.stringify(mixed);
 
   return Buffer.concat([
     cipher.update(decryptedJSON),
-    cipher.final(),
+    cipher.final()
   ]);
-}
+};
 
 /**
  * Decrypt some text
@@ -36,15 +34,14 @@ function decrypt(secret, cipherbuffer) {
     return undefined;
   }
 
-  const { key, iv } = deriveKeyAndIv(secret);
-  const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
+  let decipher = crypto.createDecipher('aes-256-cbc', secret);
   let decryptedJSON = Buffer.concat([
     decipher.update(cipherbuffer), // Buffer contains encrypted utf8
-    decipher.final(),
+    decipher.final()
   ]);
 
-  return JSON.parse(decryptedJSON); // This can throw a exception
-}
+  return JSON.parse(decryptedJSON);  // This can throw a exception
+};
 
 /**
  * Update 2.1.0
@@ -54,27 +51,25 @@ function decrypt(secret, cipherbuffer) {
  * @param tools
  * @param done
  */
-module.exports = function (db, config, tools, done) {
+module.exports = function(db, config, tools, done) {
   // Add cors settings to existing projects.
   let projects = db.collection('projects');
-  projects
-    .find({})
-    .toArray()
-    .forEach(function (project) {
-      let settings = {
-        cors: '*',
-      };
-      if (project.settings_encrypted) {
-        settings = decrypt(config.mongoSecret, project.settings_encrypted.buffer);
-        settings.cors = '*';
+  projects.find({}).toArray().forEach(function(project) {
+    let settings = {
+      cors: '*'
+    }
+    if (project.settings_encrypted) {
+      settings = decrypt(config.mongoSecret, project.settings_encrypted.buffer);
+      settings.cors = '*';
+    }
+    projects.updateOne(
+      { _id: project._id },
+      {
+        $set: {
+          settings_encrypted: encrypt(config.mongoSecret, settings),
+        }
       }
-      projects.updateOne(
-        { _id: project._id },
-        {
-          $set: {
-            settings_encrypted: encrypt(config.mongoSecret, settings),
-          },
-        },
-      );
-    }, done);
+    )
+  },
+  done);
 };

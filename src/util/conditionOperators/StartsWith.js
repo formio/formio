@@ -12,7 +12,10 @@ module.exports = class StartsWith extends ConditionOperator {
     return 'Starts With';
   }
 
-  execute({ value, comparedValue }) {
+  execute({
+    value,
+    comparedValue,
+  }) {
     return _.startsWith(value, comparedValue);
   }
 };

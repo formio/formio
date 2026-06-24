@@ -11,64 +11,38 @@ var customer = process.env.CUSTOMER;
 const defaultEmail = process.env.DEFAULT_EMAIL_SOURCE || 'no-reply@example.com';
 let EventEmitter = require('events');
 
-module.exports = function (app, template, hook) {
+module.exports = function(app, template, hook) {
   template.hooks.addEmitter(new EventEmitter());
 
-  describe('Authentication', function () {
-    it('Should be able to register an administrator', function (done) {
+  describe('Authentication', function() {
+    it('Should be able to register an administrator', function(done) {
       request(app)
-        .post(
-          hook.alter('url', '/form/' + template.forms.adminRegister._id + '/submission', template),
-        )
+        .post(hook.alter('url', '/form/' + template.forms.adminRegister._id + '/submission', template))
         .send({
           data: {
-            email: template.users.admin.data.email,
-            password: template.users.admin.data.password,
-          },
+            'email': template.users.admin.data.email,
+            'password': template.users.admin.data.password
+          }
         })
         .expect(200)
         .expect('Content-Type', /json/)
-        .end(function (err, res) {
+        .end(function(err, res) {
           if (err) {
             return done(err);
           }
 
           var response = res.body;
           assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
-          assert(
-            response.hasOwnProperty('modified'),
-            'The response should contain a `modified` timestamp.',
-          );
-          assert(
-            response.hasOwnProperty('created'),
-            'The response should contain a `created` timestamp.',
-          );
-          assert(
-            response.hasOwnProperty('data'),
-            'The response should contain a submission `data` object.',
-          );
-          assert(
-            response.data.hasOwnProperty('email'),
-            'The submission `data` should contain the `email`.',
-          );
+          assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
+          assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
+          assert(response.hasOwnProperty('data'), 'The response should contain a submission `data` object.');
+          assert(response.data.hasOwnProperty('email'), 'The submission `data` should contain the `email`.');
           assert.equal(response.data.email, template.users.admin.data.email);
-          assert(
-            !response.data.hasOwnProperty('password'),
-            'The submission `data` should not contain the `password`.',
-          );
-          assert(
-            response.hasOwnProperty('form'),
-            'The response should contain the resource `form`.',
-          );
+          assert(!response.data.hasOwnProperty('password'), 'The submission `data` should not contain the `password`.');
+          assert(response.hasOwnProperty('form'), 'The response should contain the resource `form`.');
           assert.equal(response.form, template.resources.admin._id);
-          assert(
-            res.headers.hasOwnProperty('x-jwt-token'),
-            'The response should contain a `x-jwt-token` header.',
-          );
-          assert(
-            response.hasOwnProperty('owner'),
-            'The response should contain the resource `owner`.',
-          );
+          assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
+          assert(response.hasOwnProperty('owner'), 'The response should contain the resource `owner`.');
           assert.notEqual(response.owner, null);
           assert.equal(response.owner, response._id);
           assert.equal(response.roles.length, 1);
@@ -86,60 +60,34 @@ module.exports = function (app, template, hook) {
         });
     });
 
-    it('Register another administrator', function (done) {
+    it('Register another administrator', function(done) {
       request(app)
-        .post(
-          hook.alter('url', '/form/' + template.forms.adminRegister._id + '/submission', template),
-        )
+        .post(hook.alter('url', '/form/' + template.forms.adminRegister._id + '/submission', template))
         .send({
           data: {
-            email: template.users.admin2.data.email,
-            password: template.users.admin2.data.password,
-          },
+            'email': template.users.admin2.data.email,
+            'password': template.users.admin2.data.password
+          }
         })
         .expect(200)
         .expect('Content-Type', /json/)
-        .end(function (err, res) {
+        .end(function(err, res) {
           if (err) {
             return done(err);
           }
 
           var response = res.body;
           assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
-          assert(
-            response.hasOwnProperty('modified'),
-            'The response should contain a `modified` timestamp.',
-          );
-          assert(
-            response.hasOwnProperty('created'),
-            'The response should contain a `created` timestamp.',
-          );
-          assert(
-            response.hasOwnProperty('data'),
-            'The response should contain a submission `data` object.',
-          );
-          assert(
-            response.data.hasOwnProperty('email'),
-            'The submission `data` should contain the `email`.',
-          );
+          assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
+          assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
+          assert(response.hasOwnProperty('data'), 'The response should contain a submission `data` object.');
+          assert(response.data.hasOwnProperty('email'), 'The submission `data` should contain the `email`.');
           assert.equal(response.data.email, template.users.admin2.data.email);
-          assert(
-            !response.data.hasOwnProperty('password'),
-            'The submission `data` should not contain the `password`.',
-          );
-          assert(
-            response.hasOwnProperty('form'),
-            'The response should contain the resource `form`.',
-          );
+          assert(!response.data.hasOwnProperty('password'), 'The submission `data` should not contain the `password`.');
+          assert(response.hasOwnProperty('form'), 'The response should contain the resource `form`.');
           assert.equal(response.form, template.resources.admin._id);
-          assert(
-            res.headers.hasOwnProperty('x-jwt-token'),
-            'The response should contain a `x-jwt-token` header.',
-          );
-          assert(
-            response.hasOwnProperty('owner'),
-            'The response should contain the resource `owner`.',
-          );
+          assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
+          assert(response.hasOwnProperty('owner'), 'The response should contain the resource `owner`.');
           assert.notEqual(response.owner, null);
           assert.equal(response.owner, response._id);
           assert.equal(response.roles.length, 1);
@@ -158,64 +106,34 @@ module.exports = function (app, template, hook) {
     });
 
     if (template.users.formioAdmin) {
-      it('Register a form.io administrator', function (done) {
+      it('Register a form.io administrator', function(done) {
         request(app)
-          .post(
-            hook.alter(
-              'url',
-              '/form/' + template.forms.adminRegister._id + '/submission',
-              template,
-            ),
-          )
+          .post(hook.alter('url', '/form/' + template.forms.adminRegister._id + '/submission', template))
           .send({
             data: {
-              email: template.users.formioAdmin.data.email,
-              password: template.users.formioAdmin.data.password,
-            },
+              'email': template.users.formioAdmin.data.email,
+              'password': template.users.formioAdmin.data.password
+            }
           })
           .expect(200)
           .expect('Content-Type', /json/)
-          .end(function (err, res) {
+          .end(function(err, res) {
             if (err) {
               return done(err);
             }
 
             var response = res.body;
             assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
-            assert(
-              response.hasOwnProperty('modified'),
-              'The response should contain a `modified` timestamp.',
-            );
-            assert(
-              response.hasOwnProperty('created'),
-              'The response should contain a `created` timestamp.',
-            );
-            assert(
-              response.hasOwnProperty('data'),
-              'The response should contain a submission `data` object.',
-            );
-            assert(
-              response.data.hasOwnProperty('email'),
-              'The submission `data` should contain the `email`.',
-            );
+            assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
+            assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
+            assert(response.hasOwnProperty('data'), 'The response should contain a submission `data` object.');
+            assert(response.data.hasOwnProperty('email'), 'The submission `data` should contain the `email`.');
             assert.equal(response.data.email, template.users.formioAdmin.data.email);
-            assert(
-              !response.data.hasOwnProperty('password'),
-              'The submission `data` should not contain the `password`.',
-            );
-            assert(
-              response.hasOwnProperty('form'),
-              'The response should contain the resource `form`.',
-            );
+            assert(!response.data.hasOwnProperty('password'), 'The submission `data` should not contain the `password`.');
+            assert(response.hasOwnProperty('form'), 'The response should contain the resource `form`.');
             assert.equal(response.form, template.resources.admin._id);
-            assert(
-              res.headers.hasOwnProperty('x-jwt-token'),
-              'The response should contain a `x-jwt-token` header.',
-            );
-            assert(
-              response.hasOwnProperty('owner'),
-              'The response should contain the resource `owner`.',
-            );
+            assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
+            assert(response.hasOwnProperty('owner'), 'The response should contain the resource `owner`.');
             assert.notEqual(response.owner, null);
             assert.equal(response.owner, response._id);
             assert.equal(response.roles.length, 1);
@@ -234,58 +152,34 @@ module.exports = function (app, template, hook) {
       });
     }
 
-    it('A Form.io User should be able to login as administrator', function (done) {
+    it('A Form.io User should be able to login as administrator', function(done) {
       request(app)
         .post(hook.alter('url', '/form/' + template.forms.adminLogin._id + '/submission', template))
         .send({
           data: {
-            email: template.users.admin.data.email,
-            password: template.users.admin.data.password,
-          },
+            'email': template.users.admin.data.email,
+            'password': template.users.admin.data.password
+          }
         })
         .expect('Content-Type', /json/)
         .expect(200)
-        .end(function (err, res) {
+        .end(function(err, res) {
           if (err) {
             return done(err);
           }
 
           var response = res.body;
           assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
-          assert(
-            response.hasOwnProperty('modified'),
-            'The response should contain a `modified` timestamp.',
-          );
-          assert(
-            response.hasOwnProperty('created'),
-            'The response should contain a `created` timestamp.',
-          );
-          assert(
-            response.hasOwnProperty('data'),
-            'The response should contain a submission `data` object.',
-          );
-          assert(
-            response.data.hasOwnProperty('email'),
-            'The submission `data` should contain the `email`.',
-          );
+          assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
+          assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
+          assert(response.hasOwnProperty('data'), 'The response should contain a submission `data` object.');
+          assert(response.data.hasOwnProperty('email'), 'The submission `data` should contain the `email`.');
           assert.equal(response.data.email, template.users.admin.data.email);
-          assert(
-            !response.hasOwnProperty('password'),
-            'The submission `data` should not contain the `password`.',
-          );
-          assert(
-            !response.data.hasOwnProperty('password'),
-            'The submission `data` should not contain the `password`.',
-          );
-          assert(
-            response.hasOwnProperty('form'),
-            'The response should contain the resource `form`.',
-          );
+          assert(!response.hasOwnProperty('password'), 'The submission `data` should not contain the `password`.');
+          assert(!response.data.hasOwnProperty('password'), 'The submission `data` should not contain the `password`.');
+          assert(response.hasOwnProperty('form'), 'The response should contain the resource `form`.');
           assert.equal(response.form, template.resources.admin._id);
-          assert(
-            res.headers.hasOwnProperty('x-jwt-token'),
-            'The response should contain a `x-jwt-token` header.',
-          );
+          assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
 
           // Update our template.users.admins data.
           var tempPassword = template.users.admin.data.password;
@@ -298,12 +192,12 @@ module.exports = function (app, template, hook) {
         });
     });
 
-    it('A Form.io User should not be able to login without credentials', function (done) {
+    it('A Form.io User should not be able to login without credentials', function(done) {
       request(app)
         .post(hook.alter('url', '/form/' + template.forms.adminLogin._id + '/submission', template))
         .send({})
         .expect(401)
-        .end(function (err, res) {
+        .end(function(err, res) {
           if (err) {
             return done(err);
           }
@@ -313,17 +207,17 @@ module.exports = function (app, template, hook) {
         });
     });
 
-    it('A Form.io User should not be able to login with empty credentials', function (done) {
+    it('A Form.io User should not be able to login with empty credentials', function(done) {
       request(app)
         .post(hook.alter('url', '/form/' + template.forms.adminLogin._id + '/submission', template))
         .send({
           data: {
             username: '',
-            password: '',
-          },
+            password: ''
+          }
         })
         .expect(401)
-        .end(function (err, res) {
+        .end(function(err, res) {
           if (err) {
             return done(err);
           }
@@ -333,54 +227,33 @@ module.exports = function (app, template, hook) {
         });
     });
 
-    it('A Form.io User should be able to login using an Alias', function (done) {
+    it('A Form.io User should be able to login using an Alias', function(done) {
       request(app)
         .post(hook.alter('url', '/' + template.forms.adminLogin.path, template))
         .send({
           data: {
-            email: template.users.admin.data.email,
-            password: template.users.admin.data.password,
-          },
+            'email': template.users.admin.data.email,
+            'password': template.users.admin.data.password
+          }
         })
         .expect('Content-Type', /json/)
         .expect(200)
-        .end(function (err, res) {
+        .end(function(err, res) {
           if (err) {
             return done(err);
           }
 
           var response = res.body;
           assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
-          assert(
-            response.hasOwnProperty('modified'),
-            'The response should contain a `modified` timestamp.',
-          );
-          assert(
-            response.hasOwnProperty('created'),
-            'The response should contain a `created` timestamp.',
-          );
-          assert(
-            response.hasOwnProperty('data'),
-            'The response should contain a submission `data` object.',
-          );
-          assert(
-            response.data.hasOwnProperty('email'),
-            'The submission `data` should contain the `email`.',
-          );
+          assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
+          assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
+          assert(response.hasOwnProperty('data'), 'The response should contain a submission `data` object.');
+          assert(response.data.hasOwnProperty('email'), 'The submission `data` should contain the `email`.');
           assert.equal(response.data.email, template.users.admin.data.email);
-          assert(
-            !response.data.hasOwnProperty('password'),
-            'The submission `data` should not contain the `password`.',
-          );
-          assert(
-            response.hasOwnProperty('form'),
-            'The response should contain the resource `form`.',
-          );
+          assert(!response.data.hasOwnProperty('password'), 'The submission `data` should not contain the `password`.');
+          assert(response.hasOwnProperty('form'), 'The response should contain the resource `form`.');
           assert.equal(response.form, template.resources.admin._id);
-          assert(
-            res.headers.hasOwnProperty('x-jwt-token'),
-            'The response should contain a `x-jwt-token` header.',
-          );
+          assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
 
           // Update our template.users.admins data.
           var tempPassword = template.users.admin.data.password;
@@ -394,12 +267,12 @@ module.exports = function (app, template, hook) {
         });
     });
 
-    it('A Form.io User should not be able to login without credentials using an Alias', function (done) {
+    it('A Form.io User should not be able to login without credentials using an Alias', function(done) {
       request(app)
         .post(hook.alter('url', '/' + template.forms.adminLogin.path, template))
         .send({})
         .expect(401)
-        .end(function (err, res) {
+        .end(function(err, res) {
           if (err) {
             return done(err);
           }
@@ -409,61 +282,35 @@ module.exports = function (app, template, hook) {
         });
     });
 
-    it('Should be able to register an authenticated user', function (done) {
+    it('Should be able to register an authenticated user', function(done) {
       template.hooks.reset();
       request(app)
-        .post(
-          hook.alter('url', '/form/' + template.forms.userRegister._id + '/submission', template),
-        )
+        .post(hook.alter('url', '/form/' + template.forms.userRegister._id + '/submission', template))
         .send({
           data: {
-            email: template.users.user1.data.email,
-            password: template.users.user1.data.password,
-          },
+            'email': template.users.user1.data.email,
+            'password': template.users.user1.data.password
+          }
         })
         .expect(200)
         .expect('Content-Type', /json/)
-        .end(function (err, res) {
+        .end(function(err, res) {
           if (err) {
             return done(err);
           }
 
           var response = res.body;
           assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
-          assert(
-            response.hasOwnProperty('modified'),
-            'The response should contain a `modified` timestamp.',
-          );
-          assert(
-            response.hasOwnProperty('created'),
-            'The response should contain a `created` timestamp.',
-          );
-          assert(
-            response.hasOwnProperty('data'),
-            'The response should contain a submission `data` object.',
-          );
-          assert(
-            response.data.hasOwnProperty('email'),
-            'The submission `data` should contain the `email`.',
-          );
+          assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
+          assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
+          assert(response.hasOwnProperty('data'), 'The response should contain a submission `data` object.');
+          assert(response.data.hasOwnProperty('email'), 'The submission `data` should contain the `email`.');
           assert.equal(response.data.email, template.users.user1.data.email);
-          assert(
-            !response.data.hasOwnProperty('password'),
-            'The submission `data` should not contain the `password`.',
-          );
-          assert(
-            response.hasOwnProperty('form'),
-            'The response should contain the resource `form`.',
-          );
+          assert(!response.data.hasOwnProperty('password'), 'The submission `data` should not contain the `password`.');
+          assert(response.hasOwnProperty('form'), 'The response should contain the resource `form`.');
           assert.equal(response.form, template.resources.user._id);
-          assert(
-            res.headers.hasOwnProperty('x-jwt-token'),
-            'The response should contain a `x-jwt-token` header.',
-          );
-          assert(
-            response.hasOwnProperty('owner'),
-            'The response should contain the resource `owner`.',
-          );
+          assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
+          assert(response.hasOwnProperty('owner'), 'The response should contain the resource `owner`.');
           assert.notEqual(response.owner, null);
           assert.equal(response.owner, response._id);
           assert.equal(response.roles.length, 1);
@@ -488,13 +335,11 @@ module.exports = function (app, template, hook) {
           var email = template.hooks.getLastEmail();
           if (attempts < 5 && email.to !== template.users.user1.data.email) {
             setTimeout(() => tryAgain(++attempts), 200);
-          } else {
+          }
+          else {
             assert.equal(email.from, defaultEmail);
             assert.equal(email.to, template.users.user1.data.email);
-            assert.equal(
-              email.subject,
-              'New user ' + template.users.user1._id.toString() + ' created',
-            );
+            assert.equal(email.subject, 'New user ' + template.users.user1._id.toString() + ' created');
             assert.equal(email.html, 'Email: ' + template.users.user1.data.email);
             done();
           }
@@ -502,49 +347,38 @@ module.exports = function (app, template, hook) {
       });
     }
 
-    it('Should be able to validate a request with the validate param.', function (done) {
+    it('Should be able to validate a request with the validate param.', function(done) {
       request(app)
-        .post(
-          hook.alter(
-            'url',
-            '/form/' + template.forms.userRegister._id + '/submission?dryrun=1',
-            template,
-          ),
-        )
+        .post(hook.alter('url', '/form/' + template.forms.userRegister._id + '/submission?dryrun=1', template))
         .send({
           data: {
-            email: template.users.user2.data.email,
-            password: template.users.user2.data.password,
-          },
+            'email': template.users.user2.data.email,
+            'password': template.users.user2.data.password
+          }
         })
         .expect(200)
         .expect('Content-Type', /json/)
         .end(done);
     });
 
-    it('Should be able to register another authenticated user.', function (done) {
+    it('Should be able to register another authenticated user.', function(done) {
       request(app)
-        .post(
-          hook.alter('url', '/form/' + template.forms.userRegister._id + '/submission', template),
-        )
+        .post(hook.alter('url', '/form/' + template.forms.userRegister._id + '/submission', template))
         .send({
           data: {
-            email: template.users.user2.data.email,
-            password: template.users.user2.data.password,
-          },
+            'email': template.users.user2.data.email,
+            'password': template.users.user2.data.password
+          }
         })
         .expect(200)
         .expect('Content-Type', /json/)
-        .end(function (err, res) {
+        .end(function(err, res) {
           if (err) {
             return done(err);
           }
 
           var response = res.body;
-          assert(
-            response.hasOwnProperty('owner'),
-            'The response should contain the resource `owner`.',
-          );
+          assert(response.hasOwnProperty('owner'), 'The response should contain the resource `owner`.');
           assert.notEqual(response.owner, null);
           assert.equal(response.owner, response._id);
 
@@ -560,20 +394,18 @@ module.exports = function (app, template, hook) {
         });
     });
 
-    it('Should be able to register a user with special characters in their email address.', function (done) {
+    it('Should be able to register a user with special characters in their email address.', function(done) {
       request(app)
-        .post(
-          hook.alter('url', '/form/' + template.forms.userRegister._id + '/submission', template),
-        )
+        .post(hook.alter('url', '/form/' + template.forms.userRegister._id + '/submission', template))
         .send({
           data: {
-            email: 'test+user@example.com',
-            password: template.users.user2.data.password,
-          },
+            'email': 'test+user@example.com',
+            'password': template.users.user2.data.password
+          }
         })
         .expect(200)
         .expect('Content-Type', /json/)
-        .end(function (err, res) {
+        .end(function(err, res) {
           if (err) {
             return done(err);
           }
@@ -582,58 +414,34 @@ module.exports = function (app, template, hook) {
     });
 
     // Perform a login.
-    var login = function (done) {
+    var login = function(done) {
       request(app)
         .post(hook.alter('url', '/form/' + template.forms.userLogin._id + '/submission', template))
         .send({
           data: {
-            email: template.users.user1.data.email,
-            password: template.users.user1.data.password,
-          },
+            'email': template.users.user1.data.email,
+            'password': template.users.user1.data.password
+          }
         })
         .expect('Content-Type', /json/)
         .expect(200)
-        .end(function (err, res) {
+        .end(function(err, res) {
           if (err) {
             return done(err);
           }
 
           var response = res.body;
           assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
-          assert(
-            response.hasOwnProperty('modified'),
-            'The response should contain a `modified` timestamp.',
-          );
-          assert(
-            response.hasOwnProperty('created'),
-            'The response should contain a `created` timestamp.',
-          );
-          assert(
-            response.hasOwnProperty('data'),
-            'The response should contain a submission `data` object.',
-          );
-          assert(
-            response.data.hasOwnProperty('email'),
-            'The submission `data` should contain the `email`.',
-          );
+          assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
+          assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
+          assert(response.hasOwnProperty('data'), 'The response should contain a submission `data` object.');
+          assert(response.data.hasOwnProperty('email'), 'The submission `data` should contain the `email`.');
           assert.equal(response.data.email, template.users.user1.data.email);
-          assert(
-            !response.hasOwnProperty('password'),
-            'The submission `data` should not contain the `password`.',
-          );
-          assert(
-            !response.data.hasOwnProperty('password'),
-            'The submission `data` should not contain the `password`.',
-          );
-          assert(
-            response.hasOwnProperty('form'),
-            'The response should contain the resource `form`.',
-          );
+          assert(!response.hasOwnProperty('password'), 'The submission `data` should not contain the `password`.');
+          assert(!response.data.hasOwnProperty('password'), 'The submission `data` should not contain the `password`.');
+          assert(response.hasOwnProperty('form'), 'The response should contain the resource `form`.');
           assert.equal(response.form, template.resources.user._id);
-          assert(
-            res.headers.hasOwnProperty('x-jwt-token'),
-            'The response should contain a `x-jwt-token` header.',
-          );
+          assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
 
           // Update our template.users.admins data.
           var tempPassword = template.users.user1.data.password;
@@ -648,17 +456,17 @@ module.exports = function (app, template, hook) {
 
     it('A Form.io User should be able to login as an authenticated user', login);
 
-    it('A Form.io User should not be able to login with bad password', function (done) {
+    it('A Form.io User should not be able to login with bad password', function(done) {
       request(app)
         .post(hook.alter('url', '/form/' + template.forms.userLogin._id + '/submission', template))
         .send({
           data: {
-            email: template.users.user1.data.email,
-            password: 'badpassword!!!',
-          },
+            'email': template.users.user1.data.email,
+            'password': 'badpassword!!!'
+          }
         })
         .expect(401)
-        .end(function (err, res) {
+        .end(function(err, res) {
           if (err) {
             return done(err);
           }
@@ -669,61 +477,52 @@ module.exports = function (app, template, hook) {
     });
 
     var lastAttempt = 0;
-    it('A Form.io User should get locked out if they keep trying a bad password', function (done) {
+    it('A Form.io User should get locked out if they keep trying a bad password', function(done) {
       var count = 0;
       async.whilst(
-        function (next) {
-          return next(null, count < 4);
-        },
-        function (next) {
+        function(next) { return next(null, count < 4); },
+        function(next) {
           count++;
-          lastAttempt = new Date().getTime();
+          lastAttempt = (new Date()).getTime();
           request(app)
-            .post(
-              hook.alter('url', '/form/' + template.forms.userLogin._id + '/submission', template),
-            )
+            .post(hook.alter('url', '/form/' + template.forms.userLogin._id + '/submission', template))
             .send({
               data: {
-                email: template.users.user1.data.email,
-                password: 'badpassword' + count + '!',
-              },
+                'email': template.users.user1.data.email,
+                'password': 'badpassword' + count + '!'
+              }
             })
             .expect(401)
-            .end(function (err, res) {
+            .end(function(err, res) {
               if (err) {
                 return next(err);
               }
 
-              assert.equal(
-                res.text,
-                count < 4
-                  ? 'User or password was incorrect'
-                  : 'Maximum Login attempts. Please wait 4 seconds before trying again.',
-              );
+              assert.equal(res.text, count < 4 ? 'User or password was incorrect' : 'Maximum Login attempts. Please wait 4 seconds before trying again.');
               assert.equal(!res.headers['x-jwt-token'], true);
               next();
             });
         },
-        function (err) {
+        function(err) {
           if (err) {
             return done(err);
           }
           done();
-        },
+        }
       );
     });
 
-    it('Verify that the Form.io user is locked out for 1 seconds even with right password.', function (done) {
+    it('Verify that the Form.io user is locked out for 1 seconds even with right password.', function(done) {
       request(app)
         .post(hook.alter('url', '/form/' + template.forms.userLogin._id + '/submission', template))
         .send({
           data: {
-            email: template.users.user1.data.email,
-            password: template.users.user1.data.password,
-          },
+            'email': template.users.user1.data.email,
+            'password': template.users.user1.data.password
+          }
         })
         .expect(401)
-        .end(function (err, res) {
+        .end(function(err, res) {
           if (err) {
             return done(err);
           }
@@ -734,33 +533,29 @@ module.exports = function (app, template, hook) {
         });
     });
 
-    it('Verify that we can login again after waiting.', function (done) {
-      setTimeout(function () {
+    it('Verify that we can login again after waiting.', function(done) {
+      setTimeout(function() {
         login(done);
       }, 4500);
     });
 
-    it('Attempt 4 bad logins to attempt good login after window.', function (done) {
+    it('Attempt 4 bad logins to attempt good login after window.', function(done) {
       var count = 0;
       async.whilst(
-        function (next) {
-          return next(null, count < 4);
-        },
-        function (next) {
+        function(next) { return next(null, count < 4); },
+        function(next) {
           count++;
-          lastAttempt = new Date().getTime();
+          lastAttempt = (new Date()).getTime();
           request(app)
-            .post(
-              hook.alter('url', '/form/' + template.forms.userLogin._id + '/submission', template),
-            )
+            .post(hook.alter('url', '/form/' + template.forms.userLogin._id + '/submission', template))
             .send({
               data: {
-                email: template.users.user1.data.email,
-                password: 'badpassword' + count + '!',
-              },
+                'email': template.users.user1.data.email,
+                'password': 'badpassword' + count + '!'
+              }
             })
             .expect(401)
-            .end(function (err, res) {
+            .end(function(err, res) {
               if (err) {
                 return next(err);
               }
@@ -770,27 +565,27 @@ module.exports = function (app, template, hook) {
               next();
             });
         },
-        function (err) {
+        function(err) {
           if (err) {
             return done(err);
           }
           done();
-        },
+        }
       );
     });
 
-    it('A user should be able to login as an authenticated user', function (done) {
+    it('A user should be able to login as an authenticated user', function(done) {
       request(app)
         .post(hook.alter('url', '/form/' + template.forms.userLogin._id + '/submission', template))
         .send({
           data: {
-            email: template.users.user2.data.email,
-            password: template.users.user2.data.password,
-          },
+            'email': template.users.user2.data.email,
+            'password': template.users.user2.data.password
+          }
         })
         .expect('Content-Type', /json/)
         .expect(200)
-        .end(function (err, res) {
+        .end(function(err, res) {
           if (err) {
             return done(err);
           }
@@ -799,18 +594,18 @@ module.exports = function (app, template, hook) {
         });
     });
 
-    it('A user should be able to login using a case insensitive email', function (done) {
+    it('A user should be able to login using a case insensitive email', function(done) {
       request(app)
         .post(hook.alter('url', '/form/' + template.forms.userLogin._id + '/submission', template))
         .send({
           data: {
-            email: template.users.user2.data.email.toUpperCase(),
-            password: template.users.user2.data.password,
-          },
+            'email': template.users.user2.data.email.toUpperCase(),
+            'password': template.users.user2.data.password
+          }
         })
         .expect('Content-Type', /json/)
         .expect(200)
-        .end(function (err, res) {
+        .end(function(err, res) {
           if (err) {
             return done(err);
           }
@@ -819,25 +614,19 @@ module.exports = function (app, template, hook) {
         });
     });
 
-    it('A user should be able to reset their password', function (done) {
+    it('A user should be able to reset their password', function(done) {
       request(app)
-        .put(
-          hook.alter(
-            'url',
-            '/form/' + template.resources.user._id + '/submission/' + template.users.user2._id,
-            template,
-          ),
-        )
+        .put(hook.alter('url', '/form/' + template.resources.user._id + '/submission/' + template.users.user2._id, template))
         .set('x-jwt-token', template.users.user2.token)
         .send({
           data: {
-            email: template.users.user2.data.email,
-            password: 'temppass',
-          },
+            'email': template.users.user2.data.email,
+            'password': 'temppass'
+          }
         })
         .expect('Content-Type', /json/)
         .expect(200)
-        .end(function (err, res) {
+        .end(function(err, res) {
           if (err) {
             return done(err);
           }
@@ -846,18 +635,18 @@ module.exports = function (app, template, hook) {
         });
     });
 
-    it('A user should be able to login with new password', function (done) {
+    it('A user should be able to login with new password', function(done) {
       request(app)
         .post(hook.alter('url', '/form/' + template.forms.userLogin._id + '/submission', template))
         .send({
           data: {
-            email: template.users.user2.data.email,
-            password: 'temppass',
-          },
+            'email': template.users.user2.data.email,
+            'password': 'temppass'
+          }
         })
         .expect('Content-Type', /json/)
         .expect(200)
-        .end(function (err, res) {
+        .end(function(err, res) {
           if (err) {
             return done(err);
           }
@@ -866,25 +655,19 @@ module.exports = function (app, template, hook) {
         });
     });
 
-    it('A user should be able to set their password back to normal', function (done) {
+    it('A user should be able to set their password back to normal', function(done) {
       request(app)
-        .put(
-          hook.alter(
-            'url',
-            '/form/' + template.resources.user._id + '/submission/' + template.users.user2._id,
-            template,
-          ),
-        )
+        .put(hook.alter('url', '/form/' + template.resources.user._id + '/submission/' + template.users.user2._id, template))
         .set('x-jwt-token', template.users.user2.token)
         .send({
           data: {
-            email: template.users.user2.data.email,
-            password: template.users.user2.data.password,
-          },
+            'email': template.users.user2.data.email,
+            'password': template.users.user2.data.password
+          }
         })
         .expect('Content-Type', /json/)
         .expect(200)
-        .end(function (err, res) {
+        .end(function(err, res) {
           if (err) {
             return done(err);
           }
@@ -893,55 +676,34 @@ module.exports = function (app, template, hook) {
         });
     });
 
-    it('An Anonymous user should not be able to access the /current endpoint', function (done) {
+    it('An Anonymous user should not be able to access the /current endpoint', function(done) {
       request(app)
         .get(hook.alter('url', '/current', template))
         .expect(401)
         .end(done);
     });
 
-    it('An administrator should be able to see the current User', function (done) {
+    it('An administrator should be able to see the current User', function(done) {
       request(app)
         .get(hook.alter('url', '/current', template))
         .set('x-jwt-token', template.users.admin.token)
         .expect(200)
-        .end(function (err, res) {
+        .end(function(err, res) {
           if (err) {
             return done(err);
           }
 
           var response = res.body;
           assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
-          assert(
-            response.hasOwnProperty('modified'),
-            'The response should contain a `modified` timestamp.',
-          );
-          assert(
-            response.hasOwnProperty('created'),
-            'The response should contain a `created` timestamp.',
-          );
-          assert(
-            response.hasOwnProperty('data'),
-            'The response should contain a submission `data` object.',
-          );
-          assert(
-            response.data.hasOwnProperty('email'),
-            'The submission `data` should contain the `email`.',
-          );
+          assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
+          assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
+          assert(response.hasOwnProperty('data'), 'The response should contain a submission `data` object.');
+          assert(response.data.hasOwnProperty('email'), 'The submission `data` should contain the `email`.');
           assert.equal(response.data.email, template.users.admin.data.email);
-          assert(
-            !response.data.hasOwnProperty('password'),
-            'The submission `data` should not contain the `password`.',
-          );
-          assert(
-            response.hasOwnProperty('form'),
-            'The response should contain the resource `form`.',
-          );
+          assert(!response.data.hasOwnProperty('password'), 'The submission `data` should not contain the `password`.');
+          assert(response.hasOwnProperty('form'), 'The response should contain the resource `form`.');
           assert.equal(response.form, template.resources.admin._id);
-          assert(
-            res.headers.hasOwnProperty('x-jwt-token'),
-            'The response should contain a `x-jwt-token` header.',
-          );
+          assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
 
           // Update our template.users.admins data.
           var tempPassword = template.users.admin.data.password;
@@ -955,48 +717,27 @@ module.exports = function (app, template, hook) {
         });
     });
 
-    it('A user should be able to see the current User', function (done) {
-      request(app)
+    it('A user should be able to see the current User', function(done) {
+       request(app)
         .get(hook.alter('url', '/current', template))
         .set('x-jwt-token', template.users.user1.token)
         .expect(200)
-        .end(function (err, res) {
+        .end(function(err, res) {
           if (err) {
             return done(err);
           }
 
           var response = res.body;
           assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
-          assert(
-            response.hasOwnProperty('modified'),
-            'The response should contain a `modified` timestamp.',
-          );
-          assert(
-            response.hasOwnProperty('created'),
-            'The response should contain a `created` timestamp.',
-          );
-          assert(
-            response.hasOwnProperty('data'),
-            'The response should contain a submission `data` object.',
-          );
-          assert(
-            response.data.hasOwnProperty('email'),
-            'The submission `data` should contain the `email`.',
-          );
+          assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
+          assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
+          assert(response.hasOwnProperty('data'), 'The response should contain a submission `data` object.');
+          assert(response.data.hasOwnProperty('email'), 'The submission `data` should contain the `email`.');
           assert.equal(response.data.email, template.users.user1.data.email);
-          assert(
-            !response.data.hasOwnProperty('password'),
-            'The submission `data` should not contain the `password`.',
-          );
-          assert(
-            response.hasOwnProperty('form'),
-            'The response should contain the resource `form`.',
-          );
+          assert(!response.data.hasOwnProperty('password'), 'The submission `data` should not contain the `password`.');
+          assert(response.hasOwnProperty('form'), 'The response should contain the resource `form`.');
           assert.equal(response.form, template.resources.user._id);
-          assert(
-            res.headers.hasOwnProperty('x-jwt-token'),
-            'The response should contain a `x-jwt-token` header.',
-          );
+          assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
 
           // Update our template.users.admins data.
           var tempPassword = template.users.user1.data.password;
@@ -1010,41 +751,36 @@ module.exports = function (app, template, hook) {
         });
     });
 
-    it('An Authenticated and Registered User should be able to logout', function (done) {
+    it('An Authenticated and Registered User should be able to logout', function(done) {
       var oldToken = null;
       request(app)
         .get(hook.alter('url', '/logout', template))
         .set('x-jwt-token', template.users.user1.token)
         .expect(200)
-        .end(function (err, res) {
+        .end(function(err, res) {
           if (err) {
             return done(err);
           }
 
           // Confirm that the token was sent and empty.
-          assert(
-            res.headers.hasOwnProperty('x-jwt-token'),
-            'The response should contain a `x-jwt-token` header.',
-          );
+          assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
           assert.equal(res.headers['x-jwt-token'], '');
           done();
         });
     });
 
-    it('Attempt 5th bad login request, but after the accepted window.', function (done) {
-      setTimeout(function () {
+    it('Attempt 5th bad login request, but after the accepted window.', function(done) {
+      setTimeout(function() {
         request(app)
-          .post(
-            hook.alter('url', '/form/' + template.forms.userLogin._id + '/submission', template),
-          )
+          .post(hook.alter('url', '/form/' + template.forms.userLogin._id + '/submission', template))
           .send({
             data: {
-              email: template.users.user1.data.email,
-              password: 'badpassword!',
-            },
+              'email': template.users.user1.data.email,
+              'password': 'badpassword!'
+            }
           })
           .expect(401)
-          .end(function (err, res) {
+          .end(function(err, res) {
             if (err) {
               return done(err);
             }
@@ -1057,61 +793,40 @@ module.exports = function (app, template, hook) {
     });
 
     var oldToken = null;
-    it('An Authenticated and Registered User should be able to login again', function (done) {
+    it('An Authenticated and Registered User should be able to login again', function(done) {
       oldToken = template.users.user1.token;
       request(app)
         .post(hook.alter('url', '/' + template.forms.userLogin.path, template))
         .send({
           data: {
-            email: template.users.user1.data.email,
-            password: template.users.user1.data.password,
-          },
+            'email': template.users.user1.data.email,
+            'password': template.users.user1.data.password
+          }
         })
         .expect('Content-Type', /json/)
         .expect(200)
-        .end(function (err, res) {
+        .end(function(err, res) {
           if (err) {
             return done(err);
           }
 
           var response = res.body;
           assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
-          assert(
-            response.hasOwnProperty('modified'),
-            'The response should contain a `modified` timestamp.',
-          );
-          assert(
-            response.hasOwnProperty('created'),
-            'The response should contain a `created` timestamp.',
-          );
-          assert(
-            response.hasOwnProperty('data'),
-            'The response should contain a submission `data` object.',
-          );
-          assert(
-            response.data.hasOwnProperty('email'),
-            'The submission `data` should contain the `email`.',
-          );
+          assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
+          assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
+          assert(response.hasOwnProperty('data'), 'The response should contain a submission `data` object.');
+          assert(response.data.hasOwnProperty('email'), 'The submission `data` should contain the `email`.');
           assert.equal(response.data.email, template.users.user1.data.email);
-          assert(
-            !response.data.hasOwnProperty('password'),
-            'The submission `data` should not contain the `password`.',
-          );
-          assert(
-            response.hasOwnProperty('form'),
-            'The response should contain the resource `form`.',
-          );
+          assert(!response.data.hasOwnProperty('password'), 'The submission `data` should not contain the `password`.');
+          assert(response.hasOwnProperty('form'), 'The response should contain the resource `form`.');
           assert.equal(response.form, template.resources.user._id);
-          assert(
-            res.headers.hasOwnProperty('x-jwt-token'),
-            'The response should contain a `x-jwt-token` header.',
-          );
+          assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
 
           // Confirm the new token is different than the last.
           assert.notEqual(
             res.headers.hasOwnProperty('x-jwt-token'),
             oldToken,
-            'The `x-jwt-token` recieved from re-logging in should be different than previously.',
+            'The `x-jwt-token` recieved from re-logging in should be different than previously.'
           );
 
           // Update our testProject.owners data.
@@ -1126,48 +841,27 @@ module.exports = function (app, template, hook) {
         });
     });
 
-    it('A User who has re-logged in for a User-Created Project should be able to view the current User', function (done) {
+    it('A User who has re-logged in for a User-Created Project should be able to view the current User', function(done) {
       request(app)
         .get('/current')
         .set('x-jwt-token', template.users.user1.token)
         .expect(200)
-        .end(function (err, res) {
+        .end(function(err, res) {
           if (err) {
             return done(err);
           }
 
           var response = res.body;
           assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
-          assert(
-            response.hasOwnProperty('modified'),
-            'The response should contain a `modified` timestamp.',
-          );
-          assert(
-            response.hasOwnProperty('created'),
-            'The response should contain a `created` timestamp.',
-          );
-          assert(
-            response.hasOwnProperty('data'),
-            'The response should contain a submission `data` object.',
-          );
-          assert(
-            response.data.hasOwnProperty('email'),
-            'The submission `data` should contain the `email`.',
-          );
+          assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
+          assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
+          assert(response.hasOwnProperty('data'), 'The response should contain a submission `data` object.');
+          assert(response.data.hasOwnProperty('email'), 'The submission `data` should contain the `email`.');
           assert.equal(response.data.email, template.users.user1.data.email);
-          assert(
-            !response.data.hasOwnProperty('password'),
-            'The submission `data` should not contain the `password`.',
-          );
-          assert(
-            response.hasOwnProperty('form'),
-            'The response should contain the resource `form`.',
-          );
+          assert(!response.data.hasOwnProperty('password'), 'The submission `data` should not contain the `password`.');
+          assert(response.hasOwnProperty('form'), 'The response should contain the resource `form`.');
           assert.equal(response.form, template.resources.user._id);
-          assert(
-            res.headers.hasOwnProperty('x-jwt-token'),
-            'The response should contain a `x-jwt-token` header.',
-          );
+          assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
 
           // Update our template.users.user1 data.
           var tempPassword = template.users.user1.data.password;
@@ -1180,102 +874,11 @@ module.exports = function (app, template, hook) {
           done();
         });
     });
-
-    it('A user who has update form definition permissions should be able to create actions on the form', function(done) {
-      const adminToken = template.users.admin.token;
-      const authenticatedUserRole = template.users.user1.roles[0];
-      request(app)
-        .post(hook.alter('url', '/form', template))
-        .set('x-jwt-token', adminToken)
-        .expect(201)
-        .send({
-          'title': 'createActionTesting',
-          'display': 'form',
-          'type': 'form',
-          'name': 'createActionTesting',
-          'path': 'createactiontesting',
-          'access': [
-            {
-              'type': 'update_all',
-              'roles': [
-                authenticatedUserRole
-              ]
-            }
-          ]
-        })
-        .end((err, res) => {
-          if (err) {
-            return done(err);
-          }
-          const formId = res.body._id;
-          const authenticatedUserToken = template.users.user1.token;
-          const emailAction = {
-            'data': {
-              'priority': 0,
-              'name': 'email',
-              'title': 'Email',
-              'settings': {
-                'transport': 'smtp',
-                'from': 'no-reply@example.com',
-                'replyTo': '',
-                'emails': [
-                  'test@example.com'
-                ],
-                'sendEach': false,
-                'cc': [
-                  ''
-                ],
-                'bcc': [
-                  ''
-                ],
-                'subject': 'New submission for {{ form.title }}.',
-                'template': 'https://pro.formview.io/assets/email.html',
-                'message': '{{ submission(data, form.components) }}',
-                'renderingMethod': 'dynamic',
-                'attachFiles': false,
-                'attachPDF': false
-              },
-              'handler': [
-                'after'
-              ],
-              'method': [
-                'create'
-              ],
-              'condition': {
-                'conjunction': '',
-                'conditions': [],
-                'custom': ''
-              },
-              'submit': true
-            }
-          };
-          request(app)
-            .post(hook.alter('url', `/form/${formId}/action`, template))
-            .set('x-jwt-token', authenticatedUserToken)
-            .expect(201)
-            .send(emailAction)
-            .end((err) => {
-              if (err) {
-                return done(err);
-              }
-              request(app)
-                .delete(hook.alter('url', `/form/${formId}`, template))
-                .set('x-jwt-token', adminToken)
-                .expect(200)
-                .end((err) => {
-                  if (err) {
-                    return done(err);
-                  }
-                  done();
-                });
-            });
-        });
-    });
   });
 
   if (!customer) {
-    describe('Get Temporary Tokens', function () {
-      it('A User should not be able to get a temporary token without providing their current one.', function (done) {
+    describe('Get Temporary Tokens', function() {
+      it('A User should not be able to get a temporary token without providing their current one.', function(done) {
         request(app)
           .get(hook.alter('url', '/token', template))
           .expect(400)
@@ -1283,7 +886,7 @@ module.exports = function (app, template, hook) {
           .end(done);
       });
 
-      it('A User should not be able to get a temporary token by providing a bad existing token.', function (done) {
+      it('A User should not be able to get a temporary token by providing a bad existing token.', function(done) {
         request(app)
           .get(hook.alter('url', '/token', template))
           .set('x-jwt-token', 'badtoken' + template.users.user1.token.substr(8))
@@ -1292,7 +895,7 @@ module.exports = function (app, template, hook) {
           .end(done);
       });
 
-      it('A User should not be able to get a temporary token with an expire time set to beyond main token.', function (done) {
+      it('A User should not be able to get a temporary token with an expire time set to beyond main token.', function(done) {
         request(app)
           .get(hook.alter('url', '/token', template))
           .set('x-jwt-token', template.users.user1.token)
@@ -1303,7 +906,7 @@ module.exports = function (app, template, hook) {
       });
 
       var tempToken = null;
-      it('Should allow them to create a default temp token with default expiration.', function (done) {
+      it('Should allow them to create a default temp token with default expiration.', function(done) {
         request(app)
           .get(hook.alter('url', '/token', template))
           .set('x-jwt-token', template.users.user1.token)
@@ -1319,7 +922,7 @@ module.exports = function (app, template, hook) {
           });
       });
 
-      it('Should allow you to authenticate with the temporary token.', function (done) {
+      it('Should allow you to authenticate with the temporary token.', function(done) {
         request(app)
           .get(hook.alter('url', '/current', template))
           .set('x-jwt-token', tempToken)
@@ -1335,7 +938,7 @@ module.exports = function (app, template, hook) {
           });
       });
 
-      it('Should not allow you to get a new temp token using the old temp token.', function (done) {
+      it('Should not allow you to get a new temp token using the old temp token.', function(done) {
         request(app)
           .get(hook.alter('url', '/token', template))
           .set('x-jwt-token', tempToken)
@@ -1344,7 +947,7 @@ module.exports = function (app, template, hook) {
           .end(done);
       });
 
-      it('Should allow you to get a token with a different expire time.', function (done) {
+      it('Should allow you to get a token with a different expire time.', function(done) {
         request(app)
           .get(hook.alter('url', '/token', template))
           .set('x-jwt-token', template.users.user1.token)
@@ -1361,7 +964,7 @@ module.exports = function (app, template, hook) {
           });
       });
 
-      it('Should allow you to use that token within the expiration', function (done) {
+      it('Should allow you to use that token within the expiration', function(done) {
         request(app)
           .get(hook.alter('url', '/current', template))
           .set('x-jwt-token', tempToken)
@@ -1377,8 +980,8 @@ module.exports = function (app, template, hook) {
           });
       });
 
-      it('Should not allow you to use the token beyond the expiration', function (done) {
-        setTimeout(function () {
+      it('Should not allow you to use the token beyond the expiration', function(done) {
+        setTimeout(function() {
           request(app)
             .get(hook.alter('url', '/current', template))
             .set('x-jwt-token', tempToken)
@@ -1389,7 +992,7 @@ module.exports = function (app, template, hook) {
       });
 
       var allowedToken = '';
-      it('Should allow you to get a token for a specific path', function (done) {
+      it('Should allow you to get a token for a specific path', function(done) {
         request(app)
           .get(hook.alter('url', '/token', template))
           .set('x-jwt-token', template.users.user1.token)
@@ -1405,7 +1008,7 @@ module.exports = function (app, template, hook) {
           });
       });
 
-      it('Should not allow you to navigate to certain paths', function (done) {
+      it('Should not allow you to navigate to certain paths', function(done) {
         request(app)
           .get(hook.alter('url', '/current', template))
           .set('x-jwt-token', allowedToken)
@@ -1413,7 +1016,7 @@ module.exports = function (app, template, hook) {
           .end(done);
       });
 
-      it('Should not allow you to perform methods on accepted paths', function (done) {
+      it('Should not allow you to perform methods on accepted paths', function(done) {
         request(app)
           .post(hook.alter('url', '/form/' + template.resources.user._id, template))
           .set('x-jwt-token', allowedToken)
@@ -1421,12 +1024,12 @@ module.exports = function (app, template, hook) {
           .end(done);
       });
 
-      it('Should allow you to see the path and method specified in the token', function (done) {
+      it('Should allow you to see the path and method specified in the token', function(done) {
         request(app)
           .get(hook.alter('url', '/form/' + template.resources.user._id, template))
           .set('x-jwt-token', allowedToken)
           .expect(200)
-          .end(function (err, res) {
+          .end(function(err, res) {
             if (err) {
               return done(err);
             }
@@ -1435,7 +1038,7 @@ module.exports = function (app, template, hook) {
           });
       });
 
-      it('Should allow generation of tokens with more than one allowed paths.', function (done) {
+      it('Should allow generation of tokens with more than one allowed paths.', function(done) {
         request(app)
           .get(hook.alter('url', '/token', template))
           .set('x-jwt-token', template.users.user1.token)
@@ -1451,7 +1054,7 @@ module.exports = function (app, template, hook) {
           });
       });
 
-      it('Should not allow you get a different token', function (done) {
+      it('Should not allow you get a different token', function(done) {
         request(app)
           .get(hook.alter('url', '/token', template))
           .set('x-jwt-token', allowedToken)
@@ -1459,7 +1062,7 @@ module.exports = function (app, template, hook) {
           .end(done);
       });
 
-      it('Should not allow you to perform methods on accepted paths', function (done) {
+      it('Should not allow you to perform methods on accepted paths', function(done) {
         request(app)
           .post(hook.alter('url', '/form/' + template.resources.user._id, template))
           .set('x-jwt-token', allowedToken)
@@ -1467,12 +1070,12 @@ module.exports = function (app, template, hook) {
           .end(done);
       });
 
-      it('Should allow you to see the path and method specified in the token', function (done) {
+      it('Should allow you to see the path and method specified in the token', function(done) {
         request(app)
           .get(hook.alter('url', '/form/' + template.resources.user._id, template))
           .set('x-jwt-token', allowedToken)
           .expect(200)
-          .end(function (err, res) {
+          .end(function(err, res) {
             if (err) {
               return done(err);
             }
@@ -1481,12 +1084,12 @@ module.exports = function (app, template, hook) {
           });
       });
 
-      it('Should allow you to see the path and method specified in the token', function (done) {
+      it('Should allow you to see the path and method specified in the token', function(done) {
         request(app)
           .get(hook.alter('url', '/current', template))
           .set('x-jwt-token', allowedToken)
           .expect(200)
-          .end(function (err, res) {
+          .end(function(err, res) {
             if (err) {
               return done(err);
             }
@@ -1502,21 +1105,21 @@ module.exports = function (app, template, hook) {
    * partially permissions tests
    * partially submissions tests
    */
-  describe('Self Access Permissions', function () {
+  describe('Self Access Permissions', function() {
     var dummy = {
       data: {
         email: chance.email(),
-        password: chance.word({ length: 10 }),
-      },
+        password: chance.word({length: 10})
+      }
     };
     var oldAccess = null;
-    before('Store the old user resource permissions', function (done) {
+    before('Store the old user resource permissions', function(done) {
       request(app)
         .get(hook.alter('url', '/form/' + template.resources.user._id, template))
         .set('x-jwt-token', template.users.admin.token)
         .expect(200)
         .expect('Content-Type', /json/)
-        .end(function (err, res) {
+        .end(function(err, res) {
           if (err) {
             return done(err);
           }
@@ -1524,7 +1127,7 @@ module.exports = function (app, template, hook) {
           var response = res.body;
           oldAccess = {
             access: response.access,
-            submissionAccess: response.submissionAccess,
+            submissionAccess: response.submissionAccess
           };
 
           // Store the JWT for future API calls.
@@ -1534,14 +1137,14 @@ module.exports = function (app, template, hook) {
         });
     });
 
-    after('Restore the old user resource permissions', function (done) {
+    after('Restore the old user resource permissions', function(done) {
       request(app)
         .put(hook.alter('url', '/form/' + template.resources.user._id, template))
         .set('x-jwt-token', template.users.admin.token)
         .send(oldAccess)
         .expect(200)
         .expect('Content-Type', /json/)
-        .end(function (err, res) {
+        .end(function(err, res) {
           if (err) {
             return done(err);
           }
@@ -1556,16 +1159,16 @@ module.exports = function (app, template, hook) {
         });
     });
 
-    it('Update the user resource to have no submissionAccess', function (done) {
+    it('Update the user resource to have no submissionAccess', function(done) {
       request(app)
         .put(hook.alter('url', '/form/' + template.resources.user._id, template))
         .set('x-jwt-token', template.users.admin.token)
         .send({
-          submissionAccess: [],
+          submissionAccess: []
         })
         .expect(200)
         .expect('Content-Type', /json/)
-        .end(function (err, res) {
+        .end(function(err, res) {
           if (err) {
             return done(err);
           }
@@ -1581,54 +1184,30 @@ module.exports = function (app, template, hook) {
         });
     });
 
-    it('The resource owner can make a user account without permissions', function (done) {
+    it('The resource owner can make a user account without permissions', function(done) {
       request(app)
         .post(hook.alter('url', '/form/' + template.resources.user._id + '/submission', template))
         .set('x-jwt-token', template.users.admin.token)
         .send(dummy)
         .expect(201)
         .expect('Content-Type', /json/)
-        .end(function (err, res) {
+        .end(function(err, res) {
           if (err) {
             return done(err);
           }
 
           var response = res.body;
           assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
-          assert(
-            response.hasOwnProperty('modified'),
-            'The response should contain a `modified` timestamp.',
-          );
-          assert(
-            response.hasOwnProperty('created'),
-            'The response should contain a `created` timestamp.',
-          );
-          assert(
-            response.hasOwnProperty('data'),
-            'The response should contain a submission `data` object.',
-          );
-          assert(
-            response.data.hasOwnProperty('email'),
-            'The submission `data` should contain the `email`.',
-          );
+          assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
+          assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
+          assert(response.hasOwnProperty('data'), 'The response should contain a submission `data` object.');
+          assert(response.data.hasOwnProperty('email'), 'The submission `data` should contain the `email`.');
           assert.equal(response.data.email, dummy.data.email);
-          assert(
-            !response.data.hasOwnProperty('password'),
-            'The submission `data` should not contain the `password`.',
-          );
-          assert(
-            response.hasOwnProperty('form'),
-            'The response should contain the resource `form`.',
-          );
+          assert(!response.data.hasOwnProperty('password'), 'The submission `data` should not contain the `password`.');
+          assert(response.hasOwnProperty('form'), 'The response should contain the resource `form`.');
           assert.equal(response.form, template.resources.user._id);
-          assert(
-            res.headers.hasOwnProperty('x-jwt-token'),
-            'The response should contain a `x-jwt-token` header.',
-          );
-          assert(
-            response.hasOwnProperty('owner'),
-            'The response should contain the resource `owner`.',
-          );
+          assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
+          assert(response.hasOwnProperty('owner'), 'The response should contain the resource `owner`.');
           assert.equal(response.owner, template.users.admin._id);
           assert.equal(response.roles.length, 1);
           assert.equal(response.roles[0].toString(), template.roles.authenticated._id.toString());
@@ -1645,79 +1224,55 @@ module.exports = function (app, template, hook) {
         });
     });
 
-    it('An anonymous user should not be able to create a user account without permissions', function (done) {
+    it('An anonymous user should not be able to create a user account without permissions', function(done) {
       request(app)
         .post(hook.alter('url', '/form/' + template.resources.user._id + '/submission', template))
         .send({
           data: {
             email: chance.email(),
-            password: chance.word({ length: 10 }),
-          },
+            password: chance.word({length: 10})
+          }
         })
         .expect(401)
         .end(done);
     });
 
     // FA-923
-    it('An anonymous user should be able to access the resource form without submissionAccess permissions', function (done) {
+    it('An anonymous user should be able to access the resource form without submissionAccess permissions', function(done) {
       request(app)
         .get(hook.alter('url', '/' + template.resources.user.path, template))
         .expect(200)
         .end(done);
     });
 
-    it('A user (created by an admin) can login to their account', function (done) {
+    it('A user (created by an admin) can login to their account', function(done) {
       request(app)
         .post(hook.alter('url', '/form/' + template.forms.userLogin._id + '/submission', template))
         .send({
           data: {
-            email: dummy.data.email,
-            password: dummy.data.password,
-          },
+            'email': dummy.data.email,
+            'password': dummy.data.password
+          }
         })
         .expect('Content-Type', /json/)
         .expect(200)
-        .end(function (err, res) {
+        .end(function(err, res) {
           if (err) {
             return done(err);
           }
 
           var response = res.body;
           assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
-          assert(
-            response.hasOwnProperty('modified'),
-            'The response should contain a `modified` timestamp.',
-          );
-          assert(
-            response.hasOwnProperty('created'),
-            'The response should contain a `created` timestamp.',
-          );
-          assert(
-            response.hasOwnProperty('data'),
-            'The response should contain a submission `data` object.',
-          );
-          assert(
-            response.data.hasOwnProperty('email'),
-            'The submission `data` should contain the `email`.',
-          );
+          assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
+          assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
+          assert(response.hasOwnProperty('data'), 'The response should contain a submission `data` object.');
+          assert(response.data.hasOwnProperty('email'), 'The submission `data` should contain the `email`.');
           assert.equal(response.data.email, dummy.data.email);
-          assert(
-            !response.hasOwnProperty('password'),
-            'The submission `data` should not contain the `password`.',
-          );
-          assert(
-            !response.data.hasOwnProperty('password'),
-            'The submission `data` should not contain the `password`.',
-          );
-          assert(
-            response.hasOwnProperty('form'),
-            'The response should contain the resource `form`.',
-          );
+          assert(!response.hasOwnProperty('password'), 'The submission `data` should not contain the `password`.');
+          assert(!response.data.hasOwnProperty('password'), 'The submission `data` should not contain the `password`.');
+          assert(response.hasOwnProperty('form'), 'The response should contain the resource `form`.');
           assert.equal(response.form, template.resources.user._id);
-          assert(
-            res.headers.hasOwnProperty('x-jwt-token'),
-            'The response should contain a `x-jwt-token` header.',
-          );
+          assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
 
           // Update our dummys data.
           var tempPassword = dummy.data.password;
@@ -1731,7 +1286,7 @@ module.exports = function (app, template, hook) {
     });
 
     // FA-923
-    it('A user without read submissionAccess permissions and no self access, can still read the resource form', function (done) {
+    it('A user without read submissionAccess permissions and no self access, can still read the resource form', function(done) {
       request(app)
         .get(hook.alter('url', '/' + template.resources.user.path, template))
         .set('x-jwt-token', dummy.token)
@@ -1739,21 +1294,15 @@ module.exports = function (app, template, hook) {
         .end(done);
     });
 
-    it('A user without read permissions, should not be able to read their submission', function (done) {
+    it('A user without read permissions, should not be able to read their submission', function(done) {
       request(app)
-        .get(
-          hook.alter(
-            'url',
-            '/' + template.resources.user.path + '/submission/' + dummy._id,
-            template,
-          ),
-        )
+        .get(hook.alter('url', '/' + template.resources.user.path + '/submission/' + dummy._id, template))
         .set('x-jwt-token', dummy.token)
         .expect(401)
         .end(done);
     });
 
-    it('A user without read permissions, should not be able to read their submission, via index', function (done) {
+    it('A user without read permissions, should not be able to read their submission, via index', function(done) {
       request(app)
         .get(hook.alter('url', '/' + template.resources.user.path + '/submission', template))
         .set('x-jwt-token', dummy.token)
@@ -1761,40 +1310,28 @@ module.exports = function (app, template, hook) {
         .end(done);
     });
 
-    it('A user without update permissions, should not be able to update their submission', function (done) {
+    it('A user without update permissions, should not be able to update their submission', function(done) {
       request(app)
-        .put(
-          hook.alter(
-            'url',
-            '/' + template.resources.user.path + '/submission/' + dummy._id,
-            template,
-          ),
-        )
+        .put(hook.alter('url', '/' + template.resources.user.path + '/submission/' + dummy._id, template))
         .set('x-jwt-token', dummy.token)
         .send({
           data: {
-            email: chance.email(),
-          },
+            email: chance.email()
+          }
         })
         .expect(401)
         .end(done);
     });
 
-    it('A user without delete permissions, should not be able to delete their submission', function (done) {
+    it('A user without delete permissions, should not be able to delete their submission', function(done) {
       request(app)
-        .delete(
-          hook.alter(
-            'url',
-            '/' + template.resources.user.path + '/submission/' + dummy._id,
-            template,
-          ),
-        )
+        .delete(hook.alter('url', '/' + template.resources.user.path + '/submission/' + dummy._id, template))
         .set('x-jwt-token', dummy.token)
         .expect(401)
         .end(done);
     });
 
-    it('Update the user resource to have read_own access', function (done) {
+    it('Update the user resource to have read_own access', function(done) {
       request(app)
         .put(hook.alter('url', '/form/' + template.resources.user._id, template))
         .set('x-jwt-token', template.users.admin.token)
@@ -1802,15 +1339,13 @@ module.exports = function (app, template, hook) {
           submissionAccess: [
             {
               type: 'read_own',
-              roles: [
-                template.roles.authenticated._id,
-              ],
-            },
-          ],
+              roles: [template.roles.authenticated._id]
+            }
+          ]
         })
         .expect(200)
         .expect('Content-Type', /json/)
-        .end(function (err, res) {
+        .end(function(err, res) {
           if (err) {
             return done(err);
           }
@@ -1828,7 +1363,7 @@ module.exports = function (app, template, hook) {
     });
 
     // FA-923
-    it('A user with read submissionAccess permissions and no self access, can still read the resource form', function (done) {
+    it('A user with read submissionAccess permissions and no self access, can still read the resource form', function(done) {
       request(app)
         .get(hook.alter('url', '/' + template.resources.user.path, template))
         .set('x-jwt-token', dummy.token)
@@ -1836,26 +1371,20 @@ module.exports = function (app, template, hook) {
         .end(done);
     });
 
-    it('A user without read permissions (not the owner), should not be able to read their submission', function (done) {
+    it('A user without read permissions (not the owner), should not be able to read their submission', function(done) {
       request(app)
-        .get(
-          hook.alter(
-            'url',
-            '/' + template.resources.user.path + '/submission/' + dummy._id,
-            template,
-          ),
-        )
+        .get(hook.alter('url', '/' + template.resources.user.path + '/submission/' + dummy._id, template))
         .set('x-jwt-token', dummy.token)
         .expect(401)
         .end(done);
     });
 
-    it('A user without read permissions (not the owner), should not be able to read their submission, via index', function (done) {
+    it('A user without read permissions (not the owner), should not be able to read their submission, via index', function(done) {
       request(app)
         .get(hook.alter('url', '/' + template.resources.user.path + '/submission', template))
         .set('x-jwt-token', dummy.token)
         .expect(200)
-        .end(function (err, res) {
+        .end(function(err, res) {
           if (err) {
             return done(err);
           }
@@ -1871,40 +1400,28 @@ module.exports = function (app, template, hook) {
         });
     });
 
-    it('A user without update permissions (not the owner), should not be able to update their submission', function (done) {
+    it('A user without update permissions (not the owner), should not be able to update their submission', function(done) {
       request(app)
-        .put(
-          hook.alter(
-            'url',
-            '/' + template.resources.user.path + '/submission/' + dummy._id,
-            template,
-          ),
-        )
+        .put(hook.alter('url', '/' + template.resources.user.path + '/submission/' + dummy._id, template))
         .set('x-jwt-token', dummy.token)
         .send({
           data: {
-            email: chance.email(),
-          },
+            email: chance.email()
+          }
         })
         .expect(401)
         .end(done);
     });
 
-    it('A user without delete permissions (not the owner), should not be able to delete their submission', function (done) {
+    it('A user without delete permissions (not the owner), should not be able to delete their submission', function(done) {
       request(app)
-        .delete(
-          hook.alter(
-            'url',
-            '/' + template.resources.user.path + '/submission/' + dummy._id,
-            template,
-          ),
-        )
+        .delete(hook.alter('url', '/' + template.resources.user.path + '/submission/' + dummy._id, template))
         .set('x-jwt-token', dummy.token)
         .expect(401)
         .end(done);
     });
 
-    it('Update the user resource to have update_own access', function (done) {
+    it('Update the user resource to have update_own access', function(done) {
       request(app)
         .put(hook.alter('url', '/form/' + template.resources.user._id, template))
         .set('x-jwt-token', template.users.admin.token)
@@ -1912,15 +1429,13 @@ module.exports = function (app, template, hook) {
           submissionAccess: [
             {
               type: 'update_own',
-              roles: [
-                template.roles.authenticated._id,
-              ],
-            },
-          ],
+              roles: [template.roles.authenticated._id]
+            }
+          ]
         })
         .expect(200)
         .expect('Content-Type', /json/)
-        .end(function (err, res) {
+        .end(function(err, res) {
           if (err) {
             return done(err);
           }
@@ -1938,7 +1453,7 @@ module.exports = function (app, template, hook) {
     });
 
     // FA-923
-    it('A user with update submissionAccess permissions and no self access, can still read the resource form', function (done) {
+    it('A user with update submissionAccess permissions and no self access, can still read the resource form', function(done) {
       request(app)
         .get(hook.alter('url', '/' + template.resources.user.path, template))
         .set('x-jwt-token', dummy.token)
@@ -1946,21 +1461,15 @@ module.exports = function (app, template, hook) {
         .end(done);
     });
 
-    it('A user without read permissions (not the owner), should not be able to read their submission', function (done) {
+    it('A user without read permissions (not the owner), should not be able to read their submission', function(done) {
       request(app)
-        .get(
-          hook.alter(
-            'url',
-            '/' + template.resources.user.path + '/submission/' + dummy._id,
-            template,
-          ),
-        )
+        .get(hook.alter('url', '/' + template.resources.user.path + '/submission/' + dummy._id, template))
         .set('x-jwt-token', dummy.token)
         .expect(401)
         .end(done);
     });
 
-    it('A user without read permissions (not the owner), should not be able to read their submission, via index', function (done) {
+    it('A user without read permissions (not the owner), should not be able to read their submission, via index', function(done) {
       request(app)
         .get(hook.alter('url', '/' + template.resources.user.path + '/submission', template))
         .set('x-jwt-token', dummy.token)
@@ -1968,40 +1477,28 @@ module.exports = function (app, template, hook) {
         .end(done);
     });
 
-    it('A user without update permissions (not the owner), should not be able to update their submission', function (done) {
+    it('A user without update permissions (not the owner), should not be able to update their submission', function(done) {
       request(app)
-        .put(
-          hook.alter(
-            'url',
-            '/' + template.resources.user.path + '/submission/' + dummy._id,
-            template,
-          ),
-        )
+        .put(hook.alter('url', '/' + template.resources.user.path + '/submission/' + dummy._id, template))
         .set('x-jwt-token', dummy.token)
         .send({
           data: {
-            email: chance.email(),
-          },
+            email: chance.email()
+          }
         })
         .expect(401)
         .end(done);
     });
 
-    it('A user without delete permissions (not the owner), should not be able to delete their submission', function (done) {
+    it('A user without delete permissions (not the owner), should not be able to delete their submission', function(done) {
       request(app)
-        .delete(
-          hook.alter(
-            'url',
-            '/' + template.resources.user.path + '/submission/' + dummy._id,
-            template,
-          ),
-        )
+        .delete(hook.alter('url', '/' + template.resources.user.path + '/submission/' + dummy._id, template))
         .set('x-jwt-token', dummy.token)
         .expect(401)
         .end(done);
     });
 
-    it('Update the user resource to have delete_own access', function (done) {
+    it('Update the user resource to have delete_own access', function(done) {
       request(app)
         .put(hook.alter('url', '/form/' + template.resources.user._id, template))
         .set('x-jwt-token', template.users.admin.token)
@@ -2009,15 +1506,13 @@ module.exports = function (app, template, hook) {
           submissionAccess: [
             {
               type: 'delete_own',
-              roles: [
-                template.roles.authenticated._id,
-              ],
-            },
-          ],
+              roles: [template.roles.authenticated._id]
+            }
+          ]
         })
         .expect(200)
         .expect('Content-Type', /json/)
-        .end(function (err, res) {
+        .end(function(err, res) {
           if (err) {
             return done(err);
           }
@@ -2035,7 +1530,7 @@ module.exports = function (app, template, hook) {
     });
 
     // FA-923
-    it('A user with delete submissionAccess permissions and no self access, can still read the resource form', function (done) {
+    it('A user with delete submissionAccess permissions and no self access, can still read the resource form', function(done) {
       request(app)
         .get(hook.alter('url', '/' + template.resources.user.path, template))
         .set('x-jwt-token', dummy.token)
@@ -2043,21 +1538,15 @@ module.exports = function (app, template, hook) {
         .end(done);
     });
 
-    it('A user without read permissions (not the owner), should not be able to read their submission', function (done) {
+    it('A user without read permissions (not the owner), should not be able to read their submission', function(done) {
       request(app)
-        .get(
-          hook.alter(
-            'url',
-            '/' + template.resources.user.path + '/submission/' + dummy._id,
-            template,
-          ),
-        )
+        .get(hook.alter('url', '/' + template.resources.user.path + '/submission/' + dummy._id, template))
         .set('x-jwt-token', dummy.token)
         .expect(401)
         .end(done);
     });
 
-    it('A user without read permissions (not the owner), should not be able to read their submission, via index', function (done) {
+    it('A user without read permissions (not the owner), should not be able to read their submission, via index', function(done) {
       request(app)
         .get(hook.alter('url', '/' + template.resources.user.path + '/submission', template))
         .set('x-jwt-token', dummy.token)
@@ -2065,53 +1554,41 @@ module.exports = function (app, template, hook) {
         .end(done);
     });
 
-    it('A user without update permissions (not the owner), should not be able to update their submission', function (done) {
+    it('A user without update permissions (not the owner), should not be able to update their submission', function(done) {
       request(app)
-        .put(
-          hook.alter(
-            'url',
-            '/' + template.resources.user.path + '/submission/' + dummy._id,
-            template,
-          ),
-        )
+        .put(hook.alter('url', '/' + template.resources.user.path + '/submission/' + dummy._id, template))
         .set('x-jwt-token', dummy.token)
         .send({
           data: {
-            email: chance.email(),
-          },
+            email: chance.email()
+          }
         })
         .expect(401)
         .end(done);
     });
 
-    it('A user without delete permissions (not the owner), should not be able to delete their submission', function (done) {
+    it('A user without delete permissions (not the owner), should not be able to delete their submission', function(done) {
       request(app)
-        .delete(
-          hook.alter(
-            'url',
-            '/' + template.resources.user.path + '/submission/' + dummy._id,
-            template,
-          ),
-        )
+        .delete(hook.alter('url', '/' + template.resources.user.path + '/submission/' + dummy._id, template))
         .set('x-jwt-token', dummy.token)
         .expect(401)
         .end(done);
     });
 
-    it('Update the user resource to have only self access', function (done) {
+    it('Update the user resource to have only self access', function(done) {
       request(app)
         .put(hook.alter('url', '/form/' + template.resources.user._id, template))
         .set('x-jwt-token', template.users.admin.token)
         .send({
           submissionAccess: [
             {
-              type: 'self',
-            },
-          ],
+              type: 'self'
+            }
+          ]
         })
         .expect(200)
         .expect('Content-Type', /json/)
-        .end(function (err, res) {
+        .end(function(err, res) {
           if (err) {
             return done(err);
           }
@@ -2131,7 +1608,7 @@ module.exports = function (app, template, hook) {
     });
 
     // FA-923
-    it('A user with no submissionAccess permissions and self access, can still read the resource form', function (done) {
+    it('A user with no submissionAccess permissions and self access, can still read the resource form', function(done) {
       request(app)
         .get(hook.alter('url', '/' + template.resources.user.path, template))
         .set('x-jwt-token', dummy.token)
@@ -2139,21 +1616,15 @@ module.exports = function (app, template, hook) {
         .end(done);
     });
 
-    it('A user without read permissions, but self access (not the owner), should not be able to read their submission', function (done) {
+    it('A user without read permissions, but self access (not the owner), should not be able to read their submission', function(done) {
       request(app)
-        .get(
-          hook.alter(
-            'url',
-            '/' + template.resources.user.path + '/submission/' + dummy._id,
-            template,
-          ),
-        )
+        .get(hook.alter('url', '/' + template.resources.user.path + '/submission/' + dummy._id, template))
         .set('x-jwt-token', dummy.token)
         .expect(401)
         .end(done);
     });
 
-    it('A user without read permissions, but self access (not the owner), should not be able to read their submission, via index', function (done) {
+    it('A user without read permissions, but self access (not the owner), should not be able to read their submission, via index', function(done) {
       request(app)
         .get(hook.alter('url', '/' + template.resources.user.path + '/submission', template))
         .set('x-jwt-token', dummy.token)
@@ -2161,40 +1632,28 @@ module.exports = function (app, template, hook) {
         .end(done);
     });
 
-    it('A user without update permissions, but self access (not the owner), should not be able to update their submission', function (done) {
+    it('A user without update permissions, but self access (not the owner), should not be able to update their submission', function(done) {
       request(app)
-        .put(
-          hook.alter(
-            'url',
-            '/' + template.resources.user.path + '/submission/' + dummy._id,
-            template,
-          ),
-        )
+        .put(hook.alter('url', '/' + template.resources.user.path + '/submission/' + dummy._id, template))
         .set('x-jwt-token', dummy.token)
         .send({
           data: {
-            email: chance.email(),
-          },
+            email: chance.email()
+          }
         })
         .expect(401)
         .end(done);
     });
 
-    it('A user without delete permissions, but self access (not the owner), should not be able to delete their submission', function (done) {
+    it('A user without delete permissions, but self access (not the owner), should not be able to delete their submission', function(done) {
       request(app)
-        .delete(
-          hook.alter(
-            'url',
-            '/' + template.resources.user.path + '/submission/' + dummy._id,
-            template,
-          ),
-        )
+        .delete(hook.alter('url', '/' + template.resources.user.path + '/submission/' + dummy._id, template))
         .set('x-jwt-token', dummy.token)
         .expect(401)
         .end(done);
     });
 
-    it('Update the user resource to have read_own and self access', function (done) {
+    it('Update the user resource to have read_own and self access', function(done) {
       request(app)
         .put(hook.alter('url', '/form/' + template.resources.user._id, template))
         .set('x-jwt-token', template.users.admin.token)
@@ -2202,18 +1661,16 @@ module.exports = function (app, template, hook) {
           submissionAccess: [
             {
               type: 'read_own',
-              roles: [
-                template.roles.authenticated._id,
-              ],
+              roles: [template.roles.authenticated._id]
             },
             {
-              type: 'self',
-            },
-          ],
+              type: 'self'
+            }
+          ]
         })
         .expect(200)
         .expect('Content-Type', /json/)
-        .end(function (err, res) {
+        .end(function(err, res) {
           if (err) {
             return done(err);
           }
@@ -2233,7 +1690,7 @@ module.exports = function (app, template, hook) {
     });
 
     // FA-923
-    it('A user with read submissionAccess permissions and self access, can still read the resource form', function (done) {
+    it('A user with read submissionAccess permissions and self access, can still read the resource form', function(done) {
       request(app)
         .get(hook.alter('url', '/' + template.resources.user.path, template))
         .set('x-jwt-token', dummy.token)
@@ -2241,26 +1698,20 @@ module.exports = function (app, template, hook) {
         .end(done);
     });
 
-    it('A user with read_own and self access, not the owner, should be able to read their submission', function (done) {
+    it('A user with read_own and self access, not the owner, should be able to read their submission', function(done) {
       request(app)
-        .get(
-          hook.alter(
-            'url',
-            '/' + template.resources.user.path + '/submission/' + dummy._id,
-            template,
-          ),
-        )
+        .get(hook.alter('url', '/' + template.resources.user.path + '/submission/' + dummy._id, template))
         .set('x-jwt-token', dummy.token)
         .expect(200)
         .end(done);
     });
 
-    it('A user with read_own and self access, not the owner, should be able to read their submission, via index', function (done) {
+    it('A user with read_own and self access, not the owner, should be able to read their submission, via index', function(done) {
       request(app)
         .get(hook.alter('url', '/' + template.resources.user.path + '/submission', template))
         .set('x-jwt-token', dummy.token)
         .expect(200)
-        .end(function (err, res) {
+        .end(function(err, res) {
           if (err) {
             return done(err);
           }
@@ -2277,40 +1728,28 @@ module.exports = function (app, template, hook) {
         });
     });
 
-    it('A user with read_own and self access, not the owner, should not be able to update their submission', function (done) {
+    it('A user with read_own and self access, not the owner, should not be able to update their submission', function(done) {
       request(app)
-        .put(
-          hook.alter(
-            'url',
-            '/' + template.resources.user.path + '/submission/' + dummy._id,
-            template,
-          ),
-        )
+        .put(hook.alter('url', '/' + template.resources.user.path + '/submission/' + dummy._id, template))
         .set('x-jwt-token', dummy.token)
         .send({
           data: {
-            email: chance.email(),
-          },
+            email: chance.email()
+          }
         })
         .expect(401)
         .end(done);
     });
 
-    it('A user with read_own and self access, not the owner, should not be able to delete their submission', function (done) {
+    it('A user with read_own and self access, not the owner, should not be able to delete their submission', function(done) {
       request(app)
-        .delete(
-          hook.alter(
-            'url',
-            '/' + template.resources.user.path + '/submission/' + dummy._id,
-            template,
-          ),
-        )
+        .delete(hook.alter('url', '/' + template.resources.user.path + '/submission/' + dummy._id, template))
         .set('x-jwt-token', dummy.token)
         .expect(401)
         .end(done);
     });
 
-    it('Update the user resource to have update_own and self access', function (done) {
+    it('Update the user resource to have update_own and self access', function(done) {
       request(app)
         .put(hook.alter('url', '/form/' + template.resources.user._id, template))
         .set('x-jwt-token', template.users.admin.token)
@@ -2318,18 +1757,16 @@ module.exports = function (app, template, hook) {
           submissionAccess: [
             {
               type: 'update_own',
-              roles: [
-                template.roles.authenticated._id,
-              ],
+              roles: [template.roles.authenticated._id]
             },
             {
-              type: 'self',
-            },
-          ],
+              type: 'self'
+            }
+          ]
         })
         .expect(200)
         .expect('Content-Type', /json/)
-        .end(function (err, res) {
+        .end(function(err, res) {
           if (err) {
             return done(err);
           }
@@ -2349,7 +1786,7 @@ module.exports = function (app, template, hook) {
     });
 
     // FA-923
-    it('A user with update submissionAccess permissions and self access, can still read the resource form', function (done) {
+    it('A user with update submissionAccess permissions and self access, can still read the resource form', function(done) {
       request(app)
         .get(hook.alter('url', '/' + template.resources.user.path, template))
         .set('x-jwt-token', dummy.token)
@@ -2357,21 +1794,15 @@ module.exports = function (app, template, hook) {
         .end(done);
     });
 
-    it('A user with update_own and self access, not the owner, should not be able to read their submission', function (done) {
+    it('A user with update_own and self access, not the owner, should not be able to read their submission', function(done) {
       request(app)
-        .get(
-          hook.alter(
-            'url',
-            '/' + template.resources.user.path + '/submission/' + dummy._id,
-            template,
-          ),
-        )
+        .get(hook.alter('url', '/' + template.resources.user.path + '/submission/' + dummy._id, template))
         .set('x-jwt-token', dummy.token)
         .expect(401)
         .end(done);
     });
 
-    it('A user with update_own and self access, not the owner, should not be able to read their submission, via index', function (done) {
+    it('A user with update_own and self access, not the owner, should not be able to read their submission, via index', function(done) {
       request(app)
         .get(hook.alter('url', '/' + template.resources.user.path + '/submission', template))
         .set('x-jwt-token', dummy.token)
@@ -2379,40 +1810,28 @@ module.exports = function (app, template, hook) {
         .end(done);
     });
 
-    it('A user with update_own and self access, not the owner, should be able to update their submission', function (done) {
+    it('A user with update_own and self access, not the owner, should be able to update their submission', function(done) {
       request(app)
-        .put(
-          hook.alter(
-            'url',
-            '/' + template.resources.user.path + '/submission/' + dummy._id,
-            template,
-          ),
-        )
+        .put(hook.alter('url', '/' + template.resources.user.path + '/submission/' + dummy._id, template))
         .set('x-jwt-token', dummy.token)
         .send({
           data: {
-            email: chance.email(),
-          },
+            email: chance.email()
+          }
         })
         .expect(200)
         .end(done);
     });
 
-    it('A user with update_own and self access, not the owner, should not be able to delete their submission', function (done) {
+    it('A user with update_own and self access, not the owner, should not be able to delete their submission', function(done) {
       request(app)
-        .delete(
-          hook.alter(
-            'url',
-            '/' + template.resources.user.path + '/submission/' + dummy._id,
-            template,
-          ),
-        )
+        .delete(hook.alter('url', '/' + template.resources.user.path + '/submission/' + dummy._id, template))
         .set('x-jwt-token', dummy.token)
         .expect(401)
         .end(done);
     });
 
-    it('Update the user resource to have delete_own and self access', function (done) {
+    it('Update the user resource to have delete_own and self access', function(done) {
       request(app)
         .put(hook.alter('url', '/form/' + template.resources.user._id, template))
         .set('x-jwt-token', template.users.admin.token)
@@ -2420,18 +1839,16 @@ module.exports = function (app, template, hook) {
           submissionAccess: [
             {
               type: 'delete_own',
-              roles: [
-                template.roles.authenticated._id,
-              ],
+              roles: [template.roles.authenticated._id]
             },
             {
-              type: 'self',
-            },
-          ],
+              type: 'self'
+            }
+          ]
         })
         .expect(200)
         .expect('Content-Type', /json/)
-        .end(function (err, res) {
+        .end(function(err, res) {
           if (err) {
             return done(err);
           }
@@ -2451,7 +1868,7 @@ module.exports = function (app, template, hook) {
     });
 
     // FA-923
-    it('A user with delete submissionAccess permissions and self access, can still read the resource form', function (done) {
+    it('A user with delete submissionAccess permissions and self access, can still read the resource form', function(done) {
       request(app)
         .get(hook.alter('url', '/' + template.resources.user.path, template))
         .set('x-jwt-token', dummy.token)
@@ -2459,21 +1876,15 @@ module.exports = function (app, template, hook) {
         .end(done);
     });
 
-    it('A user with delete_own and self access, not the owner, should not be able to read their submission', function (done) {
+    it('A user with delete_own and self access, not the owner, should not be able to read their submission', function(done) {
       request(app)
-        .get(
-          hook.alter(
-            'url',
-            '/' + template.resources.user.path + '/submission/' + dummy._id,
-            template,
-          ),
-        )
+        .get(hook.alter('url', '/' + template.resources.user.path + '/submission/' + dummy._id, template))
         .set('x-jwt-token', dummy.token)
         .expect(401)
         .end(done);
     });
 
-    it('A user with delete_own and self access, not the owner, should not be able to read their submission, via index', function (done) {
+    it('A user with delete_own and self access, not the owner, should not be able to read their submission, via index', function(done) {
       request(app)
         .get(hook.alter('url', '/' + template.resources.user.path + '/submission', template))
         .set('x-jwt-token', dummy.token)
@@ -2481,42 +1892,30 @@ module.exports = function (app, template, hook) {
         .end(done);
     });
 
-    it('A user with delete_own and self access, not the owner, should not be able to update their submission', function (done) {
+    it('A user with delete_own and self access, not the owner, should not be able to update their submission', function(done) {
       request(app)
-        .put(
-          hook.alter(
-            'url',
-            '/' + template.resources.user.path + '/submission/' + dummy._id,
-            template,
-          ),
-        )
+        .put(hook.alter('url', '/' + template.resources.user.path + '/submission/' + dummy._id, template))
         .set('x-jwt-token', dummy.token)
         .send({
           data: {
-            email: chance.email(),
-          },
+            email: chance.email()
+          }
         })
         .expect(401)
         .end(done);
     });
 
-    it('A user with delete_own and self access, not the owner, should be able to delete their submission', function (done) {
+    it('A user with delete_own and self access, not the owner, should be able to delete their submission', function(done) {
       request(app)
-        .delete(
-          hook.alter(
-            'url',
-            '/' + template.resources.user.path + '/submission/' + dummy._id,
-            template,
-          ),
-        )
+        .delete(hook.alter('url', '/' + template.resources.user.path + '/submission/' + dummy._id, template))
         .set('x-jwt-token', dummy.token)
         .expect(200)
         .end(done);
     });
   });
 
-  describe('Template Permissions', function () {
-    it('An Anonymous user should not be able to export a project', function (done) {
+  describe('Template Permissions', function() {
+    it('An Anonymous user should not be able to export a project', function(done) {
       request(app)
         .get(hook.alter('url', '/export', template))
         .expect(401)
@@ -2532,7 +1931,7 @@ module.exports = function (app, template, hook) {
         });
     });
 
-    it('An Admin user should be able to export a project', function (done) {
+    it('An Admin user should be able to export a project', function(done) {
       request(app)
         .get(hook.alter('url', '/export', template))
         .set('x-jwt-token', template.users.admin.token)
@@ -2546,19 +1945,10 @@ module.exports = function (app, template, hook) {
           let response = res.body;
           assert.deepEqual(
             _.difference(
-              [
-                'title',
-                'version',
-                'description',
-                'name',
-                'roles',
-                'forms',
-                'actions',
-                'resources',
-              ],
-              Object.keys(response),
+              ['title', 'version', 'description', 'name', 'roles', 'forms', 'actions', 'resources'],
+              Object.keys(response)
             ),
-            [],
+            []
           );
           return done();
         });

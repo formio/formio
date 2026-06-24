@@ -20,9 +20,7 @@ module.exports = {
           enableRowGroups: false,
           initEmpty: false,
           tableView: false,
-          defaultValue: [
-            {},
-          ],
+          defaultValue: [{}],
           validateWhenHidden: false,
           key: 'dataGrid',
           type: 'datagrid',

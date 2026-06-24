@@ -4,7 +4,7 @@ const _ = require('lodash');
 const debug = require('debug')('formio:middleware:submissionResourceAccessFilter');
 const EVERYONE = '000000000000000000000000';
 
-module.exports = function (router) {
+module.exports = function(router) {
   return async function submissionResourceAccessFilter(req, res, next) {
     const util = router.formio.util;
     const hook = router.formio.hook;
@@ -19,50 +19,39 @@ module.exports = function (router) {
     };
 
     const getQuery = (req, newSearch, userId) => {
-      let query = null;
-      if (userId) {
-        query = {
-          form: util.idToBson(req.formId),
-          deleted: { $eq: null },
-          $or: [
-            {
-              access: {
-                $elemMatch: {
-                  type: {
-                    $in: [
-                      'read',
-                      'write',
-                      'admin',
-                    ],
+            let query = null;
+            if (userId) {
+              query = {
+                form: util.idToBson(req.formId),
+                deleted: {$eq: null},
+                $or: [
+                  {
+                    access: {
+                      $elemMatch: {
+                        type: {$in: ['read', 'write', 'admin']},
+                        resources: {$in: newSearch},
+                      },
+                    },
                   },
-                  resources: { $in: newSearch },
+                  {
+                    owner: util.idToBson(userId)
+                  }
+                ]
+              };
+            }
+            else {
+              query = {
+                form: util.idToBson(req.formId),
+                deleted: {$eq: null},
+                access: {
+                  $elemMatch: {
+                    type: {$in: ['read', 'write', 'admin']},
+                    resources: {$in: newSearch},
+                  },
                 },
-              },
-            },
-            {
-              owner: util.idToBson(userId),
-            },
-          ],
-        };
-      } else {
-        query = {
-          form: util.idToBson(req.formId),
-          deleted: { $eq: null },
-          access: {
-            $elemMatch: {
-              type: {
-                $in: [
-                  'read',
-                  'write',
-                  'admin',
-                ],
-              },
-              resources: { $in: newSearch },
-            },
-          },
-        };
-      }
-      return query;
+              };
+            }
+            return query;
     };
 
     const getNewSearch = async (req, search, userId) => {
@@ -121,9 +110,11 @@ module.exports = function (router) {
       req.countQuery = req.countQuery.find(query);
 
       return next();
-    } catch (err) {
+  }
+  catch (err) {
       // Try to recover if the hook fails.
       debug(err);
     }
   };
 };
+
