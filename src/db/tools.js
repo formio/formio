@@ -2,7 +2,6 @@
 
 const crypto = require('crypto');
 const util = require('../util/util');
-const { deriveKeyAndIv } = require('./util');
 
 module.exports = function (db, schema) {
   return {
@@ -38,19 +37,20 @@ module.exports = function (db, schema) {
         return undefined;
       }
 
-      const { key, iv } = deriveKeyAndIv(secret);
-      const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
+      const cipher = crypto.createCipher('aes-256-cbc', secret);
       const decryptedJSON = JSON.stringify(mixed);
 
-      return Buffer.concat([cipher.update(decryptedJSON), cipher.final()]);
+      return Buffer.concat([
+        cipher.update(decryptedJSON),
+        cipher.final(),
+      ]);
     },
     decrypt(secret, cipherbuffer) {
       if (cipherbuffer === undefined) {
         return undefined;
       }
 
-      const { key, iv } = deriveKeyAndIv(secret);
-      const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
+      const decipher = crypto.createDecipher('aes-256-cbc', secret);
       const decryptedJSON = Buffer.concat([
         decipher.update(cipherbuffer), // Buffer contains encrypted utf8
         decipher.final(),

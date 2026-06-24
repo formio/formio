@@ -328,6 +328,7 @@ module.exports = (router) => {
                 'panel',
                 'table',
                 'tabs',
+                'datasource',
               ].includes(component.type)
             ) {
               util.deleteProp(component.key)(data);
