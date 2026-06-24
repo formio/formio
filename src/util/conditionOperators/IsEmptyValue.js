@@ -16,7 +16,11 @@ module.exports = class IsEmptyValue extends ConditionOperator {
     return false;
   }
 
-  execute({ value, component }) {
+  execute({
+    value,
+    instance,
+    component,
+  }) {
     const isSimpleEmptyValue = (v) => v === null || v === undefined || v === '';
     // lodash treats Date as an empty object
     const isEmptyObject = _.isObject(value) && _.isEmpty(value) && !(value instanceof Date);
@@ -24,15 +28,15 @@ module.exports = class IsEmptyValue extends ConditionOperator {
     const isEmptyArray = _.isArray(value) && value.length === 1 && isSimpleEmptyValue(value[0]);
     const isEmptyDate = value instanceof Date && value.toString() === 'Invalid Date';
 
-    if (
-      isSimpleEmptyValue(value) ||
+    if (isSimpleEmptyValue(value) ||
       isEmptyObject ||
       isEmptyString ||
       isEmptyArray ||
       isEmptyDate
     ) {
       return true;
-    } else if (component?.type === 'selectboxes') {
+    }
+    else if (component?.type === 'selectboxes') {
       let empty = true;
       for (const key in value) {
         if (value.hasOwnProperty(key) && value[key]) {
@@ -41,7 +45,8 @@ module.exports = class IsEmptyValue extends ConditionOperator {
         }
       }
       return empty;
-    } else if (component?.type === 'address' && value?.address) {
+    }
+    else if (component?.type === 'address' && value?.address) {
       return _.isEmpty(value.address);
     }
 

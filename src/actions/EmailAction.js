@@ -18,21 +18,17 @@ module.exports = (router) => {
    */
   class EmailAction extends Action {
     static info(req, res, next) {
-      if (!hook.alter('hasEmailAccess', req)) {
-        return next(null);
-      }
+     if (!hook.alter('hasEmailAccess', req)) {
+       return next(null);
+     }
       next(null, {
         name: 'email',
         title: 'Email',
         description: 'Allows you to email people on submission.',
         priority: 0,
         defaults: {
-          handler: [
-            'after',
-          ],
-          method: [
-            'create',
-          ],
+          handler: ['after'],
+          method: ['create'],
         },
       });
     }
@@ -47,7 +43,7 @@ module.exports = (router) => {
     static async settingsForm(req, res, next) {
       try {
         // Get the available transports.
-        const availableTransports = await emailer.availableTransports(req);
+        const availableTransports =  await emailer.availableTransports(req);
 
         const settingsForm = [
           {
@@ -84,7 +80,7 @@ module.exports = (router) => {
             input: true,
             placeholder: 'Reply to an alternative email address',
             type: 'textfield',
-            multiple: false,
+            multiple: false
           },
           {
             label: 'To: Email Address',
@@ -121,8 +117,7 @@ module.exports = (router) => {
             inputType: 'text',
             defaultValue: '',
             input: true,
-            placeholder:
-              'Send blind copy of the email to the following email (other recipients will not see this)',
+            placeholder: 'Send blind copy of the email to the following email (other recipients will not see this)',
             type: 'textfield',
             multiple: true,
           },
@@ -168,19 +163,19 @@ module.exports = (router) => {
               {
                 label: 'Static',
                 value: 'static',
-              },
+              }
             ],
             inline: true,
             optionsLabelPosition: 'right',
-
-            tooltip:
-              'Dynamic rendering uses formio.js to render email. While static relies on outdated set of mappers.',
+            // eslint-disable-next-line max-len
+            tooltip: 'Dynamic rendering uses formio.js to render email. While static relies on outdated set of mappers.',
             input: true,
           },
         ];
 
         return next(null, settingsForm);
-      } catch (err) {
+      }
+      catch (err) {
         log(req, ecode.emailer.ENOTRANSP, err);
         return next(err);
       }
@@ -197,7 +192,7 @@ module.exports = (router) => {
      *   The callback function to execute upon completion.
      */
     async resolve(handler, method, req, res, next, setActionItemMessage) {
-      const loadForm = async function (req, setActionItemMessage, next) {
+      const loadForm = async function(req, setActionItemMessage, next) {
         try {
           const form = await router.formio.cache.loadCurrentForm(req);
           if (!form) {
@@ -208,7 +203,8 @@ module.exports = (router) => {
             return null;
           }
           return form;
-        } catch (err) {
+        }
+        catch (err) {
           setActionItemMessage('Error loading form', err, 'error');
           log(req, ecode.cache.EFORMLOAD, err);
           next(err);
@@ -216,7 +212,7 @@ module.exports = (router) => {
         }
       };
 
-      const fetchTemplate = async function (settings, params) {
+      const fetchTemplate = async function(settings, params, setActionItemMessage) {
         try {
           const response = await fetch(settings.template);
           const body = response.ok ? await response.text() : null;
@@ -224,23 +220,21 @@ module.exports = (router) => {
             params.content = settings.message;
           }
           return body || settings.message;
-        } catch (ignoreErr) {
+        }
+        catch (err) {
           return settings.message;
         }
       };
 
-      const sendEmail = async function (req, res, settings, params, setActionItemMessage) {
+      const sendEmail = async function(req, res, settings, params, setActionItemMessage) {
         try {
           await emailer.send(req, res, settings, params, setActionItemMessage);
           setActionItemMessage('Message Sent');
-        } catch (err) {
-          setActionItemMessage(
-            'Error sending message',
-            {
-              message: err.message || err,
-            },
-            'error',
-          );
+        }
+        catch (err) {
+          setActionItemMessage('Error sending message', {
+            message: err.message || err
+          }, 'error');
           log(req, ecode.emailer.ESENDMAIL, JSON.stringify(err));
         }
       };
@@ -260,21 +254,21 @@ module.exports = (router) => {
         req.params = reqParams;
       });
 
-      next();
+      next(); // eslint-disable-line callback-return
 
       try {
         const params = await emailer.getParams(req, res, form, req.body);
 
         const query = {
           _id: params.owner,
-          deleted: { $eq: null },
+          deleted: {$eq: null},
         };
 
         const submissionModel = req.submissionModel || router.formio.resources.submission.model;
 
         let owner = await submissionModel.findOne(hook.alter('submissionQuery', query, req)).lean();
         if (!owner) {
-          owner = { _id: params.owner };
+          owner = {_id: params.owner};
         }
         if (owner) {
           params.owner = owner;
@@ -283,7 +277,8 @@ module.exports = (router) => {
         let template;
         if (!this.settings.template) {
           template = this.settings.message;
-        } else {
+        }
+        else {
           template = await fetchTemplate(this.settings, params, setActionItemMessage);
         }
 
@@ -293,7 +288,8 @@ module.exports = (router) => {
         req.params = reqParams;
 
         await sendEmail(req, res, this.settings, params, setActionItemMessage);
-      } catch (err) {
+      }
+      catch (err) {
         setActionItemMessage('Emailer error', err, 'error');
         log(req, ecode.emailer.ESUBPARAMS, err);
       }

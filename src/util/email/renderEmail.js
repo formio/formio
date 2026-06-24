@@ -1,7 +1,8 @@
+/* eslint-disable max-statements */
 'use strict';
 
-const { processSync, Evaluator } = require('@formio/core');
-const { JSDOM } = require('jsdom');
+const {processSync, Evaluator} = require('@formio/core');
+const {JSDOM} = require('jsdom');
 const _ = require('lodash');
 const {
   formatAddressValue,
@@ -19,14 +20,14 @@ const {
   convertToString,
   cleanLabelTemplate,
   formioComponents,
-  getSelectTemplate,
+  getSelectTemplate
 } = require('./utils');
 const macros = require('./nunjucks-macros');
 
 const omitUndefined = (obj) => _.omitBy(obj, _.isUndefined);
 
 function renderEmailProcessorSync(context) {
-  const { component, paths, parent, row, scope, data } = context;
+  const {component, paths, parent, row, scope, data} = context;
   const scopeRef = scope;
   if (component.skipInEmail || isLayoutComponent(component)) {
     return;
@@ -139,26 +140,27 @@ function renderEmailProcessorSync(context) {
     }
     case 'radio': {
       let outputValue = '';
-      if (rowValue) {
-        if (component.dataSrc === 'url') {
-          if (component.template && _.get(context.metadata, `selectData.${paths?.dataPath}`)) {
-            const selectData = _.get(context.metadata, `selectData.${paths?.dataPath}`);
-            const template = cleanLabelTemplate(component.template);
-            outputValue = Evaluator.interpolate(template, { item: selectData });
-          }
-        } else {
-          outputValue =
-            component?.values
-              ?.filter((v) => {
-                if (typeof rowValue === typeof v.value) {
-                  return rowValue === v.value;
-                }
-                return convertToString(rowValue) === convertToString(v.value);
-              })
-              .map((v) => v.label)
-              .join(', ') || '';
+    if (rowValue) {
+      if (component.dataSrc === 'url') {
+        // eslint-disable-next-line max-depth
+        if (component.template && _.get(context.metadata, `selectData.${paths?.dataPath}`)) {
+          const selectData = _.get(context.metadata, `selectData.${paths?.dataPath}`);
+          const template = cleanLabelTemplate(component.template);
+          outputValue = Evaluator.interpolate(template, {item: selectData});
         }
-      } else {
+      }
+      else {
+        outputValue = component?.values?.filter(v => {
+          if (typeof rowValue === typeof v.value) {
+            return rowValue === v.value;
+          }
+          return convertToString(rowValue) === convertToString(v.value);
+        })
+          .map(v => v.label)
+          .join(', ') || '';
+      }
+    }
+      else {
         outputValue = rowValue;
       }
 
@@ -167,27 +169,27 @@ function renderEmailProcessorSync(context) {
     }
     case 'select': {
       let outputValue;
-      if (rowValue && _.get(context.metadata, `selectData.${paths?.dataPath}`)) {
+      if (rowValue  && _.get(context.metadata, `selectData.${paths?.dataPath}`)) {
         const selectData = _.get(context.metadata, `selectData.${paths?.dataPath}`);
         const getValueLabel = (v, labelData, template) => {
-          return labelData
-            ? Evaluator.interpolate(template, { item: labelData })
+           return labelData
+            ? Evaluator.interpolate(template, {item: labelData})
             : convertToString(v);
-        };
+         };
         const template = getSelectTemplate(component);
         outputValue = component.multiple
-          ? rowValue?.map((v) => getValueLabel(v, _.get(selectData, v), template)).join(', ')
+          ? rowValue?.map(v => getValueLabel(v, _.get(selectData, v), template)).join(', ')
           : getValueLabel(rowValue, selectData, template);
-      } else {
+      }
+      else {
         const getDisplayValue = (v) => {
           let displayValue = v;
           if (_.isPlainObject(v) && !_.isEmpty(v)) {
             const template = getSelectTemplate(component);
             if (template) {
-              const contextData =
-                component.valueProperty === 'data' && component.dataSrc === 'resource'
-                  ? { item: { data: v } }
-                  : { item: v };
+              const contextData = component.valueProperty === 'data' && component.dataSrc === 'resource'
+                ? {item: {data: v}}
+                : {item: v};
               displayValue = Evaluator.interpolate(template, contextData);
               // cover the case when option label is the stringified object
               if (displayValue === '[object Object]') {
@@ -199,7 +201,7 @@ function renderEmailProcessorSync(context) {
         };
 
         outputValue = component.multiple
-          ? rowValue?.map((v) => getDisplayValue(v)).join(', ')
+          ? rowValue?.map(v => getDisplayValue(v)).join(', ')
           : getDisplayValue(rowValue);
       }
 
@@ -223,24 +225,23 @@ function renderEmailProcessorSync(context) {
       let outputValue = '';
       if (rowValue) {
         if (component.dataSrc === 'url') {
-          if (
-            component.template &&
-            _.isArray(_.get(context.metadata, `selectData.${paths?.dataPath}`))
-          ) {
+          // eslint-disable-next-line max-depth
+          if (component.template && _.isArray(_.get(context.metadata, `selectData.${paths?.dataPath}`))) {
             const selectData = _.get(context.metadata, `selectData.${paths?.dataPath}`);
             const template = cleanLabelTemplate(component.template);
-            outputValue = selectData
-              .map((labelData) => Evaluator.interpolate(template, { item: labelData }))
-              .join(', ');
-          } else {
-            outputValue = _(rowValue).pickBy(Boolean).keys().join(', ');
+            outputValue = selectData.map(labelData => Evaluator.interpolate(template, {item: labelData})).join(', ');
           }
-        } else {
-          outputValue =
-            component?.values
-              ?.filter((v) => rowValue[v.value])
-              .map((v) => v.label)
-              .join(', ') || '';
+          else {
+            outputValue = _(rowValue)
+              .pickBy(Boolean)
+              .keys()
+              .join(', ');
+          }
+        }
+        else {
+          outputValue = component?.values?.filter(v => rowValue[v.value])
+            .map(v => v.label)
+            .join(', ') || '';
         }
       }
       insertRow(componentRenderContext, outputValue);
@@ -248,7 +249,11 @@ function renderEmailProcessorSync(context) {
     }
     case 'address': {
       const outputValue = component.multiple
-        ? rowValue?.map((v) => formatAddressValue(v, component, data)).join(', ')
+        ? rowValue
+            ?.map((v) =>
+              formatAddressValue(v, component, data),
+            )
+            .join(', ')
         : formatAddressValue(rowValue, component, data);
       insertRow(componentRenderContext, outputValue);
       return;
@@ -256,7 +261,9 @@ function renderEmailProcessorSync(context) {
     case 'datetime': {
       const timezone = context?.metadata?.timezone;
       const outputValue = component.multiple
-        ? rowValue?.map((v) => formatDatetime(component, timezone, v)).join(', ')
+        ? rowValue
+            ?.map((v) => formatDatetime(component, timezone, v))
+            .join(', ')
         : formatDatetime(component, timezone, rowValue);
       insertRow(componentRenderContext, outputValue);
       return;
@@ -316,15 +323,16 @@ function renderEmailProcessorSync(context) {
       insertTable(componentRenderContext);
       return;
     }
-    default: {
+    default:{
       // render custom component value
       if (!formioComponents.includes(component.type) && component.input) {
         if (component.components?.length) {
           insertTable(componentRenderContext);
           return;
-        } else {
+        }
+        else {
           const outputValue = component.multiple
-            ? rowValue?.map((v) => convertToString(v)).join(', ')
+            ? rowValue?.map(v => convertToString(v)).join(', ')
             : convertToString(rowValue);
           insertRow(componentRenderContext, outputValue);
           return;
@@ -347,7 +355,12 @@ const renderEmailProcessorInfo = {
   shouldProcess: () => true,
 };
 
-async function renderEmail({ render, context = {}, vm }) {
+async function renderEmail({
+  render,
+  context = {},
+  vm,
+  timeout = 500,
+}) {
   if (context._private) {
     delete context._private;
   }
@@ -365,9 +378,7 @@ async function renderEmail({ render, context = {}, vm }) {
     const result = processSync({
       ...context,
       components: context.form.components,
-      processors: [
-        renderEmailProcessorInfo,
-      ],
+      processors: [renderEmailProcessorInfo],
     });
     data.submissionTableHtml = result.emailDom.window.document.body.innerHTML;
   }
@@ -375,7 +386,8 @@ async function renderEmail({ render, context = {}, vm }) {
   try {
     const res = await vm.evaluate(getScript(render), data);
     return res;
-  } catch (err) {
+  }
+  catch (err) {
     console.warn(err);
   }
 }
@@ -423,10 +435,11 @@ function getRenderMethod(render) {
   let renderMethod = 'static';
   if (process.env.RENDER_METHOD) {
     renderMethod = process.env.RENDER_METHOD;
-  } else if (render && render.renderingMethod) {
+  }
+  else if (render && render.renderingMethod) {
     renderMethod = render.renderingMethod;
   }
   return renderMethod;
 }
 
-module.exports = { renderEmail, getScript };
+module.exports = {renderEmail, getScript};

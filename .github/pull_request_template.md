@@ -6,19 +6,19 @@ https://formio.atlassian.net/browse/FIO-XXXX
 
 **What changed?**
 
-_Previously, formio ... This PR replaces this behavior by ..._
+*Previously, formio ... This PR replaces this behavior by ...*
 
 **Why have you chosen this solution?**
 
-_Although there were many potential solutions such as ..., [my solution] was best because ..._
+*Although there were many potential solutions such as ..., [my solution] was best because ...*
 
 ## Dependencies
 
-_This PR depends on the following PRs from other Form.io modules: ..._
+*This PR depends on the following PRs from other Form.io modules: ...*
 
 ## How has this PR been tested?
 
-_I added automated tests to cover [all/the following] cases, including ..._
+*I added automated tests to cover [all/the following] cases, including ...*
 
 ## Checklist:
 

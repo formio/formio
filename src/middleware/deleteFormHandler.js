@@ -18,8 +18,7 @@ module.exports = (router) => {
       return next();
     }
 
-    prune
-      .form(req.formId, req)
+    prune.form(req.formId, req)
       .then(() => res.sendStatus(200))
       .catch((err) => {
         debug(err);

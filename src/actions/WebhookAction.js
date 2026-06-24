@@ -6,7 +6,7 @@ const util = require('../util/util');
 
 const LOG_EVENT = 'Webhook Action';
 
-module.exports = function (router) {
+module.exports = function(router) {
   const Action = router.formio.Action;
   const hook = router.formio.hook;
   const debug = require('debug')('formio:action:webhook');
@@ -19,25 +19,16 @@ module.exports = function (router) {
    */
   class WebhookAction extends Action {
     static info(req, res, next) {
-      next(
-        null,
-        hook.alter('actionInfo', {
-          name: 'webhook',
-          title: 'Webhook',
-          description: 'Allows you to trigger an external interface.',
-          priority: 0,
-          defaults: {
-            handler: [
-              'after',
-            ],
-            method: [
-              'create',
-              'update',
-              'delete',
-            ],
-          },
-        }),
-      );
+      next(null, hook.alter('actionInfo', {
+        name: 'webhook',
+        title: 'Webhook',
+        description: 'Allows you to trigger an external interface.',
+        priority: 0,
+        defaults: {
+          handler: ['after'],
+          method: ['create', 'update', 'delete']
+        }
+      }));
     }
     static settingsForm(req, res, next) {
       next(null, [
@@ -53,18 +44,18 @@ module.exports = function (router) {
           type: 'textfield',
           multiple: false,
           validate: {
-            required: true,
-          },
+            required: true
+          }
         },
         {
           conditional: {
             eq: '',
             when: null,
-            show: '',
+            show: ''
           },
           type: 'checkbox',
           validate: {
-            required: false,
+            required: false
           },
           persistent: true,
           protected: false,
@@ -74,7 +65,7 @@ module.exports = function (router) {
           hideLabel: false,
           tableView: true,
           inputType: 'checkbox',
-          input: true,
+          input: true
         },
         {
           label: 'Authorize User',
@@ -84,7 +75,7 @@ module.exports = function (router) {
           input: true,
           placeholder: 'User for Basic Authentication',
           type: 'textfield',
-          multiple: false,
+          multiple: false
         },
         {
           label: 'Authorize Password',
@@ -94,8 +85,8 @@ module.exports = function (router) {
           input: true,
           placeholder: 'Password for Basic Authentication',
           type: 'textfield',
-          multiple: false,
-        },
+          multiple: false
+        }
       ]);
     }
 
@@ -146,7 +137,7 @@ module.exports = function (router) {
        */
       const handleError = (data, response) => {
         setActionItemMessage('Webhook failed', response);
-        const message = data ? data.message || data : response.statusMessage;
+        const message = data ? (data.message || data) : response.statusMessage;
         logerr(message);
 
         if (!_.get(settings, 'block') || _.get(settings, 'block') === false) {
@@ -164,7 +155,7 @@ module.exports = function (router) {
 
         // Continue if were not blocking
         if (!_.get(settings, 'block') || _.get(settings, 'block') === false) {
-          next();
+          next(); // eslint-disable-line callback-return
         }
 
         const options = {};
@@ -187,15 +178,13 @@ module.exports = function (router) {
         const payload = {
           request: _.get(req, 'body'),
           response: _.get(req, 'response'),
-          submission: submission && submission.toObject ? submission.toObject() : {},
-          params: _.get(req, 'params'),
+          submission: (submission && submission.toObject) ? submission.toObject() : {},
+          params: _.get(req, 'params')
         };
 
         // Interpolate URL if possible
         if (res && res.resource && res.resource.item && res.resource.item.data) {
-          url = util.FormioUtils.Evaluator.interpolate(url, res.resource.item.data, {
-            noeval: true,
-          });
+          url = util.FormioUtils.Evaluator.interpolate(url, res.resource.item.data, {noeval: true});
         }
 
         // Fall back if interpolation failed
@@ -211,53 +200,57 @@ module.exports = function (router) {
           throw err;
         };
 
-        const makeRequest = (url, method, credentials, payload) => {
-          const options = {
-            method,
-            headers: {
-              'content-type': 'application/json',
-              accept: 'application/json',
-            },
-          };
-          if (credentials.username) {
-            options.headers.Authorization = `Basic ${Buffer.from(`${credentials.username}:${credentials.password}`).toString('base64')}`;
-          }
-
-          if (payload) {
-            options.body = JSON.stringify(payload);
-          }
-
-          fetch(url, options)
-            .then((response) => {
-              if (!response.bodyUsed) {
-                if (response.ok) {
-                  return handleSuccess({}, response);
-                } else {
-                  return handleError({}, response);
-                }
-              } else {
-                if (response.ok) {
-                  return response.json().then((body) => handleSuccess(body, response));
-                } else {
-                  return response.json().then((body) => handleError(body, response));
-                }
-              }
-            })
-            .catch((err) => {
-              handleError(err);
-            });
+      const makeRequest = (url, method, credentials, payload)=> {
+        const options = {
+          method,
+          headers: {
+            'content-type': 'application/json',
+            'accept': 'application/json',
+          },
         };
+        if (credentials.username) {
+        // eslint-disable-next-line max-len
+        options.headers.Authorization = `Basic ${Buffer.from(`${credentials.username}:${credentials.password}`).toString('base64')}`;
+        }
+
+        if (payload) {
+          options.body = JSON.stringify(payload);
+        }
+
+        fetch(url, options)
+        .then((response) => {
+          if (!response.bodyUsed) {
+            if (response.ok) {
+              return handleSuccess({}, response);
+            }
+            else {
+              return handleError({}, response);
+            }
+          }
+          else {
+            if (response.ok) {
+              return response.json().then((body) => handleSuccess(body, response));
+            }
+            else {
+              return response.json().then((body) => handleError(body, response));
+            }
+          }
+        })
+        .catch((err) => {
+          handleError(err);
+        });
+    };
 
         // Make the request.
         setActionItemMessage('Making request', {
           method: req.method,
           url,
-          options,
+          options
         });
-        url =
-          req.method !== 'DELETE' ? url : `${url}?${new URLSearchParams(req.params).toString()}`;
+        url = req.method!=='DELETE' ? url: `${url}?${new URLSearchParams(req.params).toString()}`;
         makeRequest(url, req.method, options, payload);
-      } catch (e) {
+      }
+      catch (e) {
         setActionItemMessage('Error occurred', e, 'error');
         handleError(e);
       }

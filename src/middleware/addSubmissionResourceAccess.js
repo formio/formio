@@ -13,15 +13,11 @@ module.exports = (router) => {
     }
 
     if (!Array.isArray(input)) {
-      input = [
-        input,
-      ];
+      input = [input];
     }
 
     if (!Array.isArray(roles)) {
-      roles = [
-        roles,
-      ];
+      roles = [roles];
     }
 
     roles = roles.filter(_.identity);
@@ -31,7 +27,9 @@ module.exports = (router) => {
         return [];
       }
 
-      return roles.length ? roles.map((role) => `${element._id}:${role}`) : element._id;
+      return roles.length
+        ? roles.map((role) => (`${element._id}:${role}`))
+        : element._id;
     });
   };
 
@@ -47,12 +45,9 @@ module.exports = (router) => {
         return next(`Cannot load form ${req.params.formId}`);
       }
 
+      /* eslint-disable max-depth */
       util.FormioUtils.eachComponent(form.components, (component, path) => {
-        if (
-          component &&
-          component.key &&
-          (component.submissionAccess || component.defaultPermission)
-        ) {
+        if (component && component.key && (component.submissionAccess || component.defaultPermission)) {
           if (!component.submissionAccess) {
             component.submissionAccess = [
               {
@@ -69,9 +64,7 @@ module.exports = (router) => {
             }
 
             if (!Array.isArray(value)) {
-              value = [
-                value,
-              ];
+              value = [value];
             }
 
             component.submissionAccess.map((access) => {
@@ -85,7 +78,8 @@ module.exports = (router) => {
                     perm.resources = [];
                   }
                   perm.resources = perm.resources.concat(ids);
-                } else {
+                }
+                else {
                   req.body.access.push({
                     type: access.type,
                     resources: ids,
@@ -96,9 +90,11 @@ module.exports = (router) => {
           }
         }
       });
+      /* eslint-enable max-depth */
 
       return next();
-    } catch (ignoreErr) {
+    }
+    catch (err) {
       return next(`Cannot load form ${req.params.formId}`);
     }
   };

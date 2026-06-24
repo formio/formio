@@ -5,12 +5,12 @@ const request = require('./formio-supertest');
 var assert = require('assert');
 var docker = process.env.DOCKER;
 
-module.exports = function (app, template, hook) {
+module.exports = function(app, template, hook) {
   var Helper = require('./helper')(app);
 
-  describe('Nested Resources', function () {
+  describe('Nested Resources', function() {
     var customerResource = null;
-    it('A Project Owner should be able to Create a Customer Resource', function (done) {
+    it('A Project Owner should be able to Create a Customer Resource', function(done) {
       request(app)
         .post(hook.alter('url', '/form', template))
         .set('x-jwt-token', template.users.admin.token)
@@ -23,22 +23,16 @@ module.exports = function (app, template, hook) {
           submissionAccess: [
             {
               type: 'read_own',
-              roles: [
-                template.roles.authenticated._id.toString(),
-              ],
+              roles: [template.roles.authenticated._id.toString()]
             },
             {
               type: 'update_own',
-              roles: [
-                template.roles.authenticated._id.toString(),
-              ],
+              roles: [template.roles.authenticated._id.toString()]
             },
             {
               type: 'delete_own',
-              roles: [
-                template.roles.authenticated._id.toString(),
-              ],
-            },
+              roles: [template.roles.authenticated._id.toString()]
+            }
           ],
           components: [
             {
@@ -48,7 +42,7 @@ module.exports = function (app, template, hook) {
                 pattern: '',
                 maxLength: '',
                 minLength: '',
-                required: false,
+                required: false
               },
               defaultValue: '',
               multiple: false,
@@ -59,7 +53,7 @@ module.exports = function (app, template, hook) {
               label: 'First Name',
               inputMask: '',
               inputType: 'text',
-              input: true,
+              input: true
             },
             {
               type: 'textfield',
@@ -68,7 +62,7 @@ module.exports = function (app, template, hook) {
                 pattern: '',
                 maxLength: '',
                 minLength: '',
-                required: false,
+                required: false
               },
               defaultValue: '',
               multiple: false,
@@ -79,27 +73,21 @@ module.exports = function (app, template, hook) {
               label: 'Last Name',
               inputMask: '',
               inputType: 'text',
-              input: true,
-            },
-          ],
+              input: true
+            }
+          ]
         })
         .expect('Content-Type', /json/)
         .expect(201)
-        .end(function (err, res) {
+        .end(function(err, res) {
           if (err) {
             return done(err);
           }
 
           customerResource = res.body;
           assert(res.body.hasOwnProperty('_id'), 'The response should contain an `_id`.');
-          assert(
-            res.body.hasOwnProperty('modified'),
-            'The response should contain a `modified` timestamp.',
-          );
-          assert(
-            res.body.hasOwnProperty('created'),
-            'The response should contain a `created` timestamp.',
-          );
+          assert(res.body.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
+          assert(res.body.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
           assert(res.body.hasOwnProperty('access'), 'The response should contain an the `access`.');
           assert.equal(res.body.title, 'Customer');
           assert.equal(res.body.name, 'customer');
@@ -115,7 +103,7 @@ module.exports = function (app, template, hook) {
     });
 
     var customerForm = null;
-    it('Should be able to create a Customer Survey form', function (done) {
+    it('Should be able to create a Customer Survey form', function(done) {
       request(app)
         .post(hook.alter('url', '/form', template))
         .set('x-jwt-token', template.users.admin.token)
@@ -128,22 +116,16 @@ module.exports = function (app, template, hook) {
           submissionAccess: [
             {
               type: 'read_own',
-              roles: [
-                template.roles.authenticated._id.toString(),
-              ],
+              roles: [template.roles.authenticated._id.toString()]
             },
             {
               type: 'update_own',
-              roles: [
-                template.roles.authenticated._id.toString(),
-              ],
+              roles: [template.roles.authenticated._id.toString()]
             },
             {
               type: 'delete_own',
-              roles: [
-                template.roles.authenticated._id.toString(),
-              ],
-            },
+              roles: [template.roles.authenticated._id.toString()]
+            }
           ],
           components: [
             {
@@ -153,7 +135,7 @@ module.exports = function (app, template, hook) {
                 pattern: '',
                 maxLength: '',
                 minLength: '',
-                required: false,
+                required: false
               },
               defaultValue: '',
               multiple: false,
@@ -164,7 +146,7 @@ module.exports = function (app, template, hook) {
               label: 'First Name',
               inputMask: '',
               inputType: 'text',
-              input: true,
+              input: true
             },
             {
               type: 'textfield',
@@ -173,7 +155,7 @@ module.exports = function (app, template, hook) {
                 pattern: '',
                 maxLength: '',
                 minLength: '',
-                required: false,
+                required: false
               },
               defaultValue: '',
               multiple: false,
@@ -184,27 +166,21 @@ module.exports = function (app, template, hook) {
               label: 'Last Name',
               inputMask: '',
               inputType: 'text',
-              input: true,
-            },
-          ],
+              input: true
+            }
+          ]
         })
         .expect('Content-Type', /json/)
         .expect(201)
-        .end(function (err, res) {
+        .end(function(err, res) {
           if (err) {
             return done(err);
           }
 
           customerForm = res.body;
           assert(res.body.hasOwnProperty('_id'), 'The response should contain an `_id`.');
-          assert(
-            res.body.hasOwnProperty('modified'),
-            'The response should contain a `modified` timestamp.',
-          );
-          assert(
-            res.body.hasOwnProperty('created'),
-            'The response should contain a `created` timestamp.',
-          );
+          assert(res.body.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
+          assert(res.body.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
           assert(res.body.hasOwnProperty('access'), 'The response should contain an the `access`.');
           assert.equal(res.body.title, 'Customer Survey');
           assert.equal(res.body.name, 'survey');
@@ -219,26 +195,21 @@ module.exports = function (app, template, hook) {
         });
     });
 
-    it('Should be able to create the save resource to another field action', function (done) {
+    it('Should be able to create the save resource to another field action', function(done) {
       var saveResourceAction = {
         title: 'Save Submission',
         name: 'save',
-        handler: [
-          'before',
-        ],
-        method: [
-          'create',
-          'update',
-        ],
+        handler: ['before'],
+        method: ['create', 'update'],
         priority: 11,
         settings: {
           resource: customerResource._id.toString(),
           property: 'customer',
           fields: {
             firstName: 'firstName',
-            lastName: 'lastName',
-          },
-        },
+            lastName: 'lastName'
+          }
+        }
       };
 
       request(app)
@@ -247,7 +218,7 @@ module.exports = function (app, template, hook) {
         .send(saveResourceAction)
         .expect('Content-Type', /json/)
         .expect(201)
-        .end(function (err, res) {
+        .end(function(err, res) {
           if (err) {
             return done(err);
           }
@@ -271,20 +242,20 @@ module.exports = function (app, template, hook) {
     });
 
     var survey = null;
-    it('Should be able to create a submission in the survey', function (done) {
+    it('Should be able to create a submission in the survey', function(done) {
       request(app)
         .post(hook.alter('url', '/form/' + template.forms.surveyForm._id + '/submission', template))
         .set('x-jwt-token', template.users.admin.token)
         .send({
           data: {
-            firstName: 'Joe',
-            lastName: 'Smith',
-          },
+            'firstName': 'Joe',
+            'lastName': 'Smith'
+          }
         })
         .expect('Content-Type', /json/)
         .expect(201)
-        .end(function (err, res) {
-          if (err) {
+        .end(function(err, res) {
+          if(err) {
             return done(err);
           }
 
@@ -293,18 +264,9 @@ module.exports = function (app, template, hook) {
           assert(response.hasOwnProperty('created'), 'The submission should have a created date');
           assert(response.hasOwnProperty('modified'), 'The submission should have a modified date');
           assert(response.hasOwnProperty('_id'), 'The response should have an _id');
-          assert(
-            response.data.hasOwnProperty('customer'),
-            'The response body should have a customer.',
-          );
-          assert(
-            response.data.customer.hasOwnProperty('created'),
-            'The data should have created timestamp.',
-          );
-          assert(
-            response.data.customer.hasOwnProperty('modified'),
-            'Make sure there is a modified date',
-          );
+          assert(response.data.hasOwnProperty('customer'), 'The response body should have a customer.');
+          assert(response.data.customer.hasOwnProperty('created'), 'The data should have created timestamp.');
+          assert(response.data.customer.hasOwnProperty('modified'), 'Make sure there is a modified date');
           assert(response.data.customer.hasOwnProperty('_id'), 'The customer should have an ID.');
           assert.equal(response.data.customer.form, template.forms.customerForm._id);
           assert.equal(response.data.customer.data.firstName, 'Joe');
@@ -318,19 +280,13 @@ module.exports = function (app, template, hook) {
         });
     });
 
-    it('Should be able to get the customer', function (done) {
+    it('Should be able to get the customer', function(done) {
       request(app)
-        .get(
-          hook.alter(
-            'url',
-            '/form/' + template.forms.customerForm._id + '/submission/' + survey.data.customer._id,
-            template,
-          ),
-        )
+        .get(hook.alter('url', '/form/' + template.forms.customerForm._id + '/submission/' + survey.data.customer._id, template))
         .set('x-jwt-token', template.users.admin.token)
         .expect('Content-Type', /json/)
         .expect(200)
-        .end(function (err, res) {
+        .end(function(err, res) {
           if (err) {
             return done(err);
           }
@@ -349,19 +305,13 @@ module.exports = function (app, template, hook) {
         });
     });
 
-    it('Should be able to query the survey submission', function (done) {
+    it('Should be able to query the survey submission', function(done) {
       request(app)
-        .get(
-          hook.alter(
-            'url',
-            '/form/' + template.forms.surveyForm._id + '/submission/' + survey._id,
-            template,
-          ),
-        )
+        .get(hook.alter('url', '/form/' + template.forms.surveyForm._id + '/submission/' + survey._id, template))
         .set('x-jwt-token', template.users.admin.token)
         .expect('Content-Type', /json/)
         .expect(200)
-        .end(function (err, res) {
+        .end(function(err, res) {
           if (err) {
             return done(err);
           }
@@ -386,206 +336,174 @@ module.exports = function (app, template, hook) {
     var helper = null;
     var savedSubmission = null;
     it('Create the project with a new user account.', (done) => {
-      var owner = app.hasProjects || docker ? template.formio.owner : template.users.admin;
+      var owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
       helper = new Helper(owner);
       helper.project().user('user', 'user1').execute(done);
     });
 
-    it('Create the resource', function (done) {
+    it('Create the resource', function(done) {
       helper
-        .resource(
-          'resourcea',
-          [
-            {
-              type: 'textfield',
-              persistent: true,
-              unique: false,
-              protected: false,
-              defaultValue: '',
-              suffix: '',
-              prefix: '',
-              placeholder: '',
-              key: 'a',
-              label: 'a',
-              inputType: 'text',
-              tableView: true,
-              input: true,
-            },
-            {
-              type: 'textfield',
-              persistent: true,
-              unique: false,
-              protected: false,
-              defaultValue: '',
-              suffix: '',
-              prefix: '',
-              placeholder: '',
-              key: 'b',
-              label: 'b',
-              inputType: 'text',
-              tableView: true,
-              input: true,
-            },
-            {
-              type: 'textfield',
-              persistent: true,
-              unique: false,
-              protected: false,
-              defaultValue: '',
-              suffix: '',
-              prefix: '',
-              placeholder: '',
-              key: 'c',
-              label: 'c',
-              inputType: 'text',
-              tableView: true,
-              input: true,
-            },
-          ],
+        .resource('resourcea', [
           {
-            submissionAccess: [
-              {
-                type: 'create_own',
-                roles: [
-                  helper.template.roles.authenticated._id.toString(),
-                ],
-              },
-              {
-                type: 'read_own',
-                roles: [
-                  helper.template.roles.authenticated._id.toString(),
-                ],
-              },
-              {
-                type: 'update_own',
-                roles: [
-                  helper.template.roles.authenticated._id.toString(),
-                ],
-              },
-            ],
+            type: 'textfield',
+            persistent: true,
+            unique: false,
+            protected: false,
+            defaultValue: '',
+            suffix: '',
+            prefix: '',
+            placeholder: '',
+            key: 'a',
+            label: 'a',
+            inputType: 'text',
+            tableView: true,
+            input: true
           },
-        )
-        .execute(done);
+          {
+            type: 'textfield',
+            persistent: true,
+            unique: false,
+            protected: false,
+            defaultValue: '',
+            suffix: '',
+            prefix: '',
+            placeholder: '',
+            key: 'b',
+            label: 'b',
+            inputType: 'text',
+            tableView: true,
+            input: true
+          },
+          {
+            type: 'textfield',
+            persistent: true,
+            unique: false,
+            protected: false,
+            defaultValue: '',
+            suffix: '',
+            prefix: '',
+            placeholder: '',
+            key: 'c',
+            label: 'c',
+            inputType: 'text',
+            tableView: true,
+            input: true
+          }
+        ], {
+          submissionAccess: [
+            {
+              type: 'create_own',
+              roles: [helper.template.roles.authenticated._id.toString()]
+            },
+            {
+              type: 'read_own',
+              roles: [helper.template.roles.authenticated._id.toString()]
+            },
+            {
+              type: 'update_own',
+              roles: [helper.template.roles.authenticated._id.toString()]
+            }
+          ]
+        }).execute(done);
     });
 
     it('Create the form', (done) => {
       helper
-        .form(
-          'savetoa',
-          [
-            {
-              type: 'textfield',
-              persistent: true,
-              unique: false,
-              protected: false,
-              defaultValue: '',
-              suffix: '',
-              prefix: '',
-              placeholder: '',
-              key: 'a',
-              label: 'a',
-              inputType: 'text',
-              tableView: true,
-              input: true,
-            },
-            {
-              type: 'textfield',
-              persistent: true,
-              unique: false,
-              protected: false,
-              defaultValue: '',
-              suffix: '',
-              prefix: '',
-              placeholder: '',
-              key: 'b',
-              label: 'b',
-              inputType: 'text',
-              tableView: true,
-              input: true,
-            },
-            {
-              type: 'textfield',
-              persistent: true,
-              unique: false,
-              protected: false,
-              defaultValue: '',
-              suffix: '',
-              prefix: '',
-              placeholder: '',
-              key: 'c',
-              label: 'c',
-              inputType: 'text',
-              tableView: true,
-              input: true,
-            },
-          ],
+        .form('savetoa', [
           {
-            submissionAccess: [
-              {
-                type: 'create_own',
-                roles: [
-                  helper.template.roles.authenticated._id.toString(),
-                ],
-              },
-              {
-                type: 'read_own',
-                roles: [
-                  helper.template.roles.authenticated._id.toString(),
-                ],
-              },
-              {
-                type: 'update_own',
-                roles: [
-                  helper.template.roles.authenticated._id.toString(),
-                ],
-              },
-            ],
+            type: 'textfield',
+            persistent: true,
+            unique: false,
+            protected: false,
+            defaultValue: '',
+            suffix: '',
+            prefix: '',
+            placeholder: '',
+            key: 'a',
+            label: 'a',
+            inputType: 'text',
+            tableView: true,
+            input: true
           },
-        )
+          {
+            type: 'textfield',
+            persistent: true,
+            unique: false,
+            protected: false,
+            defaultValue: '',
+            suffix: '',
+            prefix: '',
+            placeholder: '',
+            key: 'b',
+            label: 'b',
+            inputType: 'text',
+            tableView: true,
+            input: true
+          },
+          {
+            type: 'textfield',
+            persistent: true,
+            unique: false,
+            protected: false,
+            defaultValue: '',
+            suffix: '',
+            prefix: '',
+            placeholder: '',
+            key: 'c',
+            label: 'c',
+            inputType: 'text',
+            tableView: true,
+            input: true
+          }
+        ], {
+          submissionAccess: [
+            {
+              type: 'create_own',
+              roles: [helper.template.roles.authenticated._id.toString()]
+            },
+            {
+              type: 'read_own',
+              roles: [helper.template.roles.authenticated._id.toString()]
+            },
+            {
+              type: 'update_own',
+              roles: [helper.template.roles.authenticated._id.toString()]
+            }
+          ]
+        })
         .action({
           title: 'Save to A',
           name: 'save',
-          handler: [
-            'before',
-          ],
-          method: [
-            'create',
-            'update',
-          ],
+          handler: ['before'],
+          method: ['create', 'update'],
           priority: 11,
           settings: {
             resource: helper.template.forms.resourcea._id.toString(),
             fields: {
               a: 'a',
               b: 'b',
-              c: 'c',
-            },
-          },
-        })
-        .execute(done);
+              c: 'c'
+            }
+          }
+        }).execute(done);
     });
 
     it('Create a new submission in "savetoa" form as Authenticated user.', (done) => {
-      helper.createSubmission(
-        'savetoa',
-        {
-          data: {
-            a: 'one',
-            b: 'two',
-            c: 'three',
-          },
-        },
-        'user1',
-        (err, submission) => {
-          if (err) {
-            return done(err);
-          }
+      helper.createSubmission('savetoa', {
+        data: {
+          a: 'one',
+          b: 'two',
+          c: 'three'
+        }
+      }, 'user1', (err, submission) => {
+        if (err) {
+          return done(err);
+        }
 
-          assert(submission, 'There must be a submission');
-          assert.equal(submission.owner, helper.template.users.user1._id);
-          done();
-        },
-      );
+        assert(submission, 'There must be a submission');
+        assert.equal(submission.owner, helper.template.users.user1._id);
+        done();
+      });
     });
 
     it('Should be able retrieve the first submission from resource as an admin user.', (done) => {
@@ -599,7 +517,7 @@ module.exports = function (app, template, hook) {
         assert.deepEqual(submission.data, {
           a: 'one',
           b: 'two',
-          c: 'three',
+          c: 'three'
         });
         done();
       });
@@ -616,7 +534,7 @@ module.exports = function (app, template, hook) {
         assert.deepEqual(submission.data, {
           a: 'one',
           b: 'two',
-          c: 'three',
+          c: 'three'
         });
         savedSubmission = submission;
         done();
@@ -651,16 +569,8 @@ module.exports = function (app, template, hook) {
       });
     });
 
-    it("Should NOT be able to delete the submission as user1 since they don't have permission", (done) => {
-      helper.deleteSubmission(
-        savedSubmission,
-        'user1',
-        [
-          /text\/plain/,
-          401,
-        ],
-        done,
-      );
+    it('Should NOT be able to delete the submission as user1 since they don\'t have permission', (done) => {
+      helper.deleteSubmission(savedSubmission, 'user1', [/text\/plain/, 401], done);
     });
 
     it('Should be able to delete the submission as admin.', (done) => {
@@ -668,8 +578,8 @@ module.exports = function (app, template, hook) {
     });
   });
 
-  describe('Nested Passwords', function () {
-    it('Should be able to create a form with a Password component in a panel component', function (done) {
+  describe('Nested Passwords', function() {
+    it('Should be able to create a form with a Password component in a panel component', function(done) {
       request(app)
         .post(hook.alter('url', '/form', template))
         .set('x-jwt-token', template.users.admin.token)
@@ -682,22 +592,16 @@ module.exports = function (app, template, hook) {
           submissionAccess: [
             {
               type: 'read_own',
-              roles: [
-                template.roles.authenticated._id.toString(),
-              ],
+              roles: [template.roles.authenticated._id.toString()]
             },
             {
               type: 'update_own',
-              roles: [
-                template.roles.authenticated._id.toString(),
-              ],
+              roles: [template.roles.authenticated._id.toString()]
             },
             {
               type: 'delete_own',
-              roles: [
-                template.roles.authenticated._id.toString(),
-              ],
-            },
+              roles: [template.roles.authenticated._id.toString()]
+            }
           ],
           components: [
             {
@@ -717,28 +621,22 @@ module.exports = function (app, template, hook) {
                   suffix: '',
                   protected: true,
                   persistent: true,
-                  type: 'password',
-                },
-              ],
-            },
-          ],
+                  type: 'password'
+                }
+              ]
+            }
+          ]
         })
         .expect('Content-Type', /json/)
         .expect(201)
-        .end(function (err, res) {
+        .end(function(err, res) {
           if (err) {
             return done(err);
           }
 
           assert(res.body.hasOwnProperty('_id'), 'The response should contain an `_id`.');
-          assert(
-            res.body.hasOwnProperty('modified'),
-            'The response should contain a `modified` timestamp.',
-          );
-          assert(
-            res.body.hasOwnProperty('created'),
-            'The response should contain a `created` timestamp.',
-          );
+          assert(res.body.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
+          assert(res.body.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
           assert(res.body.hasOwnProperty('access'), 'The response should contain an the `access`.');
           assert.equal(res.body.title, 'Nested Password Test');
           assert.equal(res.body.name, 'nestedPassword');
@@ -754,25 +652,19 @@ module.exports = function (app, template, hook) {
     });
 
     var submission;
-    it('Should be able to create a submission in the form, and not get the password in response', function (done) {
+    it('Should be able to create a submission in the form, and not get the password in response', function(done) {
       request(app)
-        .post(
-          hook.alter(
-            'url',
-            '/form/' + template.forms.nestedPasswordForm._id + '/submission',
-            template,
-          ),
-        )
+        .post(hook.alter('url', '/form/' + template.forms.nestedPasswordForm._id + '/submission', template))
         .set('x-jwt-token', template.users.admin.token)
         .send({
           data: {
-            panelPassword: 'hunter2',
-          },
+            'panelPassword': 'hunter2'
+          }
         })
         .expect('Content-Type', /json/)
         .expect(201)
-        .end(function (err, res) {
-          if (err) {
+        .end(function(err, res) {
+          if(err) {
             return done(err);
           }
 
@@ -792,21 +684,15 @@ module.exports = function (app, template, hook) {
         });
     });
 
-    it('Should be able to get a submission in the form, and not get the password in response', function (done) {
+    it('Should be able to get a submission in the form, and not get the password in response', function(done) {
       request(app)
-        .get(
-          hook.alter(
-            'url',
-            '/form/' + template.forms.nestedPasswordForm._id + '/submission/' + submission._id,
-            template,
-          ),
-        )
+        .get(hook.alter('url', '/form/' + template.forms.nestedPasswordForm._id + '/submission/' + submission._id, template))
         .set('x-jwt-token', template.users.admin.token)
         .send()
         .expect('Content-Type', /json/)
         .expect(200)
-        .end(function (err, res) {
-          if (err) {
+        .end(function(err, res) {
+          if(err) {
             return done(err);
           }
           var response = res.body;
@@ -845,8 +731,8 @@ module.exports = function (app, template, hook) {
               type: 'textfield',
               key: 'phone',
               input: true,
-            },
-          ],
+            }
+          ]
         })
         .expect('Content-Type', /json/)
         .expect(201)
@@ -881,9 +767,9 @@ module.exports = function (app, template, hook) {
                   useOriginalRevision: false,
                   key: 'childForm',
                   type: 'form',
-                  input: true,
-                },
-              ],
+                  input: true
+                }
+              ]
             })
             .expect('Content-Type', /json/)
             .expect(201)
@@ -909,15 +795,15 @@ module.exports = function (app, template, hook) {
             childForm: {
               data: {
                 name: 'Mary Jane',
-                phone: '555-123-4567',
-              },
-            },
+                phone: '555-123-4567'
+              }
+            }
           },
-          state: 'draft',
+          state: 'draft'
         })
         .expect('Content-Type', /json/)
         .expect(201)
-        .end(function (err, res) {
+        .end(function(err, res) {
           if (err) {
             return done(err);
           }

@@ -5,7 +5,7 @@ const util = require('../util/util');
 const Validator = require('../resources/Validator');
 const setDefaultProperties = require('../actions/properties/setDefaultProperties');
 
-module.exports = (router) => {
+module.exports = (router, resourceName, resourceId) => {
   const hook = require('../util/hook')(router.formio);
   const fActions = require('../actions/fields')(router);
   const pActions = require('../actions/properties')(router);
@@ -15,30 +15,30 @@ module.exports = (router) => {
   [
     {
       name: 'read',
-      method: 'Get',
+      method: 'Get'
     },
     {
       name: 'update',
-      method: 'Put',
+      method: 'Put'
     },
     {
       name: 'update',
-      method: 'Patch',
+      method: 'Patch'
     },
     {
       name: 'create',
-      method: 'Post',
+      method: 'Post'
     },
     {
       name: 'delete',
-      method: 'Delete',
+      method: 'Delete'
     },
     {
       name: 'index',
-      method: 'Index',
-    },
+      method: 'Index'
+    }
   ].forEach((method) => {
-    /**
+        /**
      * Load the current form into the request.
      *
      * @param req
@@ -58,18 +58,19 @@ module.exports = (router) => {
      * @param req
      */
     async function initializeSubmission(req) {
-      const ensureDataOnPost = (req) => {
+      const ensureDataOnPost = req => {
         if (!req.body.data) {
           req.body.data = {};
         }
       };
 
-      const ensureFvidIsNumber = (req) => {
+      const ensureFvidIsNumber = req => {
         if (req.body.hasOwnProperty('_fvid') && !_.isNaN(parseInt(req.body._fvid))) {
           if (req.body._fvid.length === 24) {
             req.body._frid = req.body._fvid;
             delete req.body._fvid;
-          } else {
+          }
+          else {
             req.body._fvid = parseInt(req.body._fvid);
           }
         }
@@ -79,53 +80,27 @@ module.exports = (router) => {
         if (req.rolesUpdate && req.rolesUpdate.length && current.roles && current.roles.length) {
           const newRoles = _.intersection(
             current.roles.map((role) => role.toString()),
-            req.rolesUpdate,
+            req.rolesUpdate
           );
           req.body.roles = newRoles.map((roleId) => util.idToBson(roleId));
         }
       };
 
-      const setSubmissionId = (req) => {
+      const setSubmissionId = req => {
         if (req.params.submissionId) {
           req.body._id = req.params.submissionId;
           req.subId = req.params.submissionId;
         }
       };
 
-      const setRequestHeaders = (req) => {
-        const captureIpAddress = process.env.CAPTURE_IP_ADDRESS && (
-          process.env.CAPTURE_IP_ADDRESS.toLowerCase() === 'true' || 
-          process.env.CAPTURE_IP_ADDRESS === '1'
-        );
-
+      const setRequestHeaders =  req => {
         const allowlist = [
-          'host',
-          'x-forwarded-scheme',
-          'x-forwarded-proto',
-          'connection',
-          'content-length',
-          'pragma',
-          'cache-control',
-          'sec-ch-ua',
-          'accept',
-          'content-type',
-          'sec-ch-ua-mobile',
-          'user-agent',
-          'sec-ch-ua-platform',
-          'origin',
-          'sec-fetch-site',
-          'sec-fetch-mode',
-          'sec-fetch-dest',
-          'referer',
-          'accept-encoding',
-          'accept-language',
-          'sec-gpc',
-          'dnt',
+          "host", "x-forwarded-scheme", "x-forwarded-proto", "x-forwarded-for", "x-real-ip", "connection",
+          "content-length", "pragma", "cache-control", "sec-ch-ua", "accept", "content-type",
+          "sec-ch-ua-mobile", "user-agent", "sec-ch-ua-platform", "origin", "sec-fetch-site",
+          "sec-fetch-mode", "sec-fetch-dest", "referer", "accept-encoding", "accept-language",
+          "sec-gpc", "dnt"
         ];
-
-        if (captureIpAddress) {
-          allowlist.push('x-forwarded-for', 'x-real-ip');
-        }
 
         const reqHeaders = _.omitBy(req.headers, (value, key) => {
           return !allowlist.includes(key) || key.match(/auth/gi);
@@ -134,15 +109,9 @@ module.exports = (router) => {
         _.set(req.body, 'metadata.headers', reqHeaders);
       };
 
-      const handlePostAndPutRequests = async (req) => {
+      const handlePostAndPutRequests = async req => {
         req.skipResource = true;
-        const properties = hook.alter('submissionParams', [
-          'data',
-          'owner',
-          'access',
-          'metadata',
-          '_vnote',
-        ]);
+        const properties = hook.alter('submissionParams', ['data', 'owner', 'access', 'metadata', '_vnote']);
         req.rolesUpdate = req.body.roles;
         req.body = _.pick(req.body, properties);
 
@@ -164,19 +133,20 @@ module.exports = (router) => {
         }
       };
 
-      const handleGetRequest = (req) => {
-        const submissionQuery = hook.alter('submissionQuery', { form: req.currentForm._id }, req);
+      const handleGetRequest = req => {
+        const submissionQuery = hook.alter('submissionQuery', {form: req.currentForm._id}, req);
         req.countQuery = req.countQuery || req.model || this.model;
         req.modelQuery = req.modelQuery || req.model || this.model;
         req.countQuery = req.countQuery.find(submissionQuery);
         req.modelQuery = req.modelQuery.find(submissionQuery);
       };
 
-      const isGet = req.method === 'GET';
+      const isGet = (req.method === 'GET');
 
       if (isGet) {
         handleGetRequest(req);
-      } else if (req.body) {
+      }
+       else if (req.body) {
         await handlePostAndPutRequests(req);
       }
     }
@@ -202,7 +172,7 @@ module.exports = (router) => {
       });
     }
 
-    /**
+        /**
      * Validate a submission.
      *
      * @param req
@@ -212,32 +182,19 @@ module.exports = (router) => {
       req.noValidate = req.noValidate || (req.isAdmin && req.query.noValidate);
 
       // No need to validate on GET requests.
-      if (
-        !(
-          [
-            'POST',
-            'PUT',
-            'PATCH',
-          ].includes(req.method) && req.body
-        )
-      ) {
+      if (!(['POST', 'PUT', 'PATCH'].includes(req.method) && req.body)) {
         return;
       }
 
       // Assign submission data to the request body.
       const formId = _.get(req, 'body.data.form');
       if (!req.mainForm) {
-        const hasSubforms = Object.values(_.get(req, 'body.data', {})).some(
-          (value) => _.isObject(value) && value.form,
-        );
+        const hasSubforms = Object.values(_.get(req, 'body.data', {})).some(value => _.isObject(value) && value.form);
         req.mainForm = hasSubforms && _.get(req, 'body.form');
       }
       let isSubform = formId && formId.toString() !== req.currentForm._id.toString();
-      isSubform =
-        !isSubform && req.mainForm
-          ? req.mainForm.toString() !== req.currentForm._id.toString()
-          : isSubform;
-      req.submission = req.submission || { data: {} };
+      isSubform = !isSubform && req.mainForm ? req.mainForm.toString() !== req.currentForm._id.toString() : isSubform;
+      req.submission = req.submission || {data: {}};
       if (!_.isEmpty(req.submission.data) && !isSubform && !req.isTransformedData) {
         req.body.data = _.assign(req.body.data, req.submission.data);
       }
@@ -247,21 +204,24 @@ module.exports = (router) => {
 
       // Next we need to validate the input.
       await new Promise((resolve, reject) => {
-        hook.alter('validateSubmissionForm', req.currentForm, req.body, req, async () => {
-          // Validate the request.
-          const validator = new Validator(req, router);
-          await validator.validate(req.body, (err, data) => {
-            if (req.noValidate) {
-              return resolve();
-            }
-            if (err) {
-              res.status(400).json(err);
-              return reject(err);
-            }
-            data = hook.alter('rehydrateValidatedSubmissionData', data, req);
+        hook.alter('validateSubmissionForm', req.currentForm, req.body, req, async (form) => {
+        // Validate the request.
+        const validator = new Validator(
+          req,
+          router.formio
+        );
+        await validator.validate(req.body, (err, data, visibleComponents) => {
+          if (req.noValidate) {
+            return resolve();
+          }
+          if (err) {
+            res.status(400).json(err);
+            return reject(err);
+          }
+          data = hook.alter('rehydrateValidatedSubmissionData', data, req);
 
-            res.submission = { data: data };
-            resolve();
+          res.submission = {data: data};
+          resolve();
           });
         });
       });
@@ -279,10 +239,8 @@ module.exports = (router) => {
       }
       // If the body is undefined, then omit the body.
       if (
-        handler === 'before' &&
-        req.body &&
-        req.body.hasOwnProperty('data') &&
-        typeof req.body.data === 'undefined'
+        (handler === 'before') &&
+        (req.body && req.body.hasOwnProperty('data') && typeof req.body.data === 'undefined')
       ) {
         req.body = _.omit(req.body, 'data');
       }
@@ -309,75 +267,68 @@ module.exports = (router) => {
       const resourceData = _.get(res, 'resource.item.data', {});
       const submissionData = req.body.data || resourceData;
 
-      util.eachValue(
-        req.currentForm.components,
-        submissionData,
-        ({ component, data, handler, action, path, fullPath }) => {
-          if (component) {
-            const componentPath = util.valuePath(path, component.key);
-            const componentFullPath = util.valuePath(fullPath, component.key);
+      util.eachValue(req.currentForm.components, submissionData, ({
+        component,
+        data,
+        handler,
+        action,
+        path,
+        fullPath,
+      }) => {
+        if (component) {
+          const componentPath = util.valuePath(path, component.key);
+          const componentFullPath = util.valuePath(fullPath, component.key);
 
-            // Remove not persistent data
-            if (
-              data &&
-              component.hasOwnProperty('persistent') &&
-              (!component.persistent || component.persistent === 'client-only') &&
-              ![
-                'columns',
-                'fieldset',
-                'panel',
-                'table',
-                'tabs',
-              ].includes(component.type)
-            ) {
-              util.deleteProp(component.key)(data);
-            }
-
-            const fieldActions = hook.alter('fieldActions', fActions);
-            const propertyActions = hook.alter('propertyActions', pActions);
-
-            // Execute the property handlers after validation has occurred.
-            const handlerArgs = [
-              component,
-              data,
-              handler,
-              action,
-              {
-                validation,
-                path: componentPath,
-                fullPath: componentFullPath,
-                req,
-                res,
-              },
-            ];
-            // Execute the field handler.
-            if (fieldActions.hasOwnProperty(component.type)) {
-              promises.push(fieldActions[component.type](...handlerArgs));
-            }
-            if (validation) {
-              Object.keys(propertyActions).forEach((property) => {
-                // Set the default value of property if only minified schema of component is loaded
-                if (
-                  !component.hasOwnProperty(property) &&
-                  setDefaultProperties.hasOwnProperty(property)
-                ) {
-                  setDefaultProperties[property](component);
-                }
-                if (component.hasOwnProperty(property) && component[property]) {
-                  promises.push(propertyActions[property](...handlerArgs));
-                }
-              });
-            }
+          // Remove not persistent data
+          if (
+            data &&
+            component.hasOwnProperty('persistent') &&
+            (!component.persistent || component.persistent === 'client-only')&&
+            !['columns', 'fieldset', 'panel', 'table', 'tabs','datasource'].includes(component.type)
+          ) {
+            util.deleteProp(component.key)(data);
           }
-        },
-        {
-          validation,
-          handler: req.handlerName,
-          action: req.method.toLowerCase(),
-          req,
-          res,
-        },
-      );
+
+          const fieldActions = hook.alter('fieldActions', fActions);
+          const propertyActions = hook.alter('propertyActions', pActions);
+
+          // Execute the property handlers after validation has occurred.
+          const handlerArgs = [
+            component,
+            data,
+            handler,
+            action,
+            {
+              validation,
+              path: componentPath,
+              fullPath: componentFullPath,
+              req,
+              res,
+            },
+          ];
+          // Execute the field handler.
+          if (fieldActions.hasOwnProperty(component.type)) {
+            promises.push(fieldActions[component.type](...handlerArgs));
+          }
+          if (validation) {
+            Object.keys(propertyActions).forEach((property) => {
+              // Set the default value of property if only minified schema of component is loaded
+              if (!component.hasOwnProperty(property) && setDefaultProperties.hasOwnProperty(property)) {
+                setDefaultProperties[property](component);
+              }
+              if (component.hasOwnProperty(property) && component[property]) {
+                promises.push(propertyActions[property](...handlerArgs));
+              }
+            });
+          }
+        }
+      }, {
+        validation,
+        handler: req.handlerName,
+        action: req.method.toLowerCase(),
+        req,
+        res,
+      });
 
       await Promise.all(promises);
     }
@@ -394,11 +345,14 @@ module.exports = (router) => {
     }
 
     async function alterSubmission(req, res) {
-      await new Promise((resolve) => {
+      await new Promise((resolve, reject) => {
         hook.alter('submission', req, res, async () => {
-          if (req.handlerName === 'afterPost' || req.handlerName === 'afterPut') {
-            // Perform a post submission update.
-            if (res.resource && res.resource.item && res.resource.item._id) {
+          if (
+            (req.handlerName === 'afterPost') ||
+            (req.handlerName === 'afterPut')
+          ) {
+          // Perform a post submission update.
+          if (res.resource && res.resource.item && res.resource.item._id) {
               const submissionUpdate = {};
               if (!res.resource.item.owner && res.resource.item.roles.length) {
                 res.resource.item.owner = res.resource.item._id;
@@ -407,22 +361,21 @@ module.exports = (router) => {
               hook.alter('postSubmissionUpdate', req, res, submissionUpdate);
               // If an update exists.
               if (Object.keys(submissionUpdate).length) {
-                const submissionModel =
-                  req.submissionModel || router.formio.resources.submission.model;
-                await submissionModel.updateOne(
-                  {
-                    _id: res.resource.item._id,
-                  },
-                  { $set: submissionUpdate },
-                );
-                resolve();
-              } else {
+                const submissionModel = req.submissionModel || router.formio.resources.submission.model;
+                await submissionModel.updateOne({
+                  _id: res.resource.item._id
+                }, {'$set': submissionUpdate});
                 resolve();
               }
-            } else {
+ else {
+                resolve();
+              }
+            }
+ else {
               resolve();
             }
-          } else {
+          }
+ else {
             resolve();
           }
         });
@@ -442,7 +395,8 @@ module.exports = (router) => {
         await alterSubmission(req, res);
         await executeActions('before', req, res);
         return next();
-      } catch (error) {
+      }
+      catch (error) {
         if (!res.headersSent) {
           return next(error);
         }
@@ -458,7 +412,8 @@ module.exports = (router) => {
         await alterSubmission(req, res);
         await ensureResponse(req, res);
         return next();
-      } catch (error) {
+      }
+      catch (error) {
         return next(error);
       }
     };

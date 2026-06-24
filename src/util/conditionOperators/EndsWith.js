@@ -12,7 +12,10 @@ module.exports = class EndsWith extends ConditionOperator {
     return 'Ends With';
   }
 
-  execute({ value, comparedValue }) {
-    return _.endsWith(value, comparedValue);
+  execute({
+    value,
+    comparedValue,
+  }) {
+    return _.endsWith(value,comparedValue);
   }
 };
