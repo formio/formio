@@ -14,6 +14,17 @@ module.exports = function (router) {
       return next();
     },
     router.formio.middleware.filterIdCreate,
+    (req, res, next) => {
+      if (req.body) {
+        if (req.params.roleId) {
+          req.body._id = req.params.roleId;
+        }
+        else {
+          delete req.body._id;
+        }
+      }
+      return next();
+    },
     router.formio.middleware.filterMongooseExists({ field: 'deleted', isNull: true }),
     router.formio.middleware.deleteRoleHandler,
     router.formio.middleware.sortMongooseQuery({ title: 1 }),

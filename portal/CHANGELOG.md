@@ -1,5 +1,317 @@
 # oss-portal
 
+## 0.1.0
+
+### Minor Changes
+
+- 0aedc83: Minor bump these packages to accommodate minor bump of enterprise release
+
+### Patch Changes
+
+- ec9d1cd: Resolve formiojs and formio/react versions properly during build process
+- bb5a8db: Fixed an issue where form menu button doers not work in smaller screen
+- 4d02b9f: Fix some typos
+- 93b18a8: FIO-11036: fixed an issue where info panel is missed on the edit resource page
+- Updated dependencies [1d02cf4]
+- Updated dependencies [b9cf4cf]
+- Updated dependencies [cef435d]
+- Updated dependencies [c38bfd1]
+- Updated dependencies [81b094f]
+- Updated dependencies [d35d790]
+- Updated dependencies [371cdc3]
+- Updated dependencies [0804cb2]
+- Updated dependencies [a21484b]
+- Updated dependencies [02821b2]
+- Updated dependencies [d09d026]
+- Updated dependencies [e197864]
+- Updated dependencies [a4abdb6]
+- Updated dependencies [db6f5e5]
+- Updated dependencies [aa7a1d3]
+- Updated dependencies [39f1da6]
+- Updated dependencies [abbb7f0]
+- Updated dependencies [fc942bf]
+- Updated dependencies [bdb2d49]
+- Updated dependencies [6b0386c]
+- Updated dependencies [b7edbf8]
+- Updated dependencies [71a008f]
+- Updated dependencies [a639739]
+- Updated dependencies [7e79c19]
+- Updated dependencies [0e005e6]
+- Updated dependencies [cfa0818]
+- Updated dependencies [d319a9b]
+- Updated dependencies [62e2703]
+- Updated dependencies [f0bfef3]
+- Updated dependencies [4dca323]
+- Updated dependencies [a1e9b57]
+- Updated dependencies [5045254]
+- Updated dependencies [2f59c6c]
+- Updated dependencies [88feee1]
+- Updated dependencies [6c8522e]
+- Updated dependencies [4932711]
+- Updated dependencies [2749541]
+- Updated dependencies [8df0425]
+- Updated dependencies [e92a2d4]
+- Updated dependencies [f991218]
+- Updated dependencies [e785ece]
+- Updated dependencies [8f4a56c]
+- Updated dependencies [827e520]
+- Updated dependencies [fce5b3a]
+- Updated dependencies [d0c4f47]
+- Updated dependencies [974a7bc]
+- Updated dependencies [8e5e880]
+- Updated dependencies [930ef7d]
+- Updated dependencies [e4f01c1]
+- Updated dependencies [8e381ca]
+- Updated dependencies [54c1bf9]
+- Updated dependencies [014f99e]
+- Updated dependencies [034bde6]
+- Updated dependencies [4020a37]
+- Updated dependencies [f3d87a0]
+- Updated dependencies [a06d1d9]
+- Updated dependencies [3566740]
+- Updated dependencies [189437d]
+- Updated dependencies [ababeaa]
+- Updated dependencies [1da89a5]
+- Updated dependencies [eb326e5]
+- Updated dependencies [45f914d]
+- Updated dependencies [88c609d]
+- Updated dependencies [764ecdb]
+- Updated dependencies [dd54c0a]
+- Updated dependencies [a92a197]
+- Updated dependencies [4e09c8c]
+- Updated dependencies [99226bf]
+  - @formio/js@5.4.0
+  - @formio/react@6.2.1
+
+## 0.1.0-api98.1
+
+### Patch Changes
+
+- Updated dependencies [0e005e6]
+  - @formio/js@5.4.0-api98.15
+  - @formio/react@6.2.1-api98.1
+
+## 0.1.0-api98.0
+
+### Minor Changes
+
+- 0aedc83: Minor bump these packages to accommodate minor bump of enterprise release
+
+## 0.0.4-api98.12
+
+### Patch Changes
+
+- @formio/js@5.4.0-api98.14
+- @formio/react@6.2.1-api98.1
+
+## 0.0.4-api98.11
+
+### Patch Changes
+
+- Updated dependencies [aa7a1d3]
+- Updated dependencies [a639739]
+  - @formio/js@5.4.0-api98.13
+  - @formio/react@6.2.1-api98.1
+
+## 0.0.4-api98.10
+
+### Patch Changes
+
+- Updated dependencies [2749541]
+- Updated dependencies [8f4a56c]
+  - @formio/js@5.4.0-api98.12
+  - @formio/react@6.2.1-api98.1
+
+## 0.0.4-api98.9
+
+### Patch Changes
+
+- Updated dependencies [88feee1]
+- Updated dependencies [8e5e880]
+  - @formio/js@5.4.0-api98.11
+  - @formio/react@6.2.1-api98.1
+
+## 0.0.4-api98.8
+
+### Patch Changes
+
+- Updated dependencies [014f99e]
+  - @formio/js@5.4.0-api98.10
+  - @formio/react@6.2.1-api98.1
+
+## 0.0.4-api98.7
+
+### Patch Changes
+
+- Updated dependencies [f0bfef3]
+  - @formio/js@5.4.0-api98.9
+  - @formio/react@6.2.1-api98.1
+
+## 0.0.4-api98.6
+
+### Patch Changes
+
+- Updated dependencies [62e2703]
+- Updated dependencies [ef5291a]
+  - @formio/js@5.4.0-api98.8
+  - @formio/react@6.2.1-api98.1
+
+## 0.0.4-api98.5
+
+### Patch Changes
+
+- Updated dependencies [cef435d]
+- Updated dependencies [ed9ab19]
+- Updated dependencies [bb6f934]
+- Updated dependencies [a91362f]
+- Updated dependencies [a23efbf]
+- Updated dependencies [a1760d4]
+- Updated dependencies [92fec1b]
+  - @formio/js@5.4.0-api98.7
+  - @formio/react@6.2.1-api98.1
+
+## 0.0.4-api98.4
+
+### Patch Changes
+
+- Updated dependencies [6b0386c]
+  - @formio/js@5.4.0-api98.6
+  - @formio/react@6.2.1-api98.1
+
+## 0.0.4-api98.3
+
+### Patch Changes
+
+- Updated dependencies [034bde6]
+- Updated dependencies [a06d1d9]
+  - @formio/js@5.4.0-api98.5
+  - @formio/react@6.2.1-api98.1
+
+## 0.0.4-api98.2
+
+### Patch Changes
+
+- Updated dependencies [371cdc3]
+- Updated dependencies [5045254]
+  - @formio/js@5.4.0-api98.4
+  - @formio/react@6.2.1-api98.1
+
+## 0.0.4-api98.1
+
+### Patch Changes
+
+- Updated dependencies [8cdadcf]
+- Updated dependencies [4020a37]
+  - @formio/js@5.4.0-api98.3
+  - @formio/react@6.2.1-api98.1
+
+## 0.0.4-api98.0
+
+### Patch Changes
+
+- Updated dependencies [d35d790]
+- Updated dependencies [0804cb2]
+- Updated dependencies [39f1da6]
+- Updated dependencies [fc942bf]
+- Updated dependencies [bdb2d49]
+- Updated dependencies [71a008f]
+- Updated dependencies [2f59c6c]
+- Updated dependencies [e92a2d4]
+- Updated dependencies [f991218]
+- Updated dependencies [e785ece]
+- Updated dependencies [827e520]
+- Updated dependencies [974a7bc]
+- Updated dependencies [930ef7d]
+- Updated dependencies [54c1bf9]
+- Updated dependencies [eb326e5]
+- Updated dependencies [88c609d]
+- Updated dependencies [a92a197]
+- Updated dependencies [974ab72]
+  - @formio/js@5.4.0-api98.2
+  - @formio/react@6.2.1-api98.1
+
+## 0.0.3-api98.1
+
+### Patch Changes
+
+- Updated dependencies [84e3be8]
+- Updated dependencies [a657108]
+- Updated dependencies [7cbcd59]
+- Updated dependencies [6ad1048]
+- Updated dependencies [7e79c19]
+- Updated dependencies [c156c10]
+- Updated dependencies [f7edde3]
+  - @formio/js@5.4.0-api98.1
+  - @formio/react@6.2.1-api98.0
+
+## 0.0.3-api98.0
+
+### Patch Changes
+
+- ec9d1cd: Resolve formiojs and formio/react versions properly during build process
+- bb5a8db: Fixed an issue where form menu button doers not work in smaller screen
+- 4d02b9f: Fix some typos
+- 93b18a8: FIO-11036: fixed an issue where info panel is missed on the edit resource page
+- Updated dependencies [717f347]
+- Updated dependencies [1d02cf4]
+- Updated dependencies [63136ce]
+- Updated dependencies [b9cf4cf]
+- Updated dependencies [c38bfd1]
+- Updated dependencies [81b094f]
+- Updated dependencies [58d2ec0]
+- Updated dependencies [a21484b]
+- Updated dependencies [02821b2]
+- Updated dependencies [d09d026]
+- Updated dependencies [e197864]
+- Updated dependencies [b2e9a45]
+- Updated dependencies [a4abdb6]
+- Updated dependencies [33023e5]
+- Updated dependencies [db6f5e5]
+- Updated dependencies [abbb7f0]
+- Updated dependencies [b7edbf8]
+- Updated dependencies [cfa0818]
+- Updated dependencies [d319a9b]
+- Updated dependencies [4dca323]
+- Updated dependencies [a1e9b57]
+- Updated dependencies [6c8522e]
+- Updated dependencies [4932711]
+- Updated dependencies [8df0425]
+- Updated dependencies [9fd7c53]
+- Updated dependencies [fce5b3a]
+- Updated dependencies [d0c4f47]
+- Updated dependencies [7962fe8]
+- Updated dependencies [e4f01c1]
+- Updated dependencies [8e381ca]
+- Updated dependencies [1f5f921]
+- Updated dependencies [3db552f]
+- Updated dependencies [f3d87a0]
+- Updated dependencies [3566740]
+- Updated dependencies [189437d]
+- Updated dependencies [ababeaa]
+- Updated dependencies [1da89a5]
+- Updated dependencies [45f914d]
+- Updated dependencies [764ecdb]
+- Updated dependencies [dd54c0a]
+- Updated dependencies [4e09c8c]
+- Updated dependencies [d834a13]
+- Updated dependencies [99226bf]
+  - @formio/js@5.4.0-api98.0
+  - @formio/react@6.2.1-api98.0
+
+## 0.0.8
+
+### Patch Changes
+
+- @formio/js@5.3.6
+- @formio/react@6.2.0
+
+## 0.0.8-api97.0
+
+### Patch Changes
+
+- @formio/js@5.3.6-api97.0
+- @formio/react@6.2.0
+
 ## 0.0.7
 
 ### Patch Changes

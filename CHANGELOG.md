@@ -1,5 +1,373 @@
 # formio
 
+## 4.7.0
+
+### Minor Changes
+
+- 5f91745: Upgrade isolate-vm anode Node to latest
+- e9ee48e: FIO-10807: setup feature flags for formio, put bulk submissions endpoints behind feature flag
+- dff6da5: FIO-10569: added post and put bulk submissions endpoints
+
+### Patch Changes
+
+- c38bfd1: FIO-10766: fixed validation issues for hidden nested forms
+- b6d7ace: FIO-11170: Create Formio session on OAuth and SAML SSO
+- 4aa6138: FIO-10903: fixed an issue where trnalstion function is not available in evaluations on server
+- 3a332d3: FIO-10881: fixed an issue where server crashes when getting form revisions
+- 50ecfaf: FIO-10823: fixed CSV export for several component types
+- db6f5e5: Adds ability to pass translations Url through query parameter to render the PDF
+- 6216d12: Revert "FIO-11254: allow to use collation for form requests"
+- cd0fcc1: Create new submission revision when bulk submit to the form with submission revisions enabled
+- 9a05bc5: Fixes an issue where submission collection is not set properly for PATCH request
+- a0da1f1: Snyk - bump nodemailer and bodyparser
+- 2145707: FIO-11432: Hydrate nested forms using original revision in PDF proxy
+  - Use native JS async code instead of async lib in formio cache
+  - Make loadForms in formio cache.js to utilize the cache
+- e785ece: bump lodash to 4.17.23
+- 927fd9b: FIO-11518: Upgrade nodemailer to 8.x
+- 3ddbe41: FIO-10457: fix behavior of datasource with persist: none (revert parts of fio-10213), added tests
+- edeb599: Replaced deprecated createCipher/createDecipher with compatible implementations of createCipheriv/CreateDecipheriv
+- bf32b2a: FIO-10995 Update jsonwebtoken to resolve jws CVEs
+- Updated dependencies [1d02cf4]
+- Updated dependencies [b9cf4cf]
+- Updated dependencies [cef435d]
+- Updated dependencies [c38bfd1]
+- Updated dependencies [81b094f]
+- Updated dependencies [d35d790]
+- Updated dependencies [371cdc3]
+- Updated dependencies [4aa6138]
+- Updated dependencies [0804cb2]
+- Updated dependencies [a21484b]
+- Updated dependencies [02821b2]
+- Updated dependencies [d09d026]
+- Updated dependencies [e197864]
+- Updated dependencies [a4abdb6]
+- Updated dependencies [db6f5e5]
+- Updated dependencies [aa7a1d3]
+- Updated dependencies [39f1da6]
+- Updated dependencies [abbb7f0]
+- Updated dependencies [5f91745]
+- Updated dependencies [fc942bf]
+- Updated dependencies [bdb2d49]
+- Updated dependencies [6b0386c]
+- Updated dependencies [b7edbf8]
+- Updated dependencies [71a008f]
+- Updated dependencies [a639739]
+- Updated dependencies [7e79c19]
+- Updated dependencies [0e005e6]
+- Updated dependencies [cfa0818]
+- Updated dependencies [e9ee48e]
+- Updated dependencies [d319a9b]
+- Updated dependencies [894f5e1]
+- Updated dependencies [62e2703]
+- Updated dependencies [f0bfef3]
+- Updated dependencies [4dca323]
+- Updated dependencies [a1e9b57]
+- Updated dependencies [5045254]
+- Updated dependencies [2f59c6c]
+- Updated dependencies [88feee1]
+- Updated dependencies [6c8522e]
+- Updated dependencies [4932711]
+- Updated dependencies [2749541]
+- Updated dependencies [8df0425]
+- Updated dependencies [e92a2d4]
+- Updated dependencies [f991218]
+- Updated dependencies [e785ece]
+- Updated dependencies [0c907cb]
+- Updated dependencies [8f4a56c]
+- Updated dependencies [827e520]
+- Updated dependencies [fce5b3a]
+- Updated dependencies [d0c4f47]
+- Updated dependencies [974a7bc]
+- Updated dependencies [8e21f4b]
+- Updated dependencies [8e5e880]
+- Updated dependencies [930ef7d]
+- Updated dependencies [e4f01c1]
+- Updated dependencies [8e381ca]
+- Updated dependencies [014f99e]
+- Updated dependencies [034bde6]
+- Updated dependencies [4020a37]
+- Updated dependencies [f3d87a0]
+- Updated dependencies [a06d1d9]
+- Updated dependencies [6353d23]
+- Updated dependencies [abd9cfc]
+- Updated dependencies [189437d]
+- Updated dependencies [ababeaa]
+- Updated dependencies [1da89a5]
+- Updated dependencies [eb326e5]
+- Updated dependencies [63cc956]
+- Updated dependencies [a8eb00f]
+- Updated dependencies [764ecdb]
+- Updated dependencies [dd54c0a]
+- Updated dependencies [a92a197]
+- Updated dependencies [4e09c8c]
+  - @formio/js@5.4.0
+  - @formio/core@2.7.0
+  - @formio/vm@2.1.0
+  - @formio/feature-flags@1.2.0
+
+## 4.7.0-api98.15
+
+### Patch Changes
+
+- Updated dependencies [0e005e6]
+  - @formio/js@5.4.0-api98.15
+
+## 4.7.0-api98.14
+
+### Patch Changes
+
+- Updated dependencies [22f3279]
+  - @formio/core@2.7.0-api98.7
+  - @formio/js@5.4.0-api98.14
+
+## 4.7.0-api98.13
+
+### Patch Changes
+
+- Updated dependencies [aa7a1d3]
+- Updated dependencies [a639739]
+  - @formio/js@5.4.0-api98.13
+
+## 4.7.0-api98.12
+
+### Patch Changes
+
+- Updated dependencies [2749541]
+- Updated dependencies [8f4a56c]
+  - @formio/js@5.4.0-api98.12
+
+## 4.7.0-api98.11
+
+### Patch Changes
+
+- Updated dependencies [88feee1]
+- Updated dependencies [8e5e880]
+  - @formio/js@5.4.0-api98.11
+
+## 4.7.0-api98.10
+
+### Patch Changes
+
+- Updated dependencies [014f99e]
+  - @formio/js@5.4.0-api98.10
+  - @formio/core@2.7.0-api98.6
+
+## 4.7.0-api98.9
+
+### Patch Changes
+
+- 6216d12: Revert "FIO-11254: allow to use collation for form requests"
+- 215abc8: Fix an issue where de-referenced Select component values would be routed into the VM and corrupted
+- Updated dependencies [215abc8]
+- Updated dependencies [f0bfef3]
+  - @formio/core@2.7.0-api98.5
+  - @formio/js@5.4.0-api98.9
+
+## 4.7.0-api98.8
+
+### Patch Changes
+
+- 2145707: FIO-11432: Hydrate nested forms using original revision in PDF proxy
+  - Use native JS async code instead of async lib in formio cache
+  - Make loadForms in formio cache.js to utilize the cache
+- Updated dependencies [62e2703]
+- Updated dependencies [ef5291a]
+  - @formio/js@5.4.0-api98.8
+  - @formio/core@2.7.0-api98.4
+
+## 4.7.0-api98.7
+
+### Patch Changes
+
+- 927fd9b: FIO-11518: Upgrade nodemailer to 8.x
+- 2c43d3e: FIO-11552: optimize uniqueMachineName query performance
+- Updated dependencies [cef435d]
+- Updated dependencies [ed9ab19]
+- Updated dependencies [906ebe3]
+- Updated dependencies [bb6f934]
+- Updated dependencies [a91362f]
+- Updated dependencies [a23efbf]
+- Updated dependencies [a1760d4]
+- Updated dependencies [92fec1b]
+  - @formio/js@5.4.0-api98.7
+  - @formio/core@2.7.0-api98.3
+
+## 4.7.0-api98.6
+
+### Patch Changes
+
+- Updated dependencies [6b0386c]
+  - @formio/js@5.4.0-api98.6
+
+## 4.7.0-api98.5
+
+### Patch Changes
+
+- Updated dependencies [034bde6]
+- Updated dependencies [a06d1d9]
+  - @formio/js@5.4.0-api98.5
+
+## 4.7.0-api98.4
+
+### Patch Changes
+
+- Updated dependencies [371cdc3]
+- Updated dependencies [5045254]
+  - @formio/js@5.4.0-api98.4
+
+## 4.7.0-api98.3
+
+### Patch Changes
+
+- b6d7ace: FIO-11170: Create Formio session on OAuth and SAML SSO
+- fdd196b: FIO-11395: Ensure we set the correct action id when saving actions.
+- b6d7ace: FIO-10820: Add externalOwner property to entities created by OIDC SSO users
+- Updated dependencies [8cdadcf]
+- Updated dependencies [4020a37]
+  - @formio/js@5.4.0-api98.3
+  - @formio/core@2.7.0-api98.2
+
+## 4.7.0-api98.2
+
+### Patch Changes
+
+- f09cfe7: FIO-11254: Allow to use MongoDB collation in resource.js for form requests ( if the feature is enabled)
+- e785ece: bump lodash to 4.17.23
+- 3ddbe41: FIO-10457: fix behavior of datasource with persist: none (revert parts of fio-10213), added tests
+- Updated dependencies [d35d790]
+- Updated dependencies [0804cb2]
+- Updated dependencies [39f1da6]
+- Updated dependencies [fc942bf]
+- Updated dependencies [bdb2d49]
+- Updated dependencies [71a008f]
+- Updated dependencies [2f59c6c]
+- Updated dependencies [e92a2d4]
+- Updated dependencies [f991218]
+- Updated dependencies [e785ece]
+- Updated dependencies [827e520]
+- Updated dependencies [c2779ef]
+- Updated dependencies [974a7bc]
+- Updated dependencies [930ef7d]
+- Updated dependencies [6353d23]
+- Updated dependencies [eb326e5]
+- Updated dependencies [a92a197]
+- Updated dependencies [974ab72]
+  - @formio/js@5.4.0-api98.2
+  - @formio/core@2.7.0-api98.1
+  - @formio/vm@2.1.0-api98.1
+
+## 4.7.0-api98.1
+
+### Patch Changes
+
+- Updated dependencies [84e3be8]
+- Updated dependencies [a657108]
+- Updated dependencies [7cbcd59]
+- Updated dependencies [6ad1048]
+- Updated dependencies [7e79c19]
+- Updated dependencies [c156c10]
+- Updated dependencies [f7edde3]
+  - @formio/js@5.4.0-api98.1
+
+## 4.7.0-api98.0
+
+### Minor Changes
+
+- 5f91745: Upgrade isolate-vm anode Node to latest
+- e9ee48e: FIO-10807: setup feature flags for formio, put bulk submissions endpoints behind feature flag
+- dff6da5: FIO-10569: added post and put bulk submissions endpoints
+
+### Patch Changes
+
+- f3fcc70: FIO-10662: removed IP data from submission metadata by default
+- c38bfd1: FIO-10766: fixed validation issues for hidden nested forms
+- 9c9538b: FIO-10564: Fix lock duplication by converting db/install script to async/await
+- 4aa6138: FIO-10903: fixed an issue where trnalstion function is not available in evaluations on server
+- 3a332d3: FIO-10881: fixed an issue where server crashes when getting form revisions
+- 50ecfaf: FIO-10823: fixed CSV export for several component types
+- faa833a: FIO-10899: fixed an issue where instance is not available for evaluations on server-side for content components
+- db6f5e5: Adds ability to pass translations Url through query parameter to render the PDF
+- cd0fcc1: Create new submission revision when bulk submit to the form with submission revisions enabled
+- 9a05bc5: Fixes an issue where submission collection is not set properly for PATCH request
+- a0da1f1: Snyk - bump nodemailer and bodyparser
+- f8a93b2: allow actions to be created if you have update form definition permissions
+- edeb599: Replaced deprecated createCipher/createDecipher with compatible implementations of createCipheriv/CreateDecipheriv
+- 3c2a145: FIO-10786: sanitize email data
+- ddb44a9: FIO-11051: fixed an issue where Select components with save as reference don't dereference their data on programmatic submission, resulting in validation errors
+- bf32b2a: FIO-10995 Update jsonwebtoken to resolve jws CVEs
+- Updated dependencies [717f347]
+- Updated dependencies [1d02cf4]
+- Updated dependencies [63136ce]
+- Updated dependencies [b9cf4cf]
+- Updated dependencies [c38bfd1]
+- Updated dependencies [81b094f]
+- Updated dependencies [58d2ec0]
+- Updated dependencies [4aa6138]
+- Updated dependencies [a21484b]
+- Updated dependencies [02821b2]
+- Updated dependencies [d09d026]
+- Updated dependencies [e197864]
+- Updated dependencies [b2e9a45]
+- Updated dependencies [a4abdb6]
+- Updated dependencies [33023e5]
+- Updated dependencies [faa833a]
+- Updated dependencies [db6f5e5]
+- Updated dependencies [abbb7f0]
+- Updated dependencies [5f91745]
+- Updated dependencies [b7edbf8]
+- Updated dependencies [cfa0818]
+- Updated dependencies [e9ee48e]
+- Updated dependencies [d319a9b]
+- Updated dependencies [894f5e1]
+- Updated dependencies [4dca323]
+- Updated dependencies [a1e9b57]
+- Updated dependencies [6c8522e]
+- Updated dependencies [4932711]
+- Updated dependencies [8df0425]
+- Updated dependencies [9fd7c53]
+- Updated dependencies [0c907cb]
+- Updated dependencies [fce5b3a]
+- Updated dependencies [d0c4f47]
+- Updated dependencies [8e21f4b]
+- Updated dependencies [7962fe8]
+- Updated dependencies [e4f01c1]
+- Updated dependencies [8e381ca]
+- Updated dependencies [1f5f921]
+- Updated dependencies [3db552f]
+- Updated dependencies [f3d87a0]
+- Updated dependencies [abd9cfc]
+- Updated dependencies [189437d]
+- Updated dependencies [ababeaa]
+- Updated dependencies [1da89a5]
+- Updated dependencies [63cc956]
+- Updated dependencies [a8eb00f]
+- Updated dependencies [764ecdb]
+- Updated dependencies [dd54c0a]
+- Updated dependencies [4e09c8c]
+- Updated dependencies [d834a13]
+- Updated dependencies [ddb44a9]
+  - @formio/js@5.4.0-api98.0
+  - @formio/core@2.7.0-api98.0
+  - @formio/vm@2.1.0-api98.0
+  - @formio/feature-flags@1.2.0-api98.0
+
+## 4.6.7
+
+### Patch Changes
+
+- Updated dependencies [458086a]
+  - @formio/core@2.6.6
+  - @formio/js@5.3.6
+
+## 4.6.7-api97.0
+
+### Patch Changes
+
+- Updated dependencies [458086a]
+  - @formio/core@2.6.6-api97.0
+  - @formio/js@5.3.6-api97.0
+
 ## 4.6.6
 
 ### Patch Changes
