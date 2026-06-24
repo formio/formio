@@ -1,43 +1,5 @@
 # formio
 
-## 4.6.6
-
-### Patch Changes
-
-- 0aeef31: Fix an issue where de-referenced Select component values would be routed into the VM and corrupted
-- Updated dependencies [0aeef31]
-- Updated dependencies [f2a7cf6]
-  - @formio/core@2.6.5
-  - @formio/js@5.3.5
-
-## 4.6.6-api97.1
-
-### Patch Changes
-
-- 0aeef31: Fix an issue where de-referenced Select component values would be routed into the VM and corrupted
-- Updated dependencies [0aeef31]
-  - @formio/core@2.6.5-api97.0
-  - @formio/js@5.3.5-api97.1
-
-## 4.6.6-api97.0
-
-### Patch Changes
-
-- Updated dependencies [f2a7cf6]
-  - @formio/js@5.3.5-api97.0
-
-## 4.6.5
-
-### Patch Changes
-
-- 14f10c2: FIO-11552: optimize uniqueMachineName query performance
-
-## 4.6.5-api97.0
-
-### Patch Changes
-
-- 14f10c2: FIO-11552: optimize uniqueMachineName query performance
-
 ## 4.6.4
 
 ### Patch Changes

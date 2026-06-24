@@ -25,36 +25,6 @@
         "dist/**",
         "lib/**"
       ]
-    },
-    "test": {
-      "dependsOn": [
-        "build",
-        "^test"
-      ],
-      "inputs": [
-        "test/**"
-      ],
-      "env": [
-        "ADMIN_KEY",
-        "API_KEYS",
-        "CAPTURE_IP_ADDRESS",
-        "CUSTOMER",
-        "DEFAULT_EMAIL_SOURCE",
-        "DEFAULT_TRANSPORT",
-        "DOCKER",
-        "EMAIL_CHUNK_SIZE",
-        "EMAIL_OVERRIDE",
-        "FF_FORBID_DUPLICATED_DATA_PATH",
-        "FILTER_ACCESS",
-        "MAX_PASSWORD_LENGTH",
-        "NO_INSTALL",
-        "PERFORMANCE_TIMER",
-        "PUBLIC_CONFIG",
-        "RENDER_METHOD",
-        "ROOT_EMAIL",
-        "ROOT_PASSWORD",
-        "TEST_SUITE",
-      ]
     }
   }
 }

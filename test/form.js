@@ -647,7 +647,6 @@ module.exports = function (app, template, hook) {
           .post(hook.alter('url', '/form', template))
           .set('x-jwt-token', template.users.admin.token)
           .send(form)
-          // .expect(400)
           .end(function (err, res) {
             if (err) {
               return done(err);
@@ -672,7 +671,6 @@ module.exports = function (app, template, hook) {
           .post(hook.alter('url', '/form', template))
           .set('x-jwt-token', template.users.admin.token)
           .send(form)
-          // .expect(400)
           .end(function (err, res) {
             if (err) {
               return done(err);
@@ -697,7 +695,6 @@ module.exports = function (app, template, hook) {
           .post(hook.alter('url', '/form', template))
           .set('x-jwt-token', template.users.admin.token)
           .send(form)
-          // .expect(400)
           .end(function (err, res) {
             if (err) {
               return done(err);
@@ -5650,6 +5647,177 @@ module.exports = function (app, template, hook) {
       after((done) => {
         delete template.forms.tempLastModifiedForm;
         done();
+      });
+    });
+
+    describe('Form IDOR Protection', () => {
+      let idorFormA = null;
+      let idorFormB = null;
+
+      it('Should create Form A for IDOR tests', (done) => {
+        request(app)
+          .post(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({
+            title: 'IDOR Test Form A',
+            name: 'idorTestFormA',
+            path: 'idor/test-form-a',
+            type: 'form',
+            access: [],
+            submissionAccess: [],
+            components: [
+              {
+                type: 'textfield',
+                key: 'name',
+                label: 'Name',
+                input: true,
+              },
+            ],
+          })
+          .expect('Content-Type', /json/)
+          .expect(201)
+          .end((err, res) => {
+            if (err) {
+              return done(err);
+            }
+
+            idorFormA = res.body;
+            template.users.admin.token = res.headers['x-jwt-token'];
+            done();
+          });
+      });
+
+      it('Should create Form B for IDOR tests', (done) => {
+        request(app)
+          .post(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({
+            title: 'IDOR Test Form B',
+            name: 'idorTestFormB',
+            path: 'idor/test-form-b',
+            type: 'form',
+            access: [],
+            submissionAccess: [],
+            components: [
+              {
+                type: 'textfield',
+                key: 'description',
+                label: 'Description',
+                input: true,
+              },
+            ],
+          })
+          .expect('Content-Type', /json/)
+          .expect(201)
+          .end((err, res) => {
+            if (err) {
+              return done(err);
+            }
+
+            idorFormB = res.body;
+            template.users.admin.token = res.headers['x-jwt-token'];
+            done();
+          });
+      });
+
+      it('Should not allow POST /form with a spoofed _id to overwrite an existing form', (done) => {
+        request(app)
+          .post(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({
+            title: 'Spoofed Form',
+            name: 'spoofedForm',
+            path: 'idor/spoofed-form',
+            type: 'form',
+            access: [],
+            submissionAccess: [],
+            components: [],
+            _id: idorFormB._id,
+          })
+          .end((err, res) => {
+            if (err) {
+              return done(err);
+            }
+
+            // Either a new form was created with a different _id, or the request was rejected.
+            if (res.statusCode === 201) {
+              assert.notEqual(res.body._id, idorFormB._id);
+            }
+            if (res.headers['x-jwt-token']) {
+              template.users.admin.token = res.headers['x-jwt-token'];
+            }
+
+            // Verify Form B was NOT modified.
+            request(app)
+              .get(hook.alter('url', '/form/' + idorFormB._id, template))
+              .set('x-jwt-token', template.users.admin.token)
+              .expect('Content-Type', /json/)
+              .expect(200)
+              .end((err, res) => {
+                if (err) {
+                  return done(err);
+                }
+
+                assert.equal(res.body._id, idorFormB._id);
+                assert.equal(res.body.title, 'IDOR Test Form B');
+                template.users.admin.token = res.headers['x-jwt-token'];
+                done();
+              });
+          });
+      });
+
+      it('Should not allow PUT /form/:formId with a spoofed _id to target a different form', (done) => {
+        request(app)
+          .put(hook.alter('url', '/form/' + idorFormA._id, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({ title: 'IDOR Hijack Attempt', _id: idorFormB._id })
+          .end((err, res) => {
+            if (err) {
+              return done(err);
+            }
+
+            // Either the update succeeded on Form A (ignoring the spoofed _id), or it was rejected.
+            if (res.statusCode === 200) {
+              assert.equal(res.body._id, idorFormA._id);
+            }
+            if (res.headers['x-jwt-token']) {
+              template.users.admin.token = res.headers['x-jwt-token'];
+            }
+
+            // Verify Form B was NOT modified.
+            request(app)
+              .get(hook.alter('url', '/form/' + idorFormB._id, template))
+              .set('x-jwt-token', template.users.admin.token)
+              .expect('Content-Type', /json/)
+              .expect(200)
+              .end((err, res) => {
+                if (err) {
+                  return done(err);
+                }
+
+                assert.equal(res.body._id, idorFormB._id);
+                assert.equal(res.body.title, 'IDOR Test Form B');
+                template.users.admin.token = res.headers['x-jwt-token'];
+                done();
+              });
+          });
+      });
+
+      it('Should not allow PATCH on /form/:formId', (done) => {
+        request(app)
+          .patch(hook.alter('url', '/form/' + idorFormA._id, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({
+            title: 'Patched Title',
+          })
+          .end((err, res) => {
+            if (err) {
+              return done(err);
+            }
+
+            assert(res.statusCode >= 400, `Expected error status but got ${res.statusCode}`);
+            done();
+          });
       });
     });
   });

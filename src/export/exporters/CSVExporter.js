@@ -8,8 +8,6 @@ const _ = require('lodash');
 const Entities = require('html-entities');
 const moment = require('moment-timezone');
 const { conformToMask } = require('vanilla-text-mask');
-const { getSelectTemplate } = require('../../util/email/utils');
-const { Evaluator } = require('@formio/core');
 
 const interpolate = (string, data) =>
   string.replace(/{{\s*(\S*)\s*}}/g, (match, path) => {
@@ -55,7 +53,6 @@ class CSVExporter extends Exporter {
       'datagrid',
       'editgrid',
       'dynamicWizard',
-      'tagpad',
     ];
     try {
       util.eachComponent(
@@ -138,48 +135,17 @@ class CSVExporter extends Exporter {
           } else if (component.type === 'selectboxes') {
             _.each(component.values, (option) => {
               items.push({
-                preprocessor: (value, submission) => {
-                if (component.dataSrc === 'url') {
-                  let dataValue = _.get(submission, `metadata.selectData.${path}`);
-                  if (_.isArray(dataValue) && !_.isEmpty(dataValue)) {
-                    const template = getSelectTemplate(component);
-                    return _.chain(dataValue).map(v => {
-                      return Evaluator.interpolate(template, {item: v});
-                    }).join(',').value();
-              
-                  }
-                  else {
-                    if (_.isPlainObject(value)) {
-                      return _.chain(Object.keys(value)).filter((v) => value[v]).join(',').value();
-                    }
-                  }
-                  return value;
-                }
-                  return value;
-                },
-                ...(component.dataSrc === 'url' 
-                  ? {} 
-                  : { 
-                    label: [
-                      path,
-                      option.value,
-                    ].join('.'),
-                    subpath: option.value,
-                    type: 'boolean',
-                  })
+                label: [
+                  path,
+                  option.value,
+                ].join('.'),
+                subpath: option.value,
+                type: 'boolean',
               });
             });
           } else if (component.type === 'radio') {
             items.push({
-              preprocessor: (value, submission) => {
-                if (component.dataSrc === 'url') {
-                  const dataValue = _.get(submission, `metadata.selectData.${path}`, value);
-                  if (_.isPlainObject(dataValue) && !_.isEmpty(dataValue)) {
-                    const template = getSelectTemplate(component);
-                    return Evaluator.interpolate(template, {item: dataValue}) || value;
-                  }
-                  return value;
-                }
+              preprocessor: (value) => {
                 if (_.isObject(value)) {
                   return value;
                 }
@@ -257,55 +223,6 @@ class CSVExporter extends Exporter {
                 },
               });
             });
-          }
-          else if (component.type === 'datatable') {
-            if (component.fetch?.enableFetch && component.fetch?.components?.length ) {
-              _.each(component.fetch.components, (comp) => {
-                items.push({
-                  label: [
-                    path,
-                    comp.key,
-                  ].join('.'),
-                  subpath: comp.key,
-                });
-              });
-            }
-          } 
-          else if (component.type === 'datamap') {
-            items.push({
-              label: [
-                path,
-                'key',
-              ].join('.'),
-              preprocessor: (value) => {
-                if (!value && _.isEmpty(value)) {
-                  return '';
-                }
-
-                if (!_.isObject(value)) {
-                  return value;
-                }
-
-                return (Object.keys(value)).join(',');
-              },
-            });
-            items.push({
-              label: [
-                path,
-                component.valueComponent.key,
-              ].join('.'),
-              preprocessor: (value) => {
-                if (!value && _.isEmpty(value)) {
-                  return '';
-                }
-
-                if (!_.isObject(value)) {
-                  return value;
-                }
-
-                return ((Object.keys(value)).map(key => value[key])).join(',');
-              },
-            });
           } else if (
             [
               'select',
@@ -317,15 +234,6 @@ class CSVExporter extends Exporter {
               component.template.replace(/<\/?[^>]+(>|$)/g, ''),
             );
             const templateExtractor = (item) => interpolate(clearTemplate, { item });
-            const extractValue = (v) => {
-              let result = '';
-              try {
-                result = _.isObject(v) ? templateExtractor(v) : v;
-              } catch (err) {
-                result = err.message;
-              }
-              return result;
-            }
 
             const valuesExtractor = (value) => {
               // Check if this is within a datagrid.
@@ -357,13 +265,16 @@ class CSVExporter extends Exporter {
                     });
                     return tempVal;
                   } else if (component.type === 'select') {
-                    const transformedValue = this.customTransform(path, value);
-                    return !_.isEqual(transformedValue, value) 
-                      ? transformedValue
-                      : _.map(value, v => extractValue(v));
+                    return this.customTransform(path, value);
                   }
                 } else {
-                  return extractValue(value);
+                  let result = '';
+                  try {
+                    result = _.isObject(value) ? templateExtractor(value) : value;
+                  } catch (err) {
+                    result = err.message;
+                  }
+                  return result;
                 }
               }
             };
@@ -467,7 +378,7 @@ class CSVExporter extends Exporter {
           } else if (component.type === 'file') {
             items.push({
               preprocessor: (value) => {
-                if (!Array.isArray(value) || !value.length) {
+                if (!value || !value.length) {
                   return '';
                 }
                 const formatted = value
@@ -508,7 +419,7 @@ class CSVExporter extends Exporter {
               key: component.key,
               label: (item.label || compPaths.path).replace(labelRegexp, '.'),
               title: component.label,
-              dataPath: compPaths.path
+              dataPath: compPaths.path,
             };
 
             if (item.hasOwnProperty('subpath')) {
@@ -554,9 +465,11 @@ class CSVExporter extends Exporter {
   start(resolve) {
     let row = null;
     this.stringifier.on('readable', () => {
+      /* eslint-disable no-cond-assign */
       while ((row = this.stringifier.read())) {
         this.res.write(row.toString());
       }
+      /* eslint-enable no-cond-assign */
 
       resolve();
     });
@@ -626,30 +539,18 @@ class CSVExporter extends Exporter {
       // If the path had no results and the component specifies a path, check for a datagrid component or nested form
       if (_.isUndefined(componentData) && column.dataPath.includes('.')) {
         const parts = column.dataPath.split('.');
-        const pathInsideContainer = [];
-        let containerData;
-        // find closest container data
-        while(!containerData && parts.length > 1) {
-          pathInsideContainer.unshift(parts.pop());
-          containerData = _.get(submission.data, parts);
-        }
-
+        const container = parts.shift();
+        const containerData = _.get(submission.data, container);
         if (containerData && containerData.hasOwnProperty('data')) {
-          componentData = _.get(containerData.data, pathInsideContainer);
+          componentData = _.get(containerData.data, parts);
         }
 
         // If the subdata is an array, coerce it to a displayable string.
         if (Array.isArray(containerData)) {
-          // special check for tagpad
-          if (containerData.every(row => _.isPlainObject(row) 
-            && Object.keys(row).length === 2 
-            && ['data', 'coordinate'].every(prop => Object.keys(row).includes(prop)))) {
-            containerData = containerData.map(row => row.data);
-          }
           // Update the column component path, since we removed part of it.
           const subcolumn = {
             ...column,
-            path: pathInsideContainer.join('.'),
+            path: parts.join('.'),
           };
 
           const result = this.coerceToString(containerData, subcolumn, submission);

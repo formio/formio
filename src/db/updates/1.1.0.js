@@ -1,8 +1,7 @@
 'use strict';
 
+let async = require('async');
 let crypto = require('crypto');
-const { deriveKeyAndIv } = require('../util');
-
 
 /**
  * Encrypt some text
@@ -15,8 +14,7 @@ function encrypt(secret, mixed) {
     return undefined;
   }
 
-  const { key, iv } = deriveKeyAndIv(secret);
-  const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
+  let cipher = crypto.createCipher('aes-256-cbc', secret);
   let decryptedJSON = JSON.stringify(mixed);
 
   return Buffer.concat([

@@ -1,28 +1,5 @@
 # oss-portal
 
-## 0.0.7
-
-### Patch Changes
-
-- Updated dependencies [f2a7cf6]
-  - @formio/js@5.3.5
-  - @formio/react@6.2.0
-
-## 0.0.7-api97.1
-
-### Patch Changes
-
-- @formio/js@5.3.5-api97.1
-- @formio/react@6.2.0
-
-## 0.0.7-api97.0
-
-### Patch Changes
-
-- Updated dependencies [f2a7cf6]
-  - @formio/js@5.3.5-api97.0
-  - @formio/react@6.2.0
-
 ## 0.0.6
 
 ### Patch Changes
