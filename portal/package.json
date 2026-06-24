@@ -1,12 +1,13 @@
 {
   "name": "oss-portal",
-  "version": "0.0.1",
+  "version": "0.0.2",
+  "private": true,
   "main": "index.js",
   "author": "brendanjbond <brendanbond@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "@formio/js": "https://github.com/formio/formio.js.git#main",
-    "@formio/react": "https://github.com/formio/react.git#main",
+    "@formio/js": "workspace:^",
+    "@formio/react": "workspace:^",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "remixicon": "^4.2.0",
@@ -14,13 +15,15 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.1.1",
-    "@formio/core": "https://github.com/formio/core.git#main",
+    "@formio/core": "workspace:^",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.5.2",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.1",
+    "@typescript-eslint/eslint-plugin": "^7.6.0",
+    "@typescript-eslint/parser": "^7.6.0",
     "@vitejs/plugin-react": "^4.3.4",
     "concurrently": "^8.2.2",
     "copy-webpack-plugin": "^12.0.2",
@@ -28,7 +31,7 @@
     "eslint": "^9.22.0",
     "eslint-config-prettier": "^10.1.1",
     "eslint-plugin-react": "^7.37.4",
-    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-hooks": "^4.6.2",
     "globals": "^15.1.0",
     "jsdom": "^26.0.0",
     "msw": "^2.7.0",
@@ -39,7 +42,7 @@
     "ts-loader": "^9.5.1",
     "tsc": "^2.0.4",
     "typescript": "^5.4.5",
-    "typescript-eslint": "^8.48.0",
+    "typescript-eslint": "^8.26.1",
     "vitest": "^2.1.8",
     "webpack": "^5.91.0",
     "webpack-cli": "^5.1.4"
@@ -49,7 +52,7 @@
     "lint": "eslint ./src",
     "build": "webpack",
     "watch": "webpack --watch",
-    "clean": "rm package-lock.json && npm install",
-    "test": "vitest"
+    "clean": "rm npm-lock.json && npm install",
+    "test": "vitest --run"
   }
 }

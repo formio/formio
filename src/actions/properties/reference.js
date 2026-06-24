@@ -2,11 +2,14 @@
 const _ = require('lodash');
 const util = require('../../util/util');
 const async = require('async');
-const loadComponentValueReferences = require('../../util/loadComponentValueReferences');
 
 module.exports = (router) => {
-  const hiddenFields = ['deleted', '__v', 'machineName'];
-  const loadComponentValueReferencesFunc = loadComponentValueReferences(router);
+  const hiddenFields = [
+    'deleted',
+    '__v',
+    'machineName',
+  ];
+
   // Get a subrequest and sub response for a nested request.
   const getSubRequest = function (component, subQuery, req, res, response) {
     const formId = component.form || component.resource || component.data.resource;
@@ -75,6 +78,33 @@ module.exports = (router) => {
     });
   };
 
+  // Loads all sub-references.
+  const loadReferences = function (component, query, req, res) {
+    return new Promise((resolve, reject) => {
+      let sub = {};
+      const respond = function () {
+        if (!sub.res.statusCode || sub.res.statusCode < 300 || sub.res.statusCode === 416) {
+          return resolve(sub.res.resource ? sub.res.resource.item : []);
+        } else {
+          return reject(sub.res.statusMessage);
+        }
+      };
+      try {
+        sub = getSubRequest(component, query, req, res, respond);
+      } catch (err) {
+        return reject(err);
+      }
+      if (
+        router.resourcejs.hasOwnProperty(sub.req.url) &&
+        router.resourcejs[sub.req.url].hasOwnProperty('get')
+      ) {
+        router.resourcejs[sub.req.url].get.call(this, sub.req, sub.res, respond);
+      } else {
+        return reject('Unknown resource handler.');
+      }
+    });
+  };
+
   // Sets a resource object.
   const setResource = function (component, path, req) {
     const compValue = _.get(req.body.data, path);
@@ -129,7 +159,10 @@ module.exports = (router) => {
     // Create the subquery.
     const subQuery = {
       match: {
-        $or: [doesNotExist, withinForm],
+        $or: [
+          doesNotExist,
+          withinForm,
+        ],
       },
       sort: {},
     };
@@ -247,19 +280,39 @@ module.exports = (router) => {
   };
 
   return async (component, data, handler, action, { path, req, res }) => {
+    const resource = _.get(res, 'resource.item');
+    const compValue = _.get(resource, `data.${path}`);
     const formId = component.form || component.resource || component.data.resource;
+    let idQuery = null;
 
     switch (handler) {
-      case 'afterGet': {
-        const resource = _.get(res, 'resource.item');
-        const compValue = _.get(resource, `data.${path}`);
+      case 'afterGet':
         if (!resource) {
           return Promise.resolve();
         }
         if (!compValue) {
           return Promise.resolve();
         }
-        return loadComponentValueReferencesFunc(component, compValue, req)
+
+        if (component.multiple && _.isArray(compValue)) {
+          idQuery = { $in: [] };
+          _.map(compValue, (val) => idQuery.$in.push(util.ObjectId(val._id)));
+        } else if (compValue._id) {
+          idQuery = util.ObjectId(compValue._id);
+        }
+
+        if (!idQuery) {
+          return Promise.resolve();
+        }
+        return loadReferences(
+          component,
+          {
+            _id: idQuery,
+            limit: 10000000,
+          },
+          req,
+          res,
+        )
           .then((items) => {
             if (items.length > 0) {
               _.set(resource, `data.${path}`, component.multiple ? items : items[0]);
@@ -268,10 +321,20 @@ module.exports = (router) => {
                 _.set(
                   resource,
                   `data.${path}`,
-                  _.map(_.get(resource, `data.${path}`), (iData) => _.pick(iData, ['_id'])),
+                  _.map(_.get(resource, `data.${path}`), (iData) =>
+                    _.pick(iData, [
+                      '_id',
+                    ]),
+                  ),
                 );
               } else {
-                _.set(resource, `data.${path}`, _.pick(_.get(resource, `data.${path}`), ['_id']));
+                _.set(
+                  resource,
+                  `data.${path}`,
+                  _.pick(_.get(resource, `data.${path}`), [
+                    '_id',
+                  ]),
+                );
               }
             }
           })
@@ -280,13 +343,22 @@ module.exports = (router) => {
               _.set(
                 resource,
                 `data.${path}`,
-                _.map(_.get(resource, `data.${path}`), (iData) => _.pick(iData, ['_id'])),
+                _.map(_.get(resource, `data.${path}`), (iData) =>
+                  _.pick(iData, [
+                    '_id',
+                  ]),
+                ),
               );
             } else {
-              _.set(resource, `data.${path}`, _.pick(_.get(resource, `data.${path}`), ['_id']));
+              _.set(
+                resource,
+                `data.${path}`,
+                _.pick(_.get(resource, `data.${path}`), [
+                  '_id',
+                ]),
+              );
             }
           });
-      }
       case 'beforeIndex':
         return buildPipeline(component, path, req, res).then((subpipe) => {
           let pipeline = req.modelQuery.pipeline || [];

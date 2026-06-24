@@ -532,8 +532,8 @@ module.exports = function (router) {
                 if (!submission) {
                   const err = new Error();
                   err.statusCode = 404;
-                  err.message = 'Submission not found';
                   throw err;
+                  // return callback(404);
                 }
 
                 // Add the submission owners UserId to the access list.
@@ -549,9 +549,7 @@ module.exports = function (router) {
                 // Load Submission Resource Access.
                 getSubmissionResourceAccess(req, submission, access);
               } catch (err) {
-                if (!err.statusCode) {
-                  err.statusCode = 400;
-                }
+                err.statusCode = 400;
                 throw err;
               }
             },
@@ -637,12 +635,7 @@ module.exports = function (router) {
 
       // Using the given method, iterate the 8 available entity access. Compare the given roles with the roles
       // defined by the entity to have access. If this roleId is found within the defined roles, grant access.
-      let search = methods[method];
-      // If we are dealing with form actions then all permissions are based on the put permissions
-      // of the form
-      if(entity?.type === 'form' && req.url.match(/\/action($|\/)/)){
-        search = methods.PUT;
-      }
+      const search = methods[method];
       if (!search || typeof search === 'undefined') {
         router.formio.util.error({
           method: req.method,
@@ -719,7 +712,7 @@ module.exports = function (router) {
       if (hasAllAccess) {
         const submissionResourceAdmin = _.get(req, 'submissionResourceAccessAdminBlock') || [];
         if (
-          (req.method === 'POST' || req.method === 'PUT' || (req.method === 'PATCH' && entity.type === 'submission')) &&
+          (req.method === 'POST' || req.method === 'PUT') &&
           !_.intersection(submissionResourceAdmin, access.roles).length
         ) {
           // Allow them to assign the owner.

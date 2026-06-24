@@ -9,7 +9,6 @@ const debug = {
 };
 const Utils = require('../util/util');
 const { RootShim } = require('../vm');
-const loadComponentValueReferences = require('../util/loadComponentValueReferences');
 
 // Promisify cache load form.
 async function loadFormById(cache, req, formId) {
@@ -33,9 +32,8 @@ async function submissionQueryExists(submissionModel, query) {
  * @constructor
  */
 class Validator {
-  constructor(req, router) {
+  constructor(req, formio) {
     const tokens = {};
-    const formio = router.formio;
     const token = Utils.getRequestValue(req, 'x-jwt-token');
     if (token) {
       tokens['x-jwt-token'] = token;
@@ -63,7 +61,6 @@ class Validator {
     this.hook = formio.hook;
     this.config = formio.config;
     this.formioUtil = formio.util;
-    this.loadComponentValueReferences = loadComponentValueReferences(router);
   }
 
   addPathQueryParams(pathQueryParams, query, path) {
@@ -316,14 +313,6 @@ class Validator {
     return filterComponents(resource).components || [];
   }
 
-  async dereferenceSelectResourceValue(component, compValue) {
-    if (!(component.type === 'select' && component.dataSrc === 'resource' && component.reference) || _.isEmpty(compValue)) {
-      return;
-    }
-
-    return await this.loadComponentValueReferences(component, compValue, this.req);
-  }
-
   /**
    * Validate a submission for a form.
    *
@@ -377,7 +366,6 @@ class Validator {
             },
             validateResourceSelectValue: this.validateResourceSelectValue.bind(this),
             dereferenceDataTableComponent: this.dereferenceDataTableComponent.bind(this),
-            dereferenceSelectResourceValue: this.dereferenceSelectResourceValue.bind(this),
           },
           this,
         ),

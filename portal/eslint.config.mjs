@@ -13,14 +13,7 @@ export default [
       '**/*.{js,mjs,cjs,ts,jsx,tsx}',
     ],
   },
-  {
-    languageOptions: {
-      globals: {
-        ...globals.browser,
-        CONFIG: 'readonly',
-      },
-    },
-  },
+  { languageOptions: { globals: { ...globals.browser, CONFIG: 'readonly' } } },
   pluginJs.configs.recommended,
   ...tseslint.configs.recommended,
   eslintPluginReact.configs.flat.recommended,

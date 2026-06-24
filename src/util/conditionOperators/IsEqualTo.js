@@ -27,7 +27,7 @@ module.exports = class IsEqualTo extends ConditionOperator {
       try {
         comparedValue = JSON.parse(comparedValue);
       } catch (ignoreErr) {
-        // do nothing
+        // eslint-disable-next-line no-empty
       }
     }
 

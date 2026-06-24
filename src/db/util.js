@@ -26,28 +26,4 @@ function sanitizeMongoConnectionString(connectionString) {
   );
 }
 
-const keyLength = 32;
-const ivLength = 16;
-const digest = "md5";
-function deriveKeyAndIv(password) {
-  const passwordBuffer = Buffer.from(password, "utf-8");
-  let blocks = [];
-  let currentHash = Buffer.alloc(0);
-  let bytesGenerated = 0;
-
-  while (bytesGenerated < keyLength + ivLength) {
-    const hash = crypto.createHash(digest);
-    hash.update(currentHash);
-    hash.update(passwordBuffer);
-    currentHash = hash.digest();
-    blocks.push(currentHash);
-    bytesGenerated += currentHash.length;
-  }
-
-  const derivedBytes = Buffer.concat(blocks, keyLength + ivLength);
-  const key = derivedBytes.slice(0, keyLength);
-  const iv = derivedBytes.slice(keyLength, keyLength + ivLength);
-  return { key, iv };
-}
-
-module.exports = { sanitizeMongoConnectionString, deriveKeyAndIv };
+module.exports = { sanitizeMongoConnectionString };

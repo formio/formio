@@ -93,15 +93,12 @@ module.exports = (router) => {
       };
 
       const setRequestHeaders = (req) => {
-        const captureIpAddress = process.env.CAPTURE_IP_ADDRESS && (
-          process.env.CAPTURE_IP_ADDRESS.toLowerCase() === 'true' || 
-          process.env.CAPTURE_IP_ADDRESS === '1'
-        );
-
         const allowlist = [
           'host',
           'x-forwarded-scheme',
           'x-forwarded-proto',
+          'x-forwarded-for',
+          'x-real-ip',
           'connection',
           'content-length',
           'pragma',
@@ -122,10 +119,6 @@ module.exports = (router) => {
           'sec-gpc',
           'dnt',
         ];
-
-        if (captureIpAddress) {
-          allowlist.push('x-forwarded-for', 'x-real-ip');
-        }
 
         const reqHeaders = _.omitBy(req.headers, (value, key) => {
           return !allowlist.includes(key) || key.match(/auth/gi);
@@ -249,7 +242,7 @@ module.exports = (router) => {
       await new Promise((resolve, reject) => {
         hook.alter('validateSubmissionForm', req.currentForm, req.body, req, async () => {
           // Validate the request.
-          const validator = new Validator(req, router);
+          const validator = new Validator(req, router.formio);
           await validator.validate(req.body, (err, data) => {
             if (req.noValidate) {
               return resolve();
@@ -328,6 +321,7 @@ module.exports = (router) => {
                 'panel',
                 'table',
                 'tabs',
+                'datasource',
               ].includes(component.type)
             ) {
               util.deleteProp(component.key)(data);

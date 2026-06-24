@@ -24,11 +24,7 @@ class IsolateVMEvaluator extends DefaultEvaluator {
    */
   constructor(options, hook) {
     super(options);
-    const vmOptions = { env: CORE_LODASH_MOMENT_INPUTMASK };
-    if (options?.memoryLimitMb) {
-      vmOptions.memoryLimitMb = options.memoryLimitMb;
-    }
-    this.vm = new IsolateVM(vmOptions);
+    this.vm = new IsolateVM({ env: CORE_LODASH_MOMENT_INPUTMASK });
     this.hook = hook;
   }
 
@@ -65,7 +61,7 @@ class IsolateVMEvaluator extends DefaultEvaluator {
           const modelType = util.getModelType(component);
           component.modelType = modelType;
           const instances = root.instanceMap;
-          const instance = instances[(['none', 'content']).includes(component.modelType || '') && paths?.fullPath ? paths.fullPath : path];
+          const instance = instances[modelType === 'none' && paths?.fullPath ? paths.fullPath : path];
         `;
       }
 
