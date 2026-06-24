@@ -163,7 +163,7 @@ module.exports = (router) => {
           return next();
         }
 
-        // Allow external tokens if they have no jti (which indicates there is an associated session to be validated).
+        // Allow external tokens.
         if (!hook.alter('external', decoded, req)) {
           decoded.user.project = decoded.project._id;
           return userHandler(req, res, decoded, token, decoded.user, next);
@@ -189,9 +189,8 @@ module.exports = (router) => {
 
         const formId = _.get(decoded, 'form._id');
         const userId = _.get(decoded, 'user._id');
-        // in the case of a token swap (exchanging an OAuth access token for a formio JWT), there is no form id
-        // but we still need to validate the session associated with that external token downstream
-        if (!userId || (!formId && !decoded.external)) {
+
+        if (!formId || !userId) {
           return noToken();
         }
 
@@ -208,12 +207,7 @@ module.exports = (router) => {
           // Couldn't load the user, try to fail safely.
           user = decoded.user;
         }
-        // external tokens (from SSO) use ephemeral users
-        // use the user from the token if its external
-        if (!user && decoded.external && decoded.user) {
-          user = decoded.user;
-        }
-          if (!user) {
+        if (!user) {
           req.user = null;
           req.token = null;
           res.token = null;
