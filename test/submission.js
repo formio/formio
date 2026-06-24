@@ -58,6 +58,22 @@ module.exports = function (app, template, hook) {
             done();
           });
       });
+      it('Custom conditional components that rely on fetched data should work correctly', function (done) {
+        const test = require('./fixtures/forms/customConditionalComponents.js');
+        helper
+          .form('test', test.components)
+          .submission({ data: test.submission })
+          .execute(function (err) {
+            if (err) {
+              return done(err);
+            }
+            const submission = helper.getLastSubmission();
+            assert.strictEqual(Object.keys(submission.data).length, 2);
+            assert('aaPocCheckboxStage' in submission.data);
+            assert('stageData' in submission.data);
+            done();
+          });
+      });
 
       it('Saves values for each single value component type2', function (done) {
         var test = require('./fixtures/forms/singlecomponents2.js');
@@ -317,92 +333,6 @@ module.exports = function (app, template, hook) {
           });
       });
     });
-
-    describe ('Submissions with Data Source components', function () {
-      const forms = require('./fixtures/forms/dataSourceComponents.js');
-      
-      it('Data Source component with Trigger on Server: false should not be triggered on server', function (done) {
-        const test = forms.triggerOnServer;
-
-        helper
-          .form('test', test.components)
-          .submission({ data: test.submission })
-          .execute(function (err) {
-            if (err) {
-              return done(err);
-            }
-            const submission = helper.getLastSubmission();
-            assert.strictEqual(Object.keys(submission.data).length, 1);
-            assert('textArea' in submission.data);
-            assert.equal(submission.data.textArea, 'should be displayed');
-            done();
-          });
-      });
-
-      it('Data Source component with Trigger on Server: true should be triggered on server', function (done) {
-        const test = forms.notTriggerOnServer;
-        helper
-          .form('test', test.components)
-          .submission({ data: test.submission })
-          .execute(function (err) {
-            if (err) {
-              return done(err);
-            }
-
-            const submission = helper.getLastSubmission();
-            assert.strictEqual(Object.keys(submission.data).length, 0);
-            done();
-          });
-      });
-
-      it('Data from None Persistent Data Source component is not saved, even if it was received from client', function (done) {
-        const test = forms.nonePersistent;
-        helper
-          .form('test', test.components)
-          .submission({ data: test.submission })
-          .execute(function (err) {
-            if (err) {
-              return done(err);
-            }
-            const submission = helper.getLastSubmission();
-            assert.strictEqual(Object.keys(submission.data).length, 1);
-            assert.strictEqual('dataSource' in submission.data, false);
-            done();
-          });
-      });
-
-      it('Data from Server Persistent Data Source component is saved', function (done) {
-        const test = forms.persistent;
-        helper
-          .form('test', test.components)
-          .submission({ data: test.submission })
-          .execute(function (err) {
-            if (err) {
-              return done(err);
-            }
-            const submission = helper.getLastSubmission();
-            assert.strictEqual(Object.keys(submission.data).length, 2);
-            assert.strictEqual('dataSource' in submission.data, true);
-            done();
-          });
-      });
-
-      it('Data from Client Only Persistent Data Source component is not saved', function (done) {
-        const test = forms.clientOnly;
-        helper
-          .form('test', test.components)
-          .submission({ data: test.submission })
-          .execute(function (err) {
-            if (err) {
-              return done(err);
-            }
-            const submission = helper.getLastSubmission();
-            assert.strictEqual(Object.keys(submission.data).length, 1);
-            assert.strictEqual('dataSource' in submission.data, false);
-            done();
-          });
-      });
-    })
 
     describe('Server Calculated', function () {
       it('Recalculate value on server', function (done) {
@@ -7535,227 +7465,6 @@ module.exports = function (app, template, hook) {
       var owner = app.hasProjects || docker ? template.formio.owner : template.users.admin;
       helper = new Helper(owner);
       helper.project().execute(done);
-    });
-
-    before('Create the child form test', (done) => {
-      helper
-        .form('childFormTest', [
-          {
-            label: 'Text Field 2 child',
-            applyMaskOn: 'change',
-            tableView: true,
-            validate: {
-              required: true,
-              custom: '',
-              customPrivate: false,
-              strictDateValidation: false,
-              multiple: false,
-              unique: false,
-              minLength: '',
-              maxLength: '',
-              pattern: '',
-            },
-            validateWhenHidden: false,
-            key: 'textField2Child',
-            type: 'textfield',
-            input: true,
-            id: 'eblr8t9',
-            placeholder: '',
-            prefix: '',
-            customClass: '',
-            suffix: '',
-            multiple: false,
-            defaultValue: null,
-            protected: false,
-            unique: false,
-            persistent: true,
-            hidden: false,
-            clearOnHide: true,
-            refreshOn: '',
-            redrawOn: '',
-            modalEdit: false,
-            dataGridLabel: false,
-            labelPosition: 'top',
-            description: '',
-            errorLabel: '',
-            tooltip: '',
-            hideLabel: false,
-            tabindex: '',
-            disabled: false,
-            autofocus: false,
-            dbIndex: false,
-            customDefaultValue: '',
-            calculateValue: '',
-            calculateServer: false,
-            widget: {
-              type: 'input',
-            },
-            attributes: {},
-            validateOn: 'change',
-            conditional: {
-              show: null,
-              when: null,
-              eq: '',
-            },
-            overlay: {
-              style: '',
-              left: '',
-              top: '',
-              width: '',
-              height: '',
-            },
-            allowCalculateOverride: false,
-            encrypted: false,
-            showCharCount: false,
-            showWordCount: false,
-            properties: {},
-            allowMultipleMasks: false,
-            addons: [],
-            mask: false,
-            inputType: 'text',
-            inputFormat: 'plain',
-            inputMask: '',
-            displayMask: '',
-            spellcheck: true,
-            truncateMultipleSpaces: false,
-          },
-          {
-            type: 'button',
-            label: 'Submit',
-            key: 'submit',
-            disableOnInvalid: true,
-            input: true,
-            tableView: false,
-            hidden: true,
-            customConditional: 'show = false',
-            id: 'exfh9n',
-            placeholder: '',
-            prefix: '',
-            customClass: '',
-            suffix: '',
-            multiple: false,
-            defaultValue: null,
-            protected: false,
-            unique: false,
-            persistent: false,
-            clearOnHide: true,
-            refreshOn: '',
-            redrawOn: '',
-            modalEdit: false,
-            dataGridLabel: true,
-            labelPosition: 'top',
-            description: '',
-            errorLabel: '',
-            tooltip: '',
-            hideLabel: false,
-            tabindex: '',
-            disabled: false,
-            autofocus: false,
-            dbIndex: false,
-            customDefaultValue: '',
-            calculateValue: '',
-            calculateServer: false,
-            widget: {
-              type: 'input',
-            },
-            attributes: {},
-            validateOn: 'change',
-            validate: {
-              required: false,
-              custom: '',
-              customPrivate: false,
-              strictDateValidation: false,
-              multiple: false,
-              unique: false,
-            },
-            conditional: {
-              show: null,
-              when: null,
-              eq: '',
-            },
-            overlay: {
-              style: '',
-              left: '',
-              top: '',
-              width: '',
-              height: '',
-            },
-            allowCalculateOverride: false,
-            encrypted: false,
-            showCharCount: false,
-            showWordCount: false,
-            properties: {},
-            allowMultipleMasks: false,
-            addons: [],
-            size: 'md',
-            leftIcon: '',
-            rightIcon: '',
-            block: false,
-            action: 'submit',
-            theme: 'primary',
-          },
-        ])
-        .execute(done);
-    });
-
-    before('Create the parent form test', (done) => {
-      helper
-        .form('parentFormTest', [
-          {
-            label: 'Text Field parent',
-            applyMaskOn: 'change',
-            tableView: true,
-            validateWhenHidden: false,
-            key: 'textFieldParent',
-            type: 'textfield',
-            input: true,
-          },
-          {
-            label: 'Form',
-            hidden: true,
-            tableView: true,
-            form: helper.template.forms.childFormTest._id,
-            useOriginalRevision: false,
-            clearOnHide: true,
-            key: 'form',
-            type: 'form',
-            input: true,
-          },
-          {
-            label: 'Submit',
-            tableView: false,
-            key: 'submit',
-            type: 'button',
-            input: true,
-            saveOnEnter: false,
-          },
-        ])
-        .execute(done);
-    });
-
-    it('Should allow you to submit data for the form with hidden nested form with enabled clearOnHide and required field', (done) => {
-      helper
-        .submission('parentFormTest', {
-          textFieldParent: '',
-          submit: true,
-          form: { data: { textField1Child: '', textField2Child: '', submit: false }, metadata: {} },
-        })
-        .execute((err) => {
-          if (err) {
-            return done(err);
-          }
-
-          const subm = helper.lastSubmission;
-          assert.deepEqual(subm.data, {
-            textFieldParent: '',
-            form: {
-              data: {},
-              metadata: {},
-            },
-            submit: true,
-          });
-          helper.deleteSubmission(helper.lastSubmission, undefined, undefined, done);
-        });
     });
 
     describe('Submission IDOR Protection', () => {

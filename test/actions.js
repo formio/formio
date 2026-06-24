@@ -2195,7 +2195,6 @@ module.exports = (app, template, hook) => {
 
       it('Should send email for delete method', async () => {
         const form = {
-          _id: '683db072e69799ee3678e8aa',
           title: 'deletemethodcheck',
           name: 'deletemethodcheck',
           path: 'deletemethodcheck',
@@ -2304,7 +2303,6 @@ module.exports = (app, template, hook) => {
           },
         };
         const form = {
-          _id: '677801142628e5aad5e7b1c2',
           title: 'editGridEmail',
           name: 'editGridEmail',
           path: 'editGridEmail',
@@ -6759,6 +6757,571 @@ module.exports = (app, template, hook) => {
                   const submission = helper.getLastSubmission();
                   assert(submission.hasOwnProperty('_id'));
 
+                  done();
+                });
+            });
+        });
+      });
+    });
+
+    describe('Action IDOR Protection', () => {
+      // Two separate forms, each with their own action.
+      // Form A: gives the authenticated role update_all access (so user1 can modify actions).
+      // Form B: admin-only (no update access for authenticated users).
+      let formA = null;
+      let formB = null;
+      let actionA = null;
+      let actionB = null;
+
+      it('Should create Form A with authenticated update access for IDOR tests', (done) => {
+        request(app)
+          .post(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({
+            title: 'IDOR Form A',
+            name: 'idorFormA',
+            path: 'idor/form-a',
+            type: 'form',
+            access: [
+              {
+                type: 'read_all',
+                roles: [template.roles.authenticated._id.toString()],
+              },
+              {
+                type: 'update_all',
+                roles: [template.roles.authenticated._id.toString()],
+              },
+            ],
+            submissionAccess: [],
+            components: [
+              {
+                type: 'textfield',
+                key: 'name',
+                label: 'Name',
+                input: true,
+              },
+            ],
+          })
+          .expect('Content-Type', /json/)
+          .expect(201)
+          .end((err, res) => {
+            if (err) {
+              return done(err);
+            }
+
+            formA = res.body;
+            template.users.admin.token = res.headers['x-jwt-token'];
+            done();
+          });
+      });
+
+      it('Should create Form B with admin-only access for IDOR tests', (done) => {
+        request(app)
+          .post(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({
+            title: 'IDOR Form B',
+            name: 'idorFormB',
+            path: 'idor/form-b',
+            type: 'form',
+            access: [],
+            submissionAccess: [],
+            components: [
+              {
+                type: 'textfield',
+                key: 'name',
+                label: 'Name',
+                input: true,
+              },
+            ],
+          })
+          .expect('Content-Type', /json/)
+          .expect(201)
+          .end((err, res) => {
+            if (err) {
+              return done(err);
+            }
+
+            formB = res.body;
+            template.users.admin.token = res.headers['x-jwt-token'];
+            done();
+          });
+      });
+
+      it('Should create an action on Form A', (done) => {
+        request(app)
+          .post(hook.alter('url', `/form/${formA._id}/action`, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({
+            title: 'Form A Save',
+            name: 'save',
+            handler: ['before'],
+            method: ['create', 'update'],
+            priority: 10,
+            settings: {},
+          })
+          .expect('Content-Type', /json/)
+          .expect(201)
+          .end((err, res) => {
+            if (err) {
+              return done(err);
+            }
+
+            actionA = res.body;
+            assert.equal(actionA.form, formA._id);
+            template.users.admin.token = res.headers['x-jwt-token'];
+            done();
+          });
+      });
+
+      it('Should create an action on Form B', (done) => {
+        request(app)
+          .post(hook.alter('url', `/form/${formB._id}/action`, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({
+            title: 'Form B Save',
+            name: 'save',
+            handler: ['before'],
+            method: ['create', 'update'],
+            priority: 10,
+            settings: {},
+          })
+          .expect('Content-Type', /json/)
+          .expect(201)
+          .end((err, res) => {
+            if (err) {
+              return done(err);
+            }
+
+            actionB = res.body;
+            assert.equal(actionB.form, formB._id);
+            template.users.admin.token = res.headers['x-jwt-token'];
+            done();
+          });
+      });
+
+      describe('Same user (admin) - IDOR via body injection', () => {
+        it('Should not allow overriding _id in PUT body to target a different action', (done) => {
+          request(app)
+            .put(hook.alter('url', `/form/${formA._id}/action/${actionA._id}`, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send({
+              title: 'Hijacked Title',
+              name: 'save',
+              handler: ['before'],
+              method: ['create', 'update'],
+              priority: 10,
+              settings: {},
+              _id: actionB._id,
+              form: formB._id,
+            })
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .end((err, res) => {
+              if (err) {
+                return done(err);
+              }
+
+              const response = res.body;
+              assert.equal(response._id, actionA._id);
+              assert.equal(response.form, formA._id);
+              assert.equal(response.title, 'Hijacked Title');
+              template.users.admin.token = res.headers['x-jwt-token'];
+              done();
+            });
+        });
+
+        it('Should verify that Form B action was NOT modified by the IDOR attempt', (done) => {
+          request(app)
+            .get(hook.alter('url', `/form/${formB._id}/action/${actionB._id}`, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .end((err, res) => {
+              if (err) {
+                return done(err);
+              }
+
+              const response = res.body;
+              assert.equal(response._id, actionB._id);
+              assert.equal(response.form, formB._id);
+              assert.equal(response.title, 'Form B Save');
+              template.users.admin.token = res.headers['x-jwt-token'];
+              done();
+            });
+        });
+
+        it('Should not allow overriding _id via nested data wrapper', (done) => {
+          request(app)
+            .put(hook.alter('url', `/form/${formA._id}/action/${actionA._id}`, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send({
+              data: {
+                title: 'Wrapped IDOR Attempt',
+                name: 'save',
+                handler: ['before'],
+                method: ['create', 'update'],
+                priority: 10,
+                settings: {},
+                _id: actionB._id,
+                form: formB._id,
+              },
+            })
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .end((err, res) => {
+              if (err) {
+                return done(err);
+              }
+
+              const response = res.body;
+              assert.equal(response._id, actionA._id);
+              assert.equal(response.form, formA._id);
+              assert.equal(response.title, 'Wrapped IDOR Attempt');
+              template.users.admin.token = res.headers['x-jwt-token'];
+              done();
+            });
+        });
+
+        it('Should verify Form B action is still untouched after wrapped IDOR attempt', (done) => {
+          request(app)
+            .get(hook.alter('url', `/form/${formB._id}/action/${actionB._id}`, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .end((err, res) => {
+              if (err) {
+                return done(err);
+              }
+
+              const response = res.body;
+              assert.equal(response._id, actionB._id);
+              assert.equal(response.form, formB._id);
+              assert.equal(response.title, 'Form B Save');
+              template.users.admin.token = res.headers['x-jwt-token'];
+              done();
+            });
+        });
+
+        it('Should enforce form from URL params, ignoring body form value', (done) => {
+          request(app)
+            .put(hook.alter('url', `/form/${formA._id}/action/${actionA._id}`, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send({
+              title: 'Form Override Test',
+              name: 'save',
+              handler: ['before'],
+              method: ['create', 'update'],
+              priority: 10,
+              settings: {},
+              form: formB._id,
+            })
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .end((err, res) => {
+              if (err) {
+                return done(err);
+              }
+
+              const response = res.body;
+              assert.equal(response.form, formA._id);
+              assert.equal(response._id, actionA._id);
+              template.users.admin.token = res.headers['x-jwt-token'];
+              done();
+            });
+        });
+
+        it('Should not allow POST with a spoofed _id to overwrite an existing action', (done) => {
+          request(app)
+            .post(hook.alter('url', `/form/${formA._id}/action`, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send({
+              title: 'Spoofed POST',
+              name: 'save',
+              handler: ['before'],
+              method: ['create', 'update'],
+              priority: 10,
+              settings: {},
+              _id: actionB._id,
+              form: formB._id,
+            })
+            .expect('Content-Type', /json/)
+            .expect(201)
+            .end((err, res) => {
+              if (err) {
+                return done(err);
+              }
+
+              const response = res.body;
+              assert.notEqual(response._id, actionB._id);
+              assert.equal(response.form, formA._id);
+              template.users.admin.token = res.headers['x-jwt-token'];
+              done();
+            });
+        });
+
+        it('Should verify Form B action is still intact after spoofed POST', (done) => {
+          request(app)
+            .get(hook.alter('url', `/form/${formB._id}/action/${actionB._id}`, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .end((err, res) => {
+              if (err) {
+                return done(err);
+              }
+
+              const response = res.body;
+              assert.equal(response._id, actionB._id);
+              assert.equal(response.form, formB._id);
+              assert.equal(response.title, 'Form B Save');
+              template.users.admin.token = res.headers['x-jwt-token'];
+              done();
+            });
+        });
+      });
+
+      describe('Cross-user - Authenticated user IDOR via form they have access to', () => {
+        it('User1 should be able to update actions on Form A (has update_all access)', (done) => {
+          request(app)
+            .put(hook.alter('url', `/form/${formA._id}/action/${actionA._id}`, template))
+            .set('x-jwt-token', template.users.user1.token)
+            .send({
+              title: 'User1 Legit Update',
+              name: 'save',
+              handler: ['before'],
+              method: ['create', 'update'],
+              priority: 10,
+              settings: {},
+            })
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .end((err, res) => {
+              if (err) {
+                return done(err);
+              }
+
+              const response = res.body;
+              assert.equal(response._id, actionA._id);
+              assert.equal(response.form, formA._id);
+              assert.equal(response.title, 'User1 Legit Update');
+              template.users.user1.token = res.headers['x-jwt-token'];
+              done();
+            });
+        });
+
+        it('User1 should NOT be able to directly update actions on Form B (no access)', (done) => {
+          request(app)
+            .put(hook.alter('url', `/form/${formB._id}/action/${actionB._id}`, template))
+            .set('x-jwt-token', template.users.user1.token)
+            .send({
+              title: 'Direct Attack',
+              name: 'save',
+              handler: ['before'],
+              method: ['create', 'update'],
+              priority: 10,
+              settings: {},
+            })
+            .expect(401)
+            .end(done);
+        });
+
+        it('User1 should NOT be able to IDOR from Form A to modify Form B action via _id injection', (done) => {
+          request(app)
+            .put(hook.alter('url', `/form/${formA._id}/action/${actionA._id}`, template))
+            .set('x-jwt-token', template.users.user1.token)
+            .send({
+              title: 'Cross-User IDOR Attack',
+              name: 'save',
+              handler: ['before'],
+              method: ['create', 'update'],
+              priority: 10,
+              settings: {},
+              _id: actionB._id,
+              form: formB._id,
+            })
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .end((err, res) => {
+              if (err) {
+                return done(err);
+              }
+
+              const response = res.body;
+              assert.equal(response._id, actionA._id);
+              assert.equal(response.form, formA._id);
+              assert.equal(response.title, 'Cross-User IDOR Attack');
+              template.users.user1.token = res.headers['x-jwt-token'];
+              done();
+            });
+        });
+
+        it('Should verify Form B action was NOT modified by cross-user IDOR attempt', (done) => {
+          request(app)
+            .get(hook.alter('url', `/form/${formB._id}/action/${actionB._id}`, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .end((err, res) => {
+              if (err) {
+                return done(err);
+              }
+
+              const response = res.body;
+              assert.equal(response._id, actionB._id);
+              assert.equal(response.form, formB._id);
+              assert.equal(response.title, 'Form B Save');
+              template.users.admin.token = res.headers['x-jwt-token'];
+              done();
+            });
+        });
+
+        it('User1 should NOT be able to IDOR via data wrapper from Form A to Form B action', (done) => {
+          request(app)
+            .put(hook.alter('url', `/form/${formA._id}/action/${actionA._id}`, template))
+            .set('x-jwt-token', template.users.user1.token)
+            .send({
+              data: {
+                title: 'Wrapped Cross-User IDOR',
+                name: 'save',
+                handler: ['before'],
+                method: ['create', 'update'],
+                priority: 10,
+                settings: {},
+                _id: actionB._id,
+                form: formB._id,
+              },
+            })
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .end((err, res) => {
+              if (err) {
+                return done(err);
+              }
+
+              const response = res.body;
+              assert.equal(response._id, actionA._id);
+              assert.equal(response.form, formA._id);
+              assert.equal(response.title, 'Wrapped Cross-User IDOR');
+              template.users.user1.token = res.headers['x-jwt-token'];
+              done();
+            });
+        });
+
+        it('Should verify Form B action is still untouched after wrapped cross-user IDOR', (done) => {
+          request(app)
+            .get(hook.alter('url', `/form/${formB._id}/action/${actionB._id}`, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .end((err, res) => {
+              if (err) {
+                return done(err);
+              }
+
+              const response = res.body;
+              assert.equal(response._id, actionB._id);
+              assert.equal(response.form, formB._id);
+              assert.equal(response.title, 'Form B Save');
+              template.users.admin.token = res.headers['x-jwt-token'];
+              done();
+            });
+        });
+      });
+
+      describe('Cross-user - Anonymous user IDOR attempts', () => {
+        it('Anonymous user should NOT be able to IDOR from Form A to Form B action', (done) => {
+          request(app)
+            .put(hook.alter('url', `/form/${formA._id}/action/${actionA._id}`, template))
+            .send({
+              title: 'Anonymous IDOR Attack',
+              name: 'save',
+              handler: ['before'],
+              method: ['create', 'update'],
+              priority: 10,
+              settings: {},
+              _id: actionB._id,
+              form: formB._id,
+            })
+            .expect(401)
+            .end(done);
+        });
+
+        it('Should verify Form B action was NOT modified by anonymous IDOR attempt', (done) => {
+          request(app)
+            .get(hook.alter('url', `/form/${formB._id}/action/${actionB._id}`, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .end((err, res) => {
+              if (err) {
+                return done(err);
+              }
+
+              const response = res.body;
+              assert.equal(response._id, actionB._id);
+              assert.equal(response.form, formB._id);
+              assert.equal(response.title, 'Form B Save');
+              template.users.admin.token = res.headers['x-jwt-token'];
+              done();
+            });
+        });
+      });
+
+      describe('Cross-user - User without any form access IDOR attempts', () => {
+        it('User2 should NOT be able to update actions on Form A via IDOR targeting Form B', (done) => {
+          // User2 has no update_all on Form B, so even if they somehow
+          // accessed Form B's URL, they couldn't modify actions.
+          request(app)
+            .put(hook.alter('url', `/form/${formB._id}/action/${actionB._id}`, template))
+            .set('x-jwt-token', template.users.user2.token)
+            .send({
+              title: 'User2 Direct Attack on B',
+              name: 'save',
+              handler: ['before'],
+              method: ['create', 'update'],
+              priority: 10,
+              settings: {},
+              _id: actionA._id,
+              form: formA._id,
+            })
+            .expect(401)
+            .end(done);
+        });
+
+        it('Should verify both actions remain unmodified after User2 attempts', (done) => {
+          request(app)
+            .get(hook.alter('url', `/form/${formA._id}/action/${actionA._id}`, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .end((err, res) => {
+              if (err) {
+                return done(err);
+              }
+
+              const response = res.body;
+              assert.equal(response._id, actionA._id);
+              assert.equal(response.form, formA._id);
+              // Should still have the last legitimate title from cross-user test.
+              assert.equal(response.title, 'Wrapped Cross-User IDOR');
+              template.users.admin.token = res.headers['x-jwt-token'];
+
+              request(app)
+                .get(hook.alter('url', `/form/${formB._id}/action/${actionB._id}`, template))
+                .set('x-jwt-token', template.users.admin.token)
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end((err, res) => {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  const response = res.body;
+                  assert.equal(response._id, actionB._id);
+                  assert.equal(response.form, formB._id);
+                  assert.equal(response.title, 'Form B Save');
+                  template.users.admin.token = res.headers['x-jwt-token'];
                   done();
                 });
             });

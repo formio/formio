@@ -893,12 +893,6 @@ const Utils = {
                 if (Number(value) || value === '0') {
                   return Number(value);
                 }
-                return value;
-              }
-              case 'selectboxes': {
-                if (['true', 'false'].includes(value)) {
-                  return value !== 'false';
-                }
               }
             }
           }
@@ -919,7 +913,7 @@ const Utils = {
   getServerConfig() {
     const hook = require('../util/hook')(Formio);
     return hook.alter('getServerConfig') || require('../../config/default.cjs');
-  },
+  }
 };
 
 module.exports = Utils;
