@@ -53,7 +53,7 @@
         "RENDER_METHOD",
         "ROOT_EMAIL",
         "ROOT_PASSWORD",
-        "TEST_SUITE",
+        "TEST_SUITE"
       ]
     }
   }
