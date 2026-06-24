@@ -15,7 +15,6 @@ const debug = {
   idToBson: require('debug')('formio:util:idToBson'),
   getUrlParams: require('debug')('formio:util:getUrlParams'),
   removeProtectedFields: require('debug')('formio:util:removeProtectedFields'),
-  uniqueMachineName: require('debug')('formio:util:uniqueMachineName'),
 };
 
 const Utils = {
@@ -653,22 +652,7 @@ const Utils = {
     }
 
     try {
-      let records;
-      try {
-        records = await model.find(query).hint({ machineName: 1, deleted: 1 }).lean().exec();
-      }
-      catch (err) {
-        // Fallback if bad hint or index not found
-        if (err.code === 2 || err.code === 291) {
-          records = await model.find(query).lean().exec();
-          debug.uniqueMachineName(
-            `Hint rejected (code ${err.code}) on ${model.modelName}; falling back to non-hinted query.`,
-          );
-        } else {
-          throw err;
-        }
-      }
-
+      const records = await model.find(query).lean().exec();
       if (!records || !records.length) {
         return next();
       }
@@ -893,12 +877,6 @@ const Utils = {
                 if (Number(value) || value === '0') {
                   return Number(value);
                 }
-                return value;
-              }
-              case 'selectboxes': {
-                if (['true', 'false'].includes(value)) {
-                  return value !== 'false';
-                }
               }
             }
           }
@@ -919,7 +897,7 @@ const Utils = {
   getServerConfig() {
     const hook = require('../util/hook')(Formio);
     return hook.alter('getServerConfig') || require('../../config/default.cjs');
-  },
+  }
 };
 
 module.exports = Utils;

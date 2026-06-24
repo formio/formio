@@ -532,8 +532,8 @@ module.exports = function (router) {
                 if (!submission) {
                   const err = new Error();
                   err.statusCode = 404;
-                  err.message = 'Submission not found';
                   throw err;
+                  // return callback(404);
                 }
 
                 // Add the submission owners UserId to the access list.
@@ -549,9 +549,7 @@ module.exports = function (router) {
                 // Load Submission Resource Access.
                 getSubmissionResourceAccess(req, submission, access);
               } catch (err) {
-                if (!err.statusCode) {
-                  err.statusCode = 400;
-                }
+                err.statusCode = 400;
                 throw err;
               }
             },
@@ -719,7 +717,7 @@ module.exports = function (router) {
       if (hasAllAccess) {
         const submissionResourceAdmin = _.get(req, 'submissionResourceAccessAdminBlock') || [];
         if (
-          (req.method === 'POST' || req.method === 'PUT' || (req.method === 'PATCH' && entity.type === 'submission')) &&
+          (req.method === 'POST' || req.method === 'PUT') &&
           !_.intersection(submissionResourceAdmin, access.roles).length
         ) {
           // Allow them to assign the owner.

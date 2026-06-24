@@ -106,7 +106,7 @@ module.exports = (formio) => {
     "characters or must be equal to 'Enter' or 'Esc'";
 
   const model = require('./BaseModel')({
-    schema: new formio.mongoose.Schema(hook.alter('formSchema', {
+    schema: new formio.mongoose.Schema({
       title: {
         type: String,
         description: 'The title for the form.',
@@ -277,11 +277,6 @@ module.exports = (formio) => {
         ],
         description: 'An array of components within the form displayed on the PDF Download page.',
       },
-      translationsUrl: {
-        type: String,
-        description: 'URL to the json file with i18n translations that will be passed to the renderer and used when' +
-            ' rendering form for PDF download.',
-      },
       settings: {
         type: formio.mongoose.Schema.Types.Mixed,
         description: 'Custom form settings object.',
@@ -290,7 +285,7 @@ module.exports = (formio) => {
         type: formio.mongoose.Schema.Types.Mixed,
         description: 'Custom form properties.',
       },
-    })),
+    }),
   });
 
   model.schema.index(hook.alter('schemaIndex', { type: 1, deleted: 1, modified: -1 }));
