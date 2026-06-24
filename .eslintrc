@@ -1,0 +1,27 @@
+{
+  "root": true,
+  "extends": "eslint-config-formio",
+  "parserOptions": {
+    "ecmaVersion": 2020
+  },
+  "env": {
+    "node": true,
+    "es6": true,
+    "es2020": true
+  },
+  "rules": {
+    "curly": [2, "all"],
+    "no-unused-vars": [1, {"args": "none"}],
+    "strict": [2, "global"],
+    "max-statements": [2, 35],
+    "quotes": [0],
+    "no-prototype-builtins": "off",
+    "prefer-const": "error",
+    "prefer-template": "error",
+    "space-before-function-paren": ["error", {
+      "anonymous": "never",
+      "named": "never",
+      "asyncArrow": "always"
+    }]
+  }
+}
