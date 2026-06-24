@@ -2,12 +2,12 @@
 
 const _ = require('lodash');
 
-module.exports = function () {
+module.exports = function(router) {
   return function bootstrapSubmissionAccess(req, res, next) {
     /**
      * Utility function to sanitize the current request if access was not granted and continue with processing.
      */
-    const removeAccessAndContinue = function () {
+    const removeAccessAndContinue = function() {
       // If the payload has access defined, but we could not determine who the owner should be, strip the owner data.
       if (_.has(req, 'body.access')) {
         req.body = _.omit(req.body, 'access');
@@ -18,8 +18,8 @@ module.exports = function () {
     };
 
     // Only modify put/post requests.
-    const isPut = req.method === 'PUT';
-    const isPost = req.method === 'POST';
+    const isPut = (req.method === 'PUT');
+    const isPost = (req.method === 'POST');
     if (!isPut && !isPost) {
       return removeAccessAndContinue();
     }

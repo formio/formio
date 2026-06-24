@@ -4,15 +4,15 @@ const request = require('./formio-supertest');
 const assert = require('assert');
 const Validator = require('../src/resources/Validator');
 
-module.exports = function (app, template, hook) {
+module.exports = function(app, template, hook) {
   const formio = hook.alter('formio', app.formio);
 
-  describe('Validator tests', function () {
+  describe('Validator tests', function() {
     let testResourceWithFlatComponents;
     let testResourceWithNestedComponents;
     let resourceWithFlatComponentsId;
     let resourceWithNestedComponentsId;
-    before(function () {
+    before(function() {
       testResourceWithFlatComponents = {
         title: 'fields',
         name: 'fields',
@@ -29,7 +29,7 @@ module.exports = function (app, template, hook) {
             tableView: true,
             key: 'TextField',
             type: 'textfield',
-            input: true,
+            input: true
           },
           {
             label: '2 - Email',
@@ -37,7 +37,7 @@ module.exports = function (app, template, hook) {
             tableView: true,
             key: 'Email',
             type: 'email',
-            input: true,
+            input: true
           },
           {
             label: '3 - Text Area',
@@ -45,14 +45,14 @@ module.exports = function (app, template, hook) {
             tableView: true,
             key: 'TextArea',
             type: 'textarea',
-            input: true,
+            input: true
           },
           {
             label: '4 - Checkbox',
             tableView: true,
             key: 'Checkbox',
             type: 'checkbox',
-            input: true,
+            input: true
           },
         ],
       };
@@ -71,7 +71,7 @@ module.exports = function (app, template, hook) {
             tableView: true,
             key: 'textField',
             type: 'textfield',
-            input: true,
+            input: true
           },
           {
             collapsible: false,
@@ -86,7 +86,7 @@ module.exports = function (app, template, hook) {
                 tableView: true,
                 key: 'textField1',
                 type: 'textfield',
-                input: true,
+                input: true
               },
               {
                 label: 'Container',
@@ -99,182 +99,182 @@ module.exports = function (app, template, hook) {
                     tableView: true,
                     key: 'textField',
                     type: 'textfield',
-                    input: true,
+                    input: true
                   },
                   {
-                    label: 'Columns',
-                    columns: [
+                    "label": "Columns",
+                    "columns": [
                       {
-                        components: [
+                        "components": [
                           {
-                            label: 'Text Field',
-                            applyMaskOn: 'change',
-                            tableView: true,
-                            validateWhenHidden: false,
-                            key: 'textFieldColumn',
-                            type: 'textfield',
-                            input: true,
-                          },
+                            "label": "Text Field",
+                            "applyMaskOn": "change",
+                            "tableView": true,
+                            "validateWhenHidden": false,
+                            "key": "textFieldColumn",
+                            "type": "textfield",
+                            "input": true
+                          }
                         ],
-                        width: 6,
-                        offset: 0,
-                        push: 0,
-                        pull: 0,
-                        size: 'md',
-                        currentWidth: 6,
+                        "width": 6,
+                        "offset": 0,
+                        "push": 0,
+                        "pull": 0,
+                        "size": "md",
+                        "currentWidth": 6
                       },
                       {
-                        components: [
+                        "components": [
                           {
-                            label: 'Text Area',
-                            applyMaskOn: 'change',
-                            autoExpand: false,
-                            tableView: true,
-                            validateWhenHidden: false,
-                            key: 'textAreaColumn',
-                            type: 'textarea',
-                            input: true,
-                          },
+                            "label": "Text Area",
+                            "applyMaskOn": "change",
+                            "autoExpand": false,
+                            "tableView": true,
+                            "validateWhenHidden": false,
+                            "key": "textAreaColumn",
+                            "type": "textarea",
+                            "input": true
+                          }
                         ],
-                        width: 6,
-                        offset: 0,
-                        push: 0,
-                        pull: 0,
-                        size: 'md',
-                        currentWidth: 6,
-                      },
+                        "width": 6,
+                        "offset": 0,
+                        "push": 0,
+                        "pull": 0,
+                        "size": "md",
+                        "currentWidth": 6
+                      }
                     ],
-                    key: 'columns',
-                    type: 'columns',
-                    input: false,
-                    tableView: false,
+                    "key": "columns",
+                    "type": "columns",
+                    "input": false,
+                    "tableView": false
                   },
                   {
-                    label: 'Table',
-                    cellAlignment: 'left',
-                    key: 'table',
-                    type: 'table',
-                    input: false,
-                    tableView: false,
-                    rows: [
+                    "label": "Table",
+                    "cellAlignment": "left",
+                    "key": "table",
+                    "type": "table",
+                    "input": false,
+                    "tableView": false,
+                    "rows": [
                       [
                         {
-                          components: [
+                          "components": [
                             {
-                              label: 'A',
-                              applyMaskOn: 'change',
-                              mask: false,
-                              tableView: false,
-                              delimiter: false,
-                              requireDecimal: false,
-                              inputFormat: 'plain',
-                              truncateMultipleSpaces: false,
-                              validateWhenHidden: false,
-                              key: 'a',
-                              type: 'number',
-                              input: true,
-                            },
-                          ],
+                              "label": "A",
+                              "applyMaskOn": "change",
+                              "mask": false,
+                              "tableView": false,
+                              "delimiter": false,
+                              "requireDecimal": false,
+                              "inputFormat": "plain",
+                              "truncateMultipleSpaces": false,
+                              "validateWhenHidden": false,
+                              "key": "a",
+                              "type": "number",
+                              "input": true
+                            }
+                          ]
                         },
                         {
-                          components: [
+                          "components": [
                             {
-                              label: 'B',
-                              applyMaskOn: 'change',
-                              mask: false,
-                              tableView: false,
-                              delimiter: false,
-                              requireDecimal: false,
-                              inputFormat: 'plain',
-                              truncateMultipleSpaces: false,
-                              validateWhenHidden: false,
-                              key: 'b',
-                              type: 'number',
-                              input: true,
-                            },
-                          ],
+                              "label": "B",
+                              "applyMaskOn": "change",
+                              "mask": false,
+                              "tableView": false,
+                              "delimiter": false,
+                              "requireDecimal": false,
+                              "inputFormat": "plain",
+                              "truncateMultipleSpaces": false,
+                              "validateWhenHidden": false,
+                              "key": "b",
+                              "type": "number",
+                              "input": true
+                            }
+                          ]
                         },
                         {
-                          components: [
+                          "components": [
                             {
-                              label: 'C',
-                              applyMaskOn: 'change',
-                              mask: false,
-                              tableView: false,
-                              delimiter: false,
-                              requireDecimal: false,
-                              inputFormat: 'plain',
-                              truncateMultipleSpaces: false,
-                              validateWhenHidden: false,
-                              key: 'c',
-                              type: 'number',
-                              input: true,
-                            },
-                          ],
-                        },
+                              "label": "C",
+                              "applyMaskOn": "change",
+                              "mask": false,
+                              "tableView": false,
+                              "delimiter": false,
+                              "requireDecimal": false,
+                              "inputFormat": "plain",
+                              "truncateMultipleSpaces": false,
+                              "validateWhenHidden": false,
+                              "key": "c",
+                              "type": "number",
+                              "input": true
+                            }
+                          ]
+                        }
                       ],
                       [
                         {
-                          components: [
+                          "components": [
                             {
-                              label: 'D',
-                              applyMaskOn: 'change',
-                              mask: false,
-                              tableView: false,
-                              delimiter: false,
-                              requireDecimal: false,
-                              inputFormat: 'plain',
-                              truncateMultipleSpaces: false,
-                              validateWhenHidden: false,
-                              key: 'd',
-                              type: 'number',
-                              input: true,
-                            },
-                          ],
+                              "label": "D",
+                              "applyMaskOn": "change",
+                              "mask": false,
+                              "tableView": false,
+                              "delimiter": false,
+                              "requireDecimal": false,
+                              "inputFormat": "plain",
+                              "truncateMultipleSpaces": false,
+                              "validateWhenHidden": false,
+                              "key": "d",
+                              "type": "number",
+                              "input": true
+                            }
+                          ]
                         },
                         {
-                          components: [
+                          "components": [
                             {
-                              label: 'E',
-                              applyMaskOn: 'change',
-                              mask: false,
-                              tableView: false,
-                              delimiter: false,
-                              requireDecimal: false,
-                              inputFormat: 'plain',
-                              truncateMultipleSpaces: false,
-                              validateWhenHidden: false,
-                              key: 'e',
-                              type: 'number',
-                              input: true,
-                            },
-                          ],
+                              "label": "E",
+                              "applyMaskOn": "change",
+                              "mask": false,
+                              "tableView": false,
+                              "delimiter": false,
+                              "requireDecimal": false,
+                              "inputFormat": "plain",
+                              "truncateMultipleSpaces": false,
+                              "validateWhenHidden": false,
+                              "key": "e",
+                              "type": "number",
+                              "input": true
+                            }
+                          ]
                         },
                         {
-                          components: [
+                          "components": [
                             {
-                              label: 'F',
-                              applyMaskOn: 'change',
-                              mask: false,
-                              tableView: false,
-                              delimiter: false,
-                              requireDecimal: false,
-                              inputFormat: 'plain',
-                              truncateMultipleSpaces: false,
-                              validateWhenHidden: false,
-                              key: 'f',
-                              type: 'number',
-                              input: true,
-                            },
-                          ],
-                        },
-                      ],
+                              "label": "F",
+                              "applyMaskOn": "change",
+                              "mask": false,
+                              "tableView": false,
+                              "delimiter": false,
+                              "requireDecimal": false,
+                              "inputFormat": "plain",
+                              "truncateMultipleSpaces": false,
+                              "validateWhenHidden": false,
+                              "key": "f",
+                              "type": "number",
+                              "input": true
+                            }
+                          ]
+                        }
+                      ]
                     ],
-                    numRows: 2,
-                  },
-                ],
-              },
-            ],
+                    "numRows": 2
+                  }
+                ]
+              }
+            ]
           },
           {
             type: 'button',
@@ -282,20 +282,20 @@ module.exports = function (app, template, hook) {
             key: 'submit',
             disableOnInvalid: true,
             input: true,
-            tableView: false,
-          },
+            tableView: false
+          }
         ],
       };
     });
 
-    it('Bootstrap', function (done) {
+    it('Bootstrap', function(done) {
       request(app)
         .post(hook.alter('url', '/form', template))
         .set('x-jwt-token', template.users.admin.token)
         .send(testResourceWithFlatComponents)
         .expect('Content-Type', /json/)
         .expect(201)
-        .end(function (err, res) {
+        .end(function(err, res) {
           if (err) {
             return done(err);
           }
@@ -310,7 +310,7 @@ module.exports = function (app, template, hook) {
             .send(testResourceWithNestedComponents)
             .expect('Content-Type', /json/)
             .expect(201)
-            .end(function (err, res) {
+            .end(function(err, res) {
               if (err) {
                 return done(err);
               }
@@ -324,14 +324,14 @@ module.exports = function (app, template, hook) {
         });
     });
 
-    it('Should filter resource components based on data table settings', function (done) {
+    it('Should filter resource components based on data table settings', function(done) {
       const validator = new Validator(
         {
           headers: {
             'x-jwt-token': template.users.admin.token,
           },
         },
-        { formio },
+        formio,
       );
       const dataTableComponent = {
         type: 'datatable',
@@ -340,12 +340,12 @@ module.exports = function (app, template, hook) {
           components: [
             {
               path: 'TextField',
-              key: 'TextField',
+              key: 'TextField'
             },
             {
               path: 'TextArea',
-              key: 'TextArea',
-            },
+              key: 'TextArea'
+            }
           ],
           dataSrc: 'resource',
           resource: resourceWithFlatComponentsId,
@@ -361,7 +361,7 @@ module.exports = function (app, template, hook) {
               tableView: true,
               key: 'TextField',
               type: 'textfield',
-              input: true,
+              input: true
             },
             {
               label: '3 - Text Area',
@@ -369,7 +369,7 @@ module.exports = function (app, template, hook) {
               tableView: true,
               key: 'TextArea',
               type: 'textarea',
-              input: true,
+              input: true
             },
           ]);
 
@@ -380,14 +380,14 @@ module.exports = function (app, template, hook) {
         });
     });
 
-    it('Should filter nested resource components based on data table settings', function (done) {
+    it('Should filter nested resource components based on data table settings', function(done) {
       const validator = new Validator(
         {
           headers: {
             'x-jwt-token': template.users.admin.token,
           },
         },
-        { formio },
+        formio
       );
       const dataTableComponent = {
         type: 'datatable',
@@ -396,24 +396,24 @@ module.exports = function (app, template, hook) {
           components: [
             {
               path: 'textField',
-              key: 'textField',
+              key: 'textField'
             },
             {
               path: 'container.textField',
-              key: 'container.textField',
+              key: 'container.textField'
             },
             {
               path: 'container.textFieldColumn',
-              key: 'container.textFieldColumn',
+              key: 'container.textFieldColumn'
             },
             {
               path: 'container.a',
-              key: 'container.a',
+              key: 'container.a'
             },
             {
               path: 'container.b',
-              key: 'container.b',
-            },
+              key: 'container.b'
+            }
           ],
           dataSrc: 'resource',
           resource: resourceWithNestedComponentsId,
@@ -428,7 +428,7 @@ module.exports = function (app, template, hook) {
               tableView: true,
               key: 'textField',
               type: 'textfield',
-              input: true,
+              input: true
             },
             {
               collapsible: false,
@@ -449,111 +449,111 @@ module.exports = function (app, template, hook) {
                       tableView: true,
                       key: 'textField',
                       type: 'textfield',
-                      input: true,
+                      input: true
                     },
                     {
-                      label: 'Columns',
-                      columns: [
+                      "label": "Columns",
+                      "columns": [
                         {
-                          components: [
+                          "components": [
                             {
-                              label: 'Text Field',
-                              applyMaskOn: 'change',
-                              tableView: true,
-                              validateWhenHidden: false,
-                              key: 'textFieldColumn',
-                              type: 'textfield',
-                              input: true,
-                            },
+                              "label": "Text Field",
+                              "applyMaskOn": "change",
+                              "tableView": true,
+                              "validateWhenHidden": false,
+                              "key": "textFieldColumn",
+                              "type": "textfield",
+                              "input": true
+                            }
                           ],
-                          width: 6,
-                          offset: 0,
-                          push: 0,
-                          pull: 0,
-                          size: 'md',
-                          currentWidth: 6,
+                          "width": 6,
+                          "offset": 0,
+                          "push": 0,
+                          "pull": 0,
+                          "size": "md",
+                          "currentWidth": 6
                         },
                         {
-                          components: [],
-                          width: 6,
-                          offset: 0,
-                          push: 0,
-                          pull: 0,
-                          size: 'md',
-                          currentWidth: 6,
-                        },
+                          "components": [],
+                          "width": 6,
+                          "offset": 0,
+                          "push": 0,
+                          "pull": 0,
+                          "size": "md",
+                          "currentWidth": 6
+                        }
                       ],
-                      key: 'columns',
-                      type: 'columns',
-                      input: false,
-                      tableView: false,
+                      "key": "columns",
+                      "type": "columns",
+                      "input": false,
+                      "tableView": false
                     },
                     {
-                      label: 'Table',
-                      cellAlignment: 'left',
-                      key: 'table',
-                      type: 'table',
-                      input: false,
-                      tableView: false,
-                      rows: [
+                      "label": "Table",
+                      "cellAlignment": "left",
+                      "key": "table",
+                      "type": "table",
+                      "input": false,
+                      "tableView": false,
+                      "rows": [
                         [
                           {
-                            components: [
+                            "components": [
                               {
-                                label: 'A',
-                                applyMaskOn: 'change',
-                                mask: false,
-                                tableView: false,
-                                delimiter: false,
-                                requireDecimal: false,
-                                inputFormat: 'plain',
-                                truncateMultipleSpaces: false,
-                                validateWhenHidden: false,
-                                key: 'a',
-                                type: 'number',
-                                input: true,
-                              },
-                            ],
+                                "label": "A",
+                                "applyMaskOn": "change",
+                                "mask": false,
+                                "tableView": false,
+                                "delimiter": false,
+                                "requireDecimal": false,
+                                "inputFormat": "plain",
+                                "truncateMultipleSpaces": false,
+                                "validateWhenHidden": false,
+                                "key": "a",
+                                "type": "number",
+                                "input": true
+                              }
+                            ]
                           },
                           {
-                            components: [
+                            "components": [
                               {
-                                label: 'B',
-                                applyMaskOn: 'change',
-                                mask: false,
-                                tableView: false,
-                                delimiter: false,
-                                requireDecimal: false,
-                                inputFormat: 'plain',
-                                truncateMultipleSpaces: false,
-                                validateWhenHidden: false,
-                                key: 'b',
-                                type: 'number',
-                                input: true,
-                              },
-                            ],
+                                "label": "B",
+                                "applyMaskOn": "change",
+                                "mask": false,
+                                "tableView": false,
+                                "delimiter": false,
+                                "requireDecimal": false,
+                                "inputFormat": "plain",
+                                "truncateMultipleSpaces": false,
+                                "validateWhenHidden": false,
+                                "key": "b",
+                                "type": "number",
+                                "input": true
+                              }
+                            ]
                           },
                           {
-                            components: [],
-                          },
+                            "components": []
+                          }
                         ],
                         [
                           {
-                            components: [],
+                            "components": []
                           },
                           {
-                            components: [],
+                            "components": []
                           },
                           {
-                            components: [],
-                          },
-                        ],
+                            "components": []
+                          }
+                        ]
                       ],
-                      numRows: 2,
-                    },
-                  ],
-                },
-              ],
+                      "numRows": 2
+                    }
+                  ]
+                }
+              ]
             },
           ]);
 
@@ -571,18 +571,17 @@ module.exports = function (app, template, hook) {
             type: 'textfield',
             key: 'a',
             input: true,
-            label: 'Text Field',
+            label: "Text Field"
           },
           {
             type: 'textfield',
             key: 'b',
             input: true,
             validate: {
-              custom:
-                'valid = instance.root.getComponent("a")?.component.label === "Oopsie" ? true : "Should have Oopsie Label";',
-            },
-          },
-        ],
+              custom: 'valid = instance.root.getComponent("a")?.component.label === "Oopsie" ? true : "Should have Oopsie Label";'
+            }
+          }
+        ]
       };
       const validator = new Validator(
         {
@@ -591,123 +590,25 @@ module.exports = function (app, template, hook) {
           },
           currentForm: form,
         },
-        { formio },
+        formio
       );
       const submission = {
-        data: {},
+        data: {}
       };
-      await validator.validate(submission, (err) => {
-        assert(err !== null, 'We should have validator errors');
+      await validator. validate(submission, (err) => {
+        assert(err !== null, "We should have validator errors");
         assert(err.name === 'ValidationError');
         assert(err.details[0]?.message === 'Should have Oopsie Label');
       });
     });
 
-    it('Should return validation error when t() is used in custom validation logic', async function () {
-      const form = {
-        components: [{
-            "label": "Text Field",
-            "applyMaskOn": "change",
-            "tableView": true,
-            "validate": {
-              "custom": "valid = (input === 'Joe') ? true : t('joeMsg');"
-            },
-            "validateWhenHidden": false,
-            "key": "textField",
-            "type": "textfield",
-            "input": true
-          },
-          {
-            "label": "Submit",
-            "tableView": false,
-            "key": "submit",
-            "type": "button",
-            "input": true,
-            "saveOnEnter": false
-          }
-        ],
-      };
-      const validator = new Validator({
-          headers: {
-            'x-jwt-token': template.users.admin.token,
-          },
-          currentForm: form,
-        },
-        { formio },
-      );
-      const submission = {
-        data: {
-          textField: 'test'
-        },
-      };
-      await validator.validate(submission, (err, data) => {
-        assert.equal(!!err, true);
-        assert.equal(err.details[0].message, 'joeMsg');
-      });
-    });
-
-    it('Instance should be available in evaluation context for content components', async function () {
-      const form = {
-        components: [
-          {
-            label: 'HTML',
-            attrs: [
-              {
-                attr: '',
-                value: '',
-              },
-            ],
-            content: 'rewrw',
-            refreshOnChange: false,
-            key: 'html',
-            customConditional:'show = !instance.component.customConditional;\n',
-            type: 'htmlelement',
-            input: false,
-            tableView: false,
-          },
-          {
-            label: 'Text Field',
-            applyMaskOn: 'change',
-            tableView: true,
-            validateWhenHidden: false,
-            key: 'textField',
-            type: 'textfield',
-            input: true,
-          },
-          {
-            type: 'button',
-            label: 'Submit',
-            key: 'submit',
-            disableOnInvalid: true,
-            input: true,
-            tableView: false,
-          },
-        ],
-      };
-      const validator = new Validator(
-        {
-          headers: {
-            'x-jwt-token': template.users.admin.token,
-          },
-          currentForm: form,
-        },
-        { formio },
-      );
-      const submission = {
-        data: { textField: 'test' },
-      };
-      await validator.validate(submission, (err, data) => {
-        assert.equal(submission.scope?.conditionals[0]?.conditionallyHidden, true);
-      });
-    });
-    
-    after(function (done) {
+    after(function(done) {
       request(app)
         .delete(hook.alter('url', `/form/${resourceWithFlatComponentsId}`, template))
         .set('x-jwt-token', template.users.admin.token)
         .expect('Content-Type', /text/)
         .expect(200)
-        .end(function (err) {
+        .end(function(err) {
           if (err) {
             return done(err);
           }
@@ -717,7 +618,7 @@ module.exports = function (app, template, hook) {
             .set('x-jwt-token', template.users.admin.token)
             .expect('Content-Type', /text/)
             .expect(200)
-            .end(function (err) {
+            .end(function(err) {
               if (err) {
                 return done(err);
               }

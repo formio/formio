@@ -53,13 +53,8 @@
     "a:save": {
       "title": "Save Submission",
       "name": "save",
-      "handler": [
-        "before"
-      ],
-      "method": [
-        "create",
-        "update"
-      ],
+      "handler": ["before"],
+      "method": ["create", "update"],
       "form": "a",
       "priority": 11,
       "settings": {

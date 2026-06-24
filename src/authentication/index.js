@@ -19,7 +19,9 @@ const debug = {
 module.exports = (router) => {
   const audit = router.formio.audit || (() => {});
   const hook = require('../util/hook')(router.formio);
-  const { jwt: jwtConfig } = router.formio.config;
+  const {
+    jwt: jwtConfig,
+  } = router.formio.config;
 
   /**
    * Generate our JWT with the given payload, and pass it to the given callback function.
@@ -38,7 +40,10 @@ module.exports = (router) => {
     delete payload.iat;
     delete payload.exp;
 
-    const { expireTime, secret } = jwtConfig;
+    const {
+      expireTime,
+      secret,
+    } = jwtConfig;
 
     return jwt.sign(payload, customSecret || secret, {
       expiresIn: expireTime * 60,
@@ -60,21 +65,17 @@ module.exports = (router) => {
 
     // If no project is provided, then provide it from the token.
     if (decoded.isAdmin && !decoded.project && allowed.length) {
+      /* eslint-disable no-useless-escape */
       const ids = allowed[0].match(/\/project\/([^/]+)/);
-
+      /* eslint-enable no-useless-escape */
       if (ids && ids[1]) {
-        decoded.project = { _id: ids[1] };
+        decoded.project = {_id: ids[1]};
       }
     }
 
-    const [
-      urlPath,
-    ] = req.url.split('?');
+    const [urlPath] = req.url.split('?');
     return allowed.some((allow) => {
-      const [
-        allowedMethod,
-        allowedPath,
-      ] = allow.split(':');
+      const [allowedMethod, allowedPath] = allow.split(':');
       if (!allowedMethod || !allowedPath) {
         return false;
       }
@@ -89,7 +90,8 @@ module.exports = (router) => {
         if (regex.test(`${req.baseUrl}${urlPath}`)) {
           return true;
         }
-      } catch (ignoreErr) {
+      }
+      catch (err) {
         debug.authenticate('Bad token allow string.');
       }
 
@@ -126,12 +128,12 @@ module.exports = (router) => {
     }
 
     // Check the expiration.
-    const now = Math.trunc(new Date() / 1000);
+    const now = Math.trunc((new Date()) / 1000);
     expire = parseInt(expire || 3600, 10);
-    const timeLeft = parseInt(tempToken.exp, 10) - now;
+    const timeLeft = (parseInt(tempToken.exp, 10) - now);
 
     // Ensure they are not trying to create an extended expiration.
-    if (expire > 3600 && timeLeft < expire) {
+    if ((expire > 3600) && (timeLeft < expire)) {
       return cb('Cannot generate extended expiring temp token.');
     }
 
@@ -147,30 +149,25 @@ module.exports = (router) => {
     delete tempToken.exp;
 
     // Sign the token.
-    jwt.sign(
-      tempToken,
-      jwtConfig.secret,
-      {
-        expiresIn: expire,
-      },
-      (err, token) => {
+    jwt.sign(tempToken, jwtConfig.secret, {
+      expiresIn: expire,
+    }, (err, token) => {
+      if (err) {
+        return cb(err);
+      }
+
+      const tokenResponse = {
+        token,
+      };
+
+      // Allow other libraries to hook into the response.
+      hook.alter('tempToken', req, res, allow, expire, tokenResponse, (err) => {
         if (err) {
           return cb(err);
         }
-
-        const tokenResponse = {
-          token,
-        };
-
-        // Allow other libraries to hook into the response.
-        hook.alter('tempToken', req, res, allow, expire, tokenResponse, (err) => {
-          if (err) {
-            return cb(err);
-          }
-          return cb(null, tokenResponse);
-        });
-      },
-    );
+        return cb(null, tokenResponse);
+      });
+    });
   };
 
   const tempToken = (req, res) => {
@@ -179,12 +176,10 @@ module.exports = (router) => {
     }
 
     let adminKey = false;
-    if (
-      (process.env.ADMIN_KEY && process.env.ADMIN_KEY === req.headers['x-admin-key']) ||
-      req.isAdmin
-    ) {
+    if (process.env.ADMIN_KEY && process.env.ADMIN_KEY === req.headers['x-admin-key'] || req.isAdmin) {
       adminKey = true;
-    } else if (!req.token) {
+    }
+    else if (!req.token) {
       return res.status(400).send('No authentication token provided.');
     }
 
@@ -222,56 +217,39 @@ module.exports = (router) => {
 
     const hash = _.get(user.data, passField);
     if (!hash) {
-      audit(
-        'EAUTH_BLANKPW',
-        {
-          ...req,
-          userId: user._id,
-        },
-        username,
-      );
+      audit('EAUTH_BLANKPW', {
+        ...req,
+        userId: user._id,
+      }, username);
       return next('Your account does not have a password. You must reset your password to login.');
     }
 
     // Compare the provided password.
     bcrypt.compare(password, hash, async (err, value) => {
       if (err) {
-        audit(
-          'EAUTH_BCRYPT',
-          {
-            ...req,
-            userId: user._id,
-          },
-          username,
-          err,
-        );
+        audit('EAUTH_BCRYPT', {
+          ...req,
+          userId: user._id
+        }, username, err);
         return next(err);
       }
 
       if (!value) {
         audit('EAUTH_PASSWORD', req, user._id, username);
-        return next('User or password was incorrect', { user });
+        return next('User or password was incorrect', {user});
       }
 
       // Load the form associated with this user record.
       try {
-        const form = await router.formio.resources.form.model
-          .findOne({
-            _id: user.form,
-            deleted: { $eq: null },
-          })
-          .lean()
-          .exec();
+        const form = await router.formio.resources.form.model.findOne({
+          _id: user.form,
+          deleted: {$eq: null},
+          }).lean().exec();
         if (!form) {
-          audit(
-            'EAUTH_USERFORM',
-            {
-              ...req,
-              userId: user._id,
-            },
-            user.form,
-            { message: 'User form not found' },
-          );
+          audit('EAUTH_USERFORM', {
+            ...req,
+            userId: user._id,
+          }, user.form, {message: 'User form not found'});
           return next('User form not found.');
         }
 
@@ -280,7 +258,8 @@ module.exports = (router) => {
           if (err) {
             // Attempt to fail safely and not update the user reference.
             debug.authenticate(err);
-          } else {
+          }
+          else {
             // Update the user with the hook results.
             debug.authenticate(user);
             user = _user;
@@ -292,19 +271,14 @@ module.exports = (router) => {
             }
 
             // Allow anyone to hook and modify the token.
-            const token = hook.alter(
-              'token',
-              {
-                user: {
-                  _id: user._id,
-                },
-                form: {
-                  _id: form._id,
-                },
+            const token = hook.alter('token', {
+              user: {
+                _id: user._id,
               },
-              form,
-              req,
-            );
+              form: {
+                _id: form._id,
+              },
+            }, form, req);
 
             hook.alter('tokenDecode', token, req, (err, decoded) => {
               // Continue with the token data.
@@ -318,16 +292,12 @@ module.exports = (router) => {
             });
           });
         });
-      } catch (err) {
-        audit(
-          'EAUTH_USERFORM',
-          {
-            ...req,
-            userId: user._id,
-          },
-          user.form,
-          err,
-        );
+      }
+      catch (err) {
+        audit('EAUTH_USERFORM', {
+          ...req,
+          userId: user._id,
+        }, user.form, err);
         return next(err);
       }
     });
@@ -360,33 +330,32 @@ module.exports = (router) => {
       return next('Missing password');
     }
 
-    const query = { deleted: { $eq: null } };
+    const query = {deleted: {$eq: null}};
 
     // Determine the form id for querying.
     if (_.isArray(forms)) {
-      query.form = { $in: _.map(forms, util.idToBson) };
-    } else if (_.isObject(forms)) {
+      query.form = {'$in': _.map(forms, util.idToBson)};
+    }
+    else if (_.isObject(forms)) {
       query.form = util.idToBson(forms._id);
-    } else if (_.isString(forms)) {
+    }
+    else if (_.isString(forms)) {
       query.form = util.idToBson(forms);
     }
 
     // Look for the user.
-
-    query[`data.${userField}`] = router.formio.mongoFeatures.collation
-      ? username
-      : { $regex: new RegExp(`^${util.escapeRegExp(username)}$`, 'i') };
+    // eslint-disable-next-line max-len
+    query[`data.${userField}`] = router.formio.mongoFeatures.collation ? username : {$regex: new RegExp(`^${util.escapeRegExp(username)}$`, 'i')};
 
     // Find the user object.
     const submissionModel = req.submissionModel || router.formio.resources.submission.model;
     let subQuery = submissionModel.findOne(hook.alter('submissionQuery', query, req));
-    subQuery = router.formio.mongoFeatures.collation
-      ? subQuery.collation({ locale: 'en', strength: 2 })
-      : subQuery;
+    subQuery = router.formio.mongoFeatures.collation ? subQuery.collation({locale: 'en', strength: 2}) : subQuery;
     try {
       const user = await subQuery.lean().exec();
       return evaluateUser(req, user, password, passField, username, next);
-    } catch (err) {
+    }
+    catch (err) {
       return next(err);
     }
   };
@@ -425,14 +394,10 @@ module.exports = (router) => {
     }
 
     // Update the parameters to use from the decoded token.
-    childReq.params = hook.alter(
-      'submissionRequestTokenQuery',
-      {
-        formId: req.token.form._id,
-        submissionId: req.token.user._id,
-      },
-      req.token,
-    );
+    childReq.params = hook.alter('submissionRequestTokenQuery', {
+      formId: req.token.form._id,
+      submissionId: req.token.user._id,
+    }, req.token);
 
     // Execute the resourcejs methods associated with the user submissions.
     const url = '/form/:formId/submission/:submissionId';
