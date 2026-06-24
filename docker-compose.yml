@@ -1,3 +1,4 @@
+version: '3.8'
 services:
   mongo:
     image: mongo
@@ -8,7 +9,6 @@ services:
       - MONGO_INITDB_ROOT_USERNAME
       - MONGO_INITDB_ROOT_PASSWORD
   formio:
-    platform: linux/amd64
     build:
       context: ./
       dockerfile: Dockerfile

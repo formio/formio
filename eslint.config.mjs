@@ -1,6 +1,4 @@
-import js from '@eslint/js';
-import eslintConfigPrettier from 'eslint-config-prettier';
-import globals from 'globals';
+import { config } from '@formio/eslint-config/base';
 
 /** @type {import("eslint").Linter.Config} */
 export default [
@@ -14,27 +12,5 @@ export default [
       'node_modules/',
     ],
   },
-  js.configs.recommended,
-  eslintConfigPrettier,
-  {
-    languageOptions: {
-      globals: {
-        ...globals.browser,
-        ...globals.node,
-      },
-    },
-  },
-  {
-    rules: {
-      'no-prototype-builtins': 'off',
-      'no-unused-vars': [
-        'error',
-        {
-          ignoreRestSiblings: true,
-          argsIgnorePattern: '^_',
-          caughtErrorsIgnorePattern: '^ignore',
-        },
-      ],
-    },
-  },
+  ...config,
 ];

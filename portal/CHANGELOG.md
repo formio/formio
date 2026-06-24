@@ -1,5 +1,19 @@
 # oss-portal
 
+## 0.0.8
+
+### Patch Changes
+
+- @formio/js@5.3.6
+- @formio/react@6.2.0
+
+## 0.0.8-api97.0
+
+### Patch Changes
+
+- @formio/js@5.3.6-api97.0
+- @formio/react@6.2.0
+
 ## 0.0.7
 
 ### Patch Changes

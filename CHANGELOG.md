@@ -1,5 +1,21 @@
 # formio
 
+## 4.6.7
+
+### Patch Changes
+
+- Updated dependencies [458086a]
+  - @formio/core@2.6.6
+  - @formio/js@5.3.6
+
+## 4.6.7-api97.0
+
+### Patch Changes
+
+- Updated dependencies [458086a]
+  - @formio/core@2.6.6-api97.0
+  - @formio/js@5.3.6-api97.0
+
 ## 4.6.6
 
 ### Patch Changes
