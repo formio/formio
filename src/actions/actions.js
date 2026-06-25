@@ -872,6 +872,14 @@ module.exports = (router) => {
       // Set the form on the request body.
       req.body.form = req.params.formId;
 
+      // Ensure _id always comes from the URL params, never from the request body.
+      if (req.params.actionId) {
+        req.body._id = req.params.actionId;
+      }
+      else {
+        delete req.body._id;
+      }
+
       // sets a default value in actions where manual input of this data is not expected (e.g. Save Submission).
       if (!req.body.hasOwnProperty('handler') && req.body.defaults?.handler) {
         req.body.handler = req.body.defaults.handler;
