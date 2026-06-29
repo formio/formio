@@ -1,10 +1,16 @@
 [![Join the chat at https://gitter.im/formio/formio](https://badges.gitter.im/formio/formio.svg)](https://gitter.im/formio/formio?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![StackOverflow](https://www.codewake.com/badges/codewake2.svg)](http://stackoverflow.com/tags/formio)
+[![StackOverflow](https://img.shields.io/badge/stackoverflow-formio-orange)](http://stackoverflow.com/tags/formio)
 
 # A combined form and API platform for Serverless applications
 
 Form.io is a revolutionary combined Form and API platform for Serverless applications. This repository serves as the core Form and API engine for https://form.io. This system allows you to build "serverless" data management applications using a simple drag-and-drop form builder interface. These forms can then easily be embedded within your Angular.js and React applications using the
 `<formio>` HTML element.
+
+Official Documentation
+--------------------------
+For the latest documentation, release information, and guides, always refer to the official Form.io Help Documentation available here:
+
+**[https://help.form.io](https://help.form.io/deploy/enterprise-server)**
 
 ## Walkthrough video and tutorial
 
