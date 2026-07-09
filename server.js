@@ -13,6 +13,7 @@ const Q = require('q');
 const cors = require('cors');
 const test = process.env.TEST_SUITE;
 const noInstall = process.env.NO_INSTALL;
+const { sanitize, has } = require('express-mongo-sanitize');
 
 module.exports = function (options) {
   options = options || {};
@@ -80,6 +81,15 @@ module.exports = function (options) {
   const hooks = options.hooks || {};
 
   app.use(server.formio.middleware.restrictRequestTypes);
+  app.use((req, res, next) => {
+    // Sanitize req.query to prevent MongoDB operator injection.
+    if (req.query && has(req.query, true)) {
+      const before = JSON.stringify(req.query);
+      req.query = sanitize(req.query, { allowDots: true });
+      app.formio.log(`MongoDB operator injection blocked in req.query: ${before}`, req);
+    }
+    return next();
+  });
   server.init(hooks).then(function (formio) {
     // Called when we are ready to start the server.
     const start = function () {

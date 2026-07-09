@@ -27,12 +27,8 @@ module.exports = (router) => {
         description: 'Allows you to email people on submission.',
         priority: 0,
         defaults: {
-          handler: [
-            'after',
-          ],
-          method: [
-            'create',
-          ],
+          handler: ['after'],
+          method: ['create'],
         },
       });
     }

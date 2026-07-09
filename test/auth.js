@@ -1181,7 +1181,7 @@ module.exports = function (app, template, hook) {
         });
     });
 
-    it('A user who has update form definition permissions should be able to create actions on the form', function(done) {
+    it('A user who has update form definition permissions should be able to create actions on the form', function (done) {
       const adminToken = template.users.admin.token;
       const authenticatedUserRole = template.users.user1.roles[0];
       request(app)
@@ -1189,19 +1189,17 @@ module.exports = function (app, template, hook) {
         .set('x-jwt-token', adminToken)
         .expect(201)
         .send({
-          'title': 'createActionTesting',
-          'display': 'form',
-          'type': 'form',
-          'name': 'createActionTesting',
-          'path': 'createactiontesting',
-          'access': [
+          title: 'createActionTesting',
+          display: 'form',
+          type: 'form',
+          name: 'createActionTesting',
+          path: 'createactiontesting',
+          access: [
             {
-              'type': 'update_all',
-              'roles': [
-                authenticatedUserRole
-              ]
-            }
-          ]
+              type: 'update_all',
+              roles: [authenticatedUserRole],
+            },
+          ],
         })
         .end((err, res) => {
           if (err) {
@@ -1210,44 +1208,34 @@ module.exports = function (app, template, hook) {
           const formId = res.body._id;
           const authenticatedUserToken = template.users.user1.token;
           const emailAction = {
-            'data': {
-              'priority': 0,
-              'name': 'email',
-              'title': 'Email',
-              'settings': {
-                'transport': 'smtp',
-                'from': 'no-reply@example.com',
-                'replyTo': '',
-                'emails': [
-                  'test@example.com'
-                ],
-                'sendEach': false,
-                'cc': [
-                  ''
-                ],
-                'bcc': [
-                  ''
-                ],
-                'subject': 'New submission for {{ form.title }}.',
-                'template': 'https://pro.formview.io/assets/email.html',
-                'message': '{{ submission(data, form.components) }}',
-                'renderingMethod': 'dynamic',
-                'attachFiles': false,
-                'attachPDF': false
+            data: {
+              priority: 0,
+              name: 'email',
+              title: 'Email',
+              settings: {
+                transport: 'smtp',
+                from: 'no-reply@example.com',
+                replyTo: '',
+                emails: ['test@example.com'],
+                sendEach: false,
+                cc: [''],
+                bcc: [''],
+                subject: 'New submission for {{ form.title }}.',
+                template: 'https://pro.formview.io/assets/email.html',
+                message: '{{ submission(data, form.components) }}',
+                renderingMethod: 'dynamic',
+                attachFiles: false,
+                attachPDF: false,
               },
-              'handler': [
-                'after'
-              ],
-              'method': [
-                'create'
-              ],
-              'condition': {
-                'conjunction': '',
-                'conditions': [],
-                'custom': ''
+              handler: ['after'],
+              method: ['create'],
+              condition: {
+                conjunction: '',
+                conditions: [],
+                custom: '',
               },
-              'submit': true
-            }
+              submit: true,
+            },
           };
           request(app)
             .post(hook.alter('url', `/form/${formId}/action`, template))
@@ -1802,9 +1790,7 @@ module.exports = function (app, template, hook) {
           submissionAccess: [
             {
               type: 'read_own',
-              roles: [
-                template.roles.authenticated._id,
-              ],
+              roles: [template.roles.authenticated._id],
             },
           ],
         })
@@ -1912,9 +1898,7 @@ module.exports = function (app, template, hook) {
           submissionAccess: [
             {
               type: 'update_own',
-              roles: [
-                template.roles.authenticated._id,
-              ],
+              roles: [template.roles.authenticated._id],
             },
           ],
         })
@@ -2009,9 +1993,7 @@ module.exports = function (app, template, hook) {
           submissionAccess: [
             {
               type: 'delete_own',
-              roles: [
-                template.roles.authenticated._id,
-              ],
+              roles: [template.roles.authenticated._id],
             },
           ],
         })
@@ -2202,9 +2184,7 @@ module.exports = function (app, template, hook) {
           submissionAccess: [
             {
               type: 'read_own',
-              roles: [
-                template.roles.authenticated._id,
-              ],
+              roles: [template.roles.authenticated._id],
             },
             {
               type: 'self',
@@ -2318,9 +2298,7 @@ module.exports = function (app, template, hook) {
           submissionAccess: [
             {
               type: 'update_own',
-              roles: [
-                template.roles.authenticated._id,
-              ],
+              roles: [template.roles.authenticated._id],
             },
             {
               type: 'self',
@@ -2420,9 +2398,7 @@ module.exports = function (app, template, hook) {
           submissionAccess: [
             {
               type: 'delete_own',
-              roles: [
-                template.roles.authenticated._id,
-              ],
+              roles: [template.roles.authenticated._id],
             },
             {
               type: 'self',
@@ -2546,16 +2522,7 @@ module.exports = function (app, template, hook) {
           let response = res.body;
           assert.deepEqual(
             _.difference(
-              [
-                'title',
-                'version',
-                'description',
-                'name',
-                'roles',
-                'forms',
-                'actions',
-                'resources',
-              ],
+              ['title', 'version', 'description', 'name', 'roles', 'forms', 'actions', 'resources'],
               Object.keys(response),
             ),
             [],

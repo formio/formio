@@ -165,39 +165,40 @@ module.exports = function (router) {
 
       const formRevs = {};
       try {
-        await Promise.all(revs.map(async (rev) => {
-          const formRevision = rev.revision || rev.formRevision;
-          debug.loadSubForms(`Loading form ${util.idToBson(rev.form)} revision ${formRevision}`);
-          const loadRevision =
-            formRevision.length === 24
-              ? router.formio.resources.formrevision.model.findOne({
-                  revisionId: util.idToBson(rev.revision),
-                })
-              : router.formio.resources.formrevision.model.findOne(
-                  await hook.alter(
-                    'formQuery',
-                    {
-                      _rid: util.idToBson(rev.form),
-                      _vid: parseInt(formRevision),
-                      deleted: { $eq: null },
-                    },
-                    req,
-                  ),
-                );
+        await Promise.all(
+          revs.map(async (rev) => {
+            const formRevision = rev.revision || rev.formRevision;
+            debug.loadSubForms(`Loading form ${util.idToBson(rev.form)} revision ${formRevision}`);
+            const loadRevision =
+              formRevision.length === 24
+                ? router.formio.resources.formrevision.model.findOne({
+                    revisionId: util.idToBson(rev.revision),
+                  })
+                : router.formio.resources.formrevision.model.findOne(
+                    await hook.alter(
+                      'formQuery',
+                      {
+                        _rid: util.idToBson(rev.form),
+                        _vid: parseInt(formRevision),
+                        deleted: { $eq: null },
+                      },
+                      req,
+                    ),
+                  );
 
-          const result = await loadRevision.lean().exec();
-          if (!result) {
-            debug.loadSubForms(
-              `Cannot find form revision for form ${rev.form} revision ${formRevision}`,
-            );
-            return;
-          }
+            const result = await loadRevision.lean().exec();
+            if (!result) {
+              debug.loadSubForms(
+                `Cannot find form revision for form ${rev.form} revision ${formRevision}`,
+              );
+              return;
+            }
 
-          debug.loadSubForms(`Loaded revision for form ${rev.form} revision ${formRevision}`);
-          formRevs[rev.form.toString()] = result;
-        }));
-      }
-      catch (err) {
+            debug.loadSubForms(`Loaded revision for form ${rev.form} revision ${formRevision}`);
+            formRevs[rev.form.toString()] = result;
+          }),
+        );
+      } catch (err) {
         debug.loadSubForms(err);
         debug.loadFormRevisions(err);
         throw err;
@@ -478,15 +479,17 @@ module.exports = function (router) {
         let revs = await this.loadFormRevisions(req, formRevs);
         // Iterate through all subforms.
         revs = revs || {};
-        return Promise.all(result.map(async (subForm) => {
-          const formId = subForm._id.toString();
-          if (forms[formId]) {
-            debug.loadSubForms(`Subforms already loaded for ${formId}.`);
-            return;
-          }
-          forms[formId] = revs[formId] ? revs[formId] : subForm;
-          await this.loadAllForms(subForm, req, depth + 1, forms);
-        }));
+        return Promise.all(
+          result.map(async (subForm) => {
+            const formId = subForm._id.toString();
+            if (forms[formId]) {
+              debug.loadSubForms(`Subforms already loaded for ${formId}.`);
+              return;
+            }
+            forms[formId] = revs[formId] ? revs[formId] : subForm;
+            await this.loadAllForms(subForm, req, depth + 1, forms);
+          }),
+        );
       } catch (ignoreErr) {
         return;
       }
@@ -562,9 +565,7 @@ module.exports = function (router) {
                 if (subs[dataId] && _.isArray(subs[dataId])) {
                   subs[dataId].push(subInfo);
                 } else {
-                  subs[dataId] = [
-                    subInfo,
-                  ];
+                  subs[dataId] = [subInfo];
                 }
               }
             }
@@ -589,20 +590,22 @@ module.exports = function (router) {
           }
           const subId = sub._id.toString();
           if (subs[subId]) {
-            await Promise.all(subs[subId].map(async (subInfo) => {
-              // Set the subform data if it contains more data... legacy renderers don't fare well with sub-data.
-              if (
-                !subInfo.data ||
-                Object.keys(sub.data).length > Object.keys(subInfo.data).length
-              ) {
-                _.set(submission.data, subInfo.path, sub);
-              }
-              if (options.resolveNestedFormRevisions && subInfo.component.useOriginalRevision) {
-                await this.resolveOriginalRevision(req, subInfo.component, sub);
-              }
-              // Load all subdata within this submission.
-              await this.loadSubSubmissions(subInfo.component, sub, req, depth + 1, options);
-            }));
+            await Promise.all(
+              subs[subId].map(async (subInfo) => {
+                // Set the subform data if it contains more data... legacy renderers don't fare well with sub-data.
+                if (
+                  !subInfo.data ||
+                  Object.keys(sub.data).length > Object.keys(subInfo.data).length
+                ) {
+                  _.set(submission.data, subInfo.path, sub);
+                }
+                if (options.resolveNestedFormRevisions && subInfo.component.useOriginalRevision) {
+                  await this.resolveOriginalRevision(req, subInfo.component, sub);
+                }
+                // Load all subdata within this submission.
+                await this.loadSubSubmissions(subInfo.component, sub, req, depth + 1, options);
+              }),
+            );
           }
         }
       } catch (ignoreErr) {
@@ -628,8 +631,7 @@ module.exports = function (router) {
       let baseForm;
       try {
         baseForm = await this.loadForm(req, null, component.form);
-      }
-      catch (err) {
+      } catch (ignoreErr) {
         return;
       }
       if (!baseForm || !baseForm.revisions) return;
@@ -646,9 +648,10 @@ module.exports = function (router) {
         component.settings = revision.settings;
         // Re-hydrate subforms that may exist in the restored revision but not in the current version
         await this.loadSubForms(component, req);
-      }
-      catch (err) {
-        debug.loadFormRevisions(`Error resolving original revision for form ${component.form}: ${err}`);
+      } catch (err) {
+        debug.loadFormRevisions(
+          `Error resolving original revision for form ${component.form}: ${err}`,
+        );
       }
     },
 
@@ -669,8 +672,7 @@ module.exports = function (router) {
 
       if (ObjectId.isValid(revId)) {
         query._id = util.idToBson(revId);
-      }
-      else {
+      } else {
         const vid = parseInt(revId, 10);
         if (Number.isNaN(vid)) return null;
         query._vid = vid;

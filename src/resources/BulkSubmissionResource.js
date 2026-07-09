@@ -156,9 +156,7 @@ class BulkSubmission {
         } catch (error) {
           const details = Array.isArray(error.details)
             ? error.details
-            : [
-                { message: error.message || error, level: 'error', path: [] },
-              ];
+            : [{ message: error.message || error, level: 'error', path: [] }];
 
           details.forEach((e) => errors.push({ type: 'validator', message: e.message || e }));
         }
@@ -179,19 +177,21 @@ class BulkSubmission {
    * Helper to prepare bulk submission context (shared by bulk create and upsert endpoints)
    */
   async prepareBulkSubmissionContext({ req, res, isUpsert }) {
-    const { formId } = req.params;
-
     const payload = Array.isArray(req.body) ? req.body : null;
     if (!payload || !Array.isArray(payload) || payload.length === 0) {
       res.status(400).json({ error: 'Payload must be an array of submission objects.' });
       return null;
     }
 
+    // FIO-11512: form is always derived from req.formId — never trust the
+    // payload, since allowing it would let someone reassign a submission
+    // to a different form via bulk upsert.
     for (let i = 0; i < payload.length; i++) {
       if (!payload[i].data || typeof payload[i].data !== 'object') {
         res.status(400).json({ error: `Item at index ${i} must contain a 'data' object.` });
         return null;
       }
+      delete payload[i].form;
     }
 
     if (
@@ -209,19 +209,15 @@ class BulkSubmission {
 
     req.form = form;
     req.body = { data: {} };
-    await this.formio.middleware.permissionHandler(req, res, () => {});
 
     const now = new Date();
-    const owner = req.user?._id || null;
 
     const docs = payload.map((item, index) => {
       const doc = {
         ...item,
         originalIndex: index,
-        form: formId,
         data: item.data,
         metadata: item.metadata,
-        owner,
         deleted: null,
         created: now,
         modified: now,
@@ -290,17 +286,20 @@ class BulkSubmission {
 
     const failures = (err.writeErrors || []).map((e) => ({
       original: payload[validDocs[e.index]?.originalIndex],
-      errors: [
-        { type: 'insert', message: e.errmsg || e.message },
-      ],
+      errors: [{ type: 'insert', message: e.errmsg || e.message }],
       originalIndex: validDocs[e.index]?.originalIndex ?? e.index,
     }));
 
     return { successes, failures };
   }
 
-  async createSubmissionsRevisions(req, upserted, modified){
-    return await this.hook.alter('createSubmissionRevisionsForBulkOperations', req, upserted, modified);
+  async createSubmissionsRevisions(req, upserted, modified) {
+    return await this.hook.alter(
+      'createSubmissionRevisionsForBulkOperations',
+      req,
+      upserted,
+      modified,
+    );
   }
 
   /**
@@ -463,9 +462,7 @@ class BulkSubmission {
         }
         return res.status(400).json({
           insertedCount: 0,
-          failures: [
-            { error: err.message || String(err) },
-          ],
+          failures: [{ error: err.message || String(err) }],
         });
       }
 
@@ -488,9 +485,7 @@ class BulkSubmission {
     } catch (err) {
       return res.status(400).json({
         insertedCount: 0,
-        failures: [
-          { error: err.message || String(err) },
-        ],
+        failures: [{ error: err.message || String(err) }],
       });
     }
   }
@@ -639,10 +634,20 @@ class BulkSubmission {
 
       const operations = validDocs.map((doc) => {
         doc._id ??= new ObjectId().toString();
+        const update = { $set: { ...doc, modified: new Date() } };
+        // If the provided _id doesn't match anything, the POST branch of the upsert
+        // would otherwise create an owner-less document — default owner to
+        // the caller in that insert-only path via $setOnInsert.
+        if (!('owner' in doc)) {
+          update.$setOnInsert = { owner: req.user?._id || null };
+        }
         return {
           updateOne: {
-            filter: { _id: doc._id },
-            update: { $set: { ...doc, modified: new Date() } },
+            filter: {
+              _id: doc._id,
+              form: doc.form
+            },
+            update,
             upsert: true,
           },
         };
@@ -682,7 +687,11 @@ class BulkSubmission {
       };
 
       if (form.submissionRevisions) {
-        responseBody.revisionsCreated = await this.createSubmissionsRevisions(req, upserted, modified);
+        responseBody.revisionsCreated = await this.createSubmissionsRevisions(
+          req,
+          upserted,
+          modified,
+        );
       }
 
       return res.status(failures.length > 0 ? 207 : 200).json(responseBody);

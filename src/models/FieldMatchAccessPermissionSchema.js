@@ -21,25 +21,12 @@ module.exports = function (formio) {
       },
       operator: {
         type: String,
-        enum: [
-          '$eq',
-          '$lt',
-          '$gt',
-          '$lte',
-          '$gte',
-          '$in',
-        ],
+        enum: ['$eq', '$lt', '$gt', '$lte', '$gte', '$in'],
         default: '$eq',
       },
       valueType: {
         type: String,
-        enum: [
-          'string',
-          'number',
-          'boolean',
-          '[string]',
-          '[number]',
-        ],
+        enum: ['string', 'number', 'boolean', '[string]', '[number]'],
         required: function () {
           return typeof this.valueType === 'string' ? false : true;
         },
@@ -65,9 +52,7 @@ module.exports = function (formio) {
         ],
       },
       roles: {
-        type: [
-          formio.mongoose.Schema.Types.ObjectId,
-        ],
+        type: [formio.mongoose.Schema.Types.ObjectId],
         ref: 'role',
       },
     }),

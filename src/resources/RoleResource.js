@@ -18,8 +18,7 @@ module.exports = function (router) {
       if (req.body) {
         if (req.params.roleId) {
           req.body._id = req.params.roleId;
-        }
-        else {
+        } else {
           delete req.body._id;
         }
       }
@@ -31,10 +30,7 @@ module.exports = function (router) {
   ];
   handlers.after = [
     router.formio.middleware.bootstrapNewRoleAccess,
-    router.formio.middleware.filterResourcejsResponse([
-      'deleted',
-      '__v',
-    ]),
+    router.formio.middleware.filterResourcejsResponse(['deleted', '__v']),
   ];
 
   return Resource(router, '', 'role', router.formio.mongoose.model('role')).rest(

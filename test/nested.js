@@ -23,21 +23,15 @@ module.exports = function (app, template, hook) {
           submissionAccess: [
             {
               type: 'read_own',
-              roles: [
-                template.roles.authenticated._id.toString(),
-              ],
+              roles: [template.roles.authenticated._id.toString()],
             },
             {
               type: 'update_own',
-              roles: [
-                template.roles.authenticated._id.toString(),
-              ],
+              roles: [template.roles.authenticated._id.toString()],
             },
             {
               type: 'delete_own',
-              roles: [
-                template.roles.authenticated._id.toString(),
-              ],
+              roles: [template.roles.authenticated._id.toString()],
             },
           ],
           components: [
@@ -128,21 +122,15 @@ module.exports = function (app, template, hook) {
           submissionAccess: [
             {
               type: 'read_own',
-              roles: [
-                template.roles.authenticated._id.toString(),
-              ],
+              roles: [template.roles.authenticated._id.toString()],
             },
             {
               type: 'update_own',
-              roles: [
-                template.roles.authenticated._id.toString(),
-              ],
+              roles: [template.roles.authenticated._id.toString()],
             },
             {
               type: 'delete_own',
-              roles: [
-                template.roles.authenticated._id.toString(),
-              ],
+              roles: [template.roles.authenticated._id.toString()],
             },
           ],
           components: [
@@ -223,13 +211,8 @@ module.exports = function (app, template, hook) {
       var saveResourceAction = {
         title: 'Save Submission',
         name: 'save',
-        handler: [
-          'before',
-        ],
-        method: [
-          'create',
-          'update',
-        ],
+        handler: ['before'],
+        method: ['create', 'update'],
         priority: 11,
         settings: {
           resource: customerResource._id.toString(),
@@ -446,21 +429,15 @@ module.exports = function (app, template, hook) {
             submissionAccess: [
               {
                 type: 'create_own',
-                roles: [
-                  helper.template.roles.authenticated._id.toString(),
-                ],
+                roles: [helper.template.roles.authenticated._id.toString()],
               },
               {
                 type: 'read_own',
-                roles: [
-                  helper.template.roles.authenticated._id.toString(),
-                ],
+                roles: [helper.template.roles.authenticated._id.toString()],
               },
               {
                 type: 'update_own',
-                roles: [
-                  helper.template.roles.authenticated._id.toString(),
-                ],
+                roles: [helper.template.roles.authenticated._id.toString()],
               },
             ],
           },
@@ -523,21 +500,15 @@ module.exports = function (app, template, hook) {
             submissionAccess: [
               {
                 type: 'create_own',
-                roles: [
-                  helper.template.roles.authenticated._id.toString(),
-                ],
+                roles: [helper.template.roles.authenticated._id.toString()],
               },
               {
                 type: 'read_own',
-                roles: [
-                  helper.template.roles.authenticated._id.toString(),
-                ],
+                roles: [helper.template.roles.authenticated._id.toString()],
               },
               {
                 type: 'update_own',
-                roles: [
-                  helper.template.roles.authenticated._id.toString(),
-                ],
+                roles: [helper.template.roles.authenticated._id.toString()],
               },
             ],
           },
@@ -545,13 +516,8 @@ module.exports = function (app, template, hook) {
         .action({
           title: 'Save to A',
           name: 'save',
-          handler: [
-            'before',
-          ],
-          method: [
-            'create',
-            'update',
-          ],
+          handler: ['before'],
+          method: ['create', 'update'],
           priority: 11,
           settings: {
             resource: helper.template.forms.resourcea._id.toString(),
@@ -652,15 +618,7 @@ module.exports = function (app, template, hook) {
     });
 
     it("Should NOT be able to delete the submission as user1 since they don't have permission", (done) => {
-      helper.deleteSubmission(
-        savedSubmission,
-        'user1',
-        [
-          /text\/plain/,
-          401,
-        ],
-        done,
-      );
+      helper.deleteSubmission(savedSubmission, 'user1', [/text\/plain/, 401], done);
     });
 
     it('Should be able to delete the submission as admin.', (done) => {
@@ -682,21 +640,15 @@ module.exports = function (app, template, hook) {
           submissionAccess: [
             {
               type: 'read_own',
-              roles: [
-                template.roles.authenticated._id.toString(),
-              ],
+              roles: [template.roles.authenticated._id.toString()],
             },
             {
               type: 'update_own',
-              roles: [
-                template.roles.authenticated._id.toString(),
-              ],
+              roles: [template.roles.authenticated._id.toString()],
             },
             {
               type: 'delete_own',
-              roles: [
-                template.roles.authenticated._id.toString(),
-              ],
+              roles: [template.roles.authenticated._id.toString()],
             },
           ],
           components: [

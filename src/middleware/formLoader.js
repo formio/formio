@@ -19,7 +19,7 @@ module.exports = function (router) {
 
     const rMethod = _.get(req, '__rMethod', 'get');
     const isArray = Array.isArray(res.resource.item);
-    
+
     if (!req.full && (isArray || rMethod !== 'get')) {
       return next();
     }
@@ -40,12 +40,12 @@ module.exports = function (router) {
 
     // Allow modules to hook into the form loader middleware
     await hook.alter('formResponse', res.resource.item, req);
-    
+
     // Load all subforms recursively if full=true
     if (req.full) {
       await router.formio.cache.loadSubForms(res.resource.item, req);
     }
-    
+
     return next();
   };
 };

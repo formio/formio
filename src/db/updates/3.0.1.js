@@ -87,12 +87,8 @@ module.exports = function (db, config, tools, done) {
                       title: 'Submit to another Resource',
                       form: form._id,
                       priority: 10,
-                      method: [
-                        'create',
-                      ],
-                      handler: [
-                        'before',
-                      ],
+                      method: ['create'],
+                      handler: ['before'],
                       machineName: action.machineName.replace(':auth', ':resource'),
                       deleted: null,
                       settings: {
@@ -107,18 +103,12 @@ module.exports = function (db, config, tools, done) {
                     title: 'Login',
                     form: form._id,
                     priority: 2,
-                    method: [
-                      'create',
-                    ],
-                    handler: [
-                      'before',
-                    ],
+                    method: ['create'],
+                    handler: ['before'],
                     machineName: action.machineName.replace(':auth', ':login'),
                     deleted: null,
                     settings: {
-                      resources: [
-                        resourceForm._id.toString(),
-                      ],
+                      resources: [resourceForm._id.toString()],
                       username: userparts[1],
                       password: passparts[1],
                     },
@@ -128,12 +118,8 @@ module.exports = function (db, config, tools, done) {
                     title: 'Skip Form Submission',
                     form: form._id,
                     priority: 0,
-                    method: [
-                      'create',
-                    ],
-                    handler: [
-                      'before',
-                    ],
+                    method: ['create'],
+                    handler: ['before'],
                     machineName: action.machineName.replace(':auth', ':nosubmit'),
                     deleted: null,
                   });

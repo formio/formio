@@ -27,14 +27,8 @@ module.exports = function (router) {
           description: 'Allows you to trigger an external interface.',
           priority: 0,
           defaults: {
-            handler: [
-              'after',
-            ],
-            method: [
-              'create',
-              'update',
-              'delete',
-            ],
+            handler: ['after'],
+            method: ['create', 'update', 'delete'],
           },
         }),
       );

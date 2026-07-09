@@ -120,11 +120,7 @@ module.exports = function (app, template, hook) {
         .form('testTags', testTags.components)
         .submission({
           data: {
-            tags: [
-              'tag1',
-              'tag2',
-              'tag3',
-            ],
+            tags: ['tag1', 'tag2', 'tag3'],
           },
         })
         .execute((err) => {
@@ -180,9 +176,7 @@ module.exports = function (app, template, hook) {
         .form('radioWithCondition', testRadio.form2.components)
         .submission({
           data: {
-            select: [
-              2,
-            ],
+            select: [2],
           },
         })
         .execute((err) => {
@@ -366,9 +360,18 @@ module.exports = function (app, template, hook) {
             if (error) {
               return done(error);
             }
-            assert.strictEqual(getComponentValue(result.text, 'SelectUrl', 0), '"Alaska,California,Connecticut"');
-            assert.strictEqual(getComponentValue(result.text, 'SelectRawJson', 0), '"Banana,Pineapple,Pear"');
-            assert.strictEqual(getComponentValue(result.text, 'SelectResource', 0), '"Apple,Strawberry"');
+            assert.strictEqual(
+              getComponentValue(result.text, 'SelectUrl', 0),
+              '"Alaska,California,Connecticut"',
+            );
+            assert.strictEqual(
+              getComponentValue(result.text, 'SelectRawJson', 0),
+              '"Banana,Pineapple,Pear"',
+            );
+            assert.strictEqual(
+              getComponentValue(result.text, 'SelectResource', 0),
+              '"Apple,Strawberry"',
+            );
 
             done();
           });

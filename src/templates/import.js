@@ -533,17 +533,12 @@ module.exports = (router) => {
         return hook.alter(`importFormQuery`, query, document, template);
       },
       fallBack: ({ roles }, form, template, done) => {
-        return async.series(
-          [
-            (cb) => fallbackRoles(roles, template, cb),
-          ],
-          (err) => {
-            if (err) {
-              return done(err);
-            }
-            return done();
-          },
-        );
+        return async.series([(cb) => fallbackRoles(roles, template, cb)], (err) => {
+          if (err) {
+            return done(err);
+          }
+          return done();
+        });
       },
     },
     form: {
@@ -673,17 +668,12 @@ module.exports = (router) => {
         return hook.alter(`importActionQuery`, query, document, template);
       },
       fallBack: ({ roles }, form, template, done) => {
-        return async.series(
-          [
-            (cb) => fallbackRoles(roles, template, cb),
-          ],
-          (err) => {
-            if (err) {
-              return done(err);
-            }
-            return done();
-          },
-        );
+        return async.series([(cb) => fallbackRoles(roles, template, cb)], (err) => {
+          if (err) {
+            return done(err);
+          }
+          return done();
+        });
       },
     },
     report: {

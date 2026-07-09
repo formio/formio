@@ -194,15 +194,15 @@ const Utils = {
   eachComponent: Formio.Utils.eachComponent.bind(Formio.Utils),
 
   /**
- * Iterates through each component as well as its data, and triggers a callback for every component along
- * with the contextual data for that component in addition to the absolute path for that component.
- * @param components - The array of JSON components to iterate through.
- * @param data - The contextual data object for the components.
- * @param fn - The callback function to trigger for each component following the signature (component, data, row, path, components, index, parent).
- * @param parent - The parent component.
- * @param includeAll
- * @returns
- */
+   * Iterates through each component as well as its data, and triggers a callback for every component along
+   * with the contextual data for that component in addition to the absolute path for that component.
+   * @param components - The array of JSON components to iterate through.
+   * @param data - The contextual data object for the components.
+   * @param fn - The callback function to trigger for each component following the signature (component, data, row, path, components, index, parent).
+   * @param parent - The parent component.
+   * @param includeAll
+   * @returns
+   */
   eachComponentData: Formio.Utils.eachComponentData.bind(Formio.Utils),
 
   /**
@@ -563,9 +563,7 @@ const Utils = {
 
   removeProtectedFields(form, action, submissions, doNotMinify) {
     if (!Array.isArray(submissions)) {
-      submissions = [
-        submissions,
-      ];
+      submissions = [submissions];
     }
 
     // Initialize our delete fields array.
@@ -656,8 +654,7 @@ const Utils = {
       let records;
       try {
         records = await model.find(query).hint({ machineName: 1, deleted: 1 }).lean().exec();
-      }
-      catch (err) {
+      } catch (err) {
         // Fallback if bad hint or index not found
         if (err.code === 2 || err.code === 291) {
           records = await model.find(query).lean().exec();
@@ -718,14 +715,7 @@ const Utils = {
     return `${prefix ? `${prefix}.` : ''}${key}`;
   },
 
-  layoutComponents: [
-    'panel',
-    'table',
-    'well',
-    'columns',
-    'fieldset',
-    'tabs',
-  ],
+  layoutComponents: ['panel', 'table', 'well', 'columns', 'fieldset', 'tabs'],
 
   /*eslint max-depth: ["error", 4]*/
   eachValue(components, data, fn, context, path = '', fullPath = '') {
@@ -734,11 +724,7 @@ const Utils = {
         if (Array.isArray(component.components)) {
           // If tree type is an array of objects like datagrid and editgrid.
           if (
-            [
-              'datagrid',
-              'editgrid',
-              'dynamicWizard',
-            ].includes(component.type) ||
+            ['datagrid', 'editgrid', 'dynamicWizard'].includes(component.type) ||
             component.arrayTree
           ) {
             const value = _.get(data, component.key) || [];
@@ -753,11 +739,7 @@ const Utils = {
                 );
               });
             }
-          } else if (
-            [
-              'form',
-            ].includes(component.type)
-          ) {
+          } else if (['form'].includes(component.type)) {
             this.eachValue(
               component.components,
               _.get(data, `${component.key}.data`, {}),
@@ -766,9 +748,7 @@ const Utils = {
               this.valuePath(path, `${component.key}.data`),
             );
           } else if (
-            [
-              'container',
-            ].includes(component.type) ||
+            ['container'].includes(component.type) ||
             (component.tree && !this.layoutComponents.includes(component.type))
           ) {
             this.eachValue(
@@ -853,13 +833,7 @@ const Utils = {
           }
 
           // Get the filter object.
-          const filter = _.zipObject(
-            [
-              'name',
-              'selector',
-            ],
-            name.split('__'),
-          );
+          const filter = _.zipObject(['name', 'selector'], name.split('__'));
           // Convert to component key
           const key = Utils.getFormComponentKey(filter.name).substring(prefix.length);
           const component = Utils.getComponent(currentForm.components, key);
@@ -874,13 +848,7 @@ const Utils = {
               case 'datetime': {
                 const date = moment.utc(
                   value,
-                  [
-                    'YYYY-MM-DD',
-                    'YYYY-MM',
-                    'YYYY',
-                    'x',
-                    moment.ISO_8601,
-                  ],
+                  ['YYYY-MM-DD', 'YYYY-MM', 'YYYY', 'x', moment.ISO_8601],
                   true,
                 );
 
@@ -902,13 +870,7 @@ const Utils = {
               }
             }
           }
-          if (
-            !component &&
-            [
-              'true',
-              'false',
-            ].includes(value)
-          ) {
+          if (!component && ['true', 'false'].includes(value)) {
             return value !== 'false';
           }
           return value;

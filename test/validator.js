@@ -605,29 +605,31 @@ module.exports = function (app, template, hook) {
 
     it('Should return validation error when t() is used in custom validation logic', async function () {
       const form = {
-        components: [{
-            "label": "Text Field",
-            "applyMaskOn": "change",
-            "tableView": true,
-            "validate": {
-              "custom": "valid = (input === 'Joe') ? true : t('joeMsg');"
+        components: [
+          {
+            label: 'Text Field',
+            applyMaskOn: 'change',
+            tableView: true,
+            validate: {
+              custom: "valid = (input === 'Joe') ? true : t('joeMsg');",
             },
-            "validateWhenHidden": false,
-            "key": "textField",
-            "type": "textfield",
-            "input": true
+            validateWhenHidden: false,
+            key: 'textField',
+            type: 'textfield',
+            input: true,
           },
           {
-            "label": "Submit",
-            "tableView": false,
-            "key": "submit",
-            "type": "button",
-            "input": true,
-            "saveOnEnter": false
-          }
+            label: 'Submit',
+            tableView: false,
+            key: 'submit',
+            type: 'button',
+            input: true,
+            saveOnEnter: false,
+          },
         ],
       };
-      const validator = new Validator({
+      const validator = new Validator(
+        {
           headers: {
             'x-jwt-token': template.users.admin.token,
           },
@@ -637,7 +639,7 @@ module.exports = function (app, template, hook) {
       );
       const submission = {
         data: {
-          textField: 'test'
+          textField: 'test',
         },
       };
       await validator.validate(submission, (err, data) => {
@@ -660,7 +662,7 @@ module.exports = function (app, template, hook) {
             content: 'rewrw',
             refreshOnChange: false,
             key: 'html',
-            customConditional:'show = !instance.component.customConditional;\n',
+            customConditional: 'show = !instance.component.customConditional;\n',
             type: 'htmlelement',
             input: false,
             tableView: false,
@@ -700,7 +702,7 @@ module.exports = function (app, template, hook) {
         assert.equal(submission.scope?.conditionals[0]?.conditionallyHidden, true);
       });
     });
-    
+
     after(function (done) {
       request(app)
         .delete(hook.alter('url', `/form/${resourceWithFlatComponentsId}`, template))

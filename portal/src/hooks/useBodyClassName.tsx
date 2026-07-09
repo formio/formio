@@ -8,7 +8,5 @@ export const useBodyClassName = (className: string = '') => {
     return () => {
       document.body.classList.remove(...classesToAdd);
     };
-  }, [
-    className,
-  ]);
+  }, [className]);
 };

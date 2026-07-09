@@ -22,6 +22,7 @@ module.exports = function (formio) {
       }
       return false;
     },
+    // GOTCHA(G-FOS01)
     alter() {
       const name = arguments[0];
       const fn =

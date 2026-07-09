@@ -25,12 +25,8 @@ module.exports = (router) => {
         description: 'Provides a way to login to the application.',
         priority: 2,
         defaults: {
-          handler: [
-            'before',
-          ],
-          method: [
-            'create',
-          ],
+          handler: ['before'],
+          method: ['create'],
         },
         access: {
           handler: false,

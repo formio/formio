@@ -19,9 +19,7 @@ import { CreatePanel } from './InfoPanel/CreatePanel';
 const App = () => {
   const { isAuthenticated, logout } = useFormioContext();
   const { isOpen, setIsOpen } = useInfoPanelContext();
-  const [
-    location,
-  ] = useHashLocation();
+  const [location] = useHashLocation();
 
   const toggleInfoPanel = () => {
     setIsOpen(!isOpen);

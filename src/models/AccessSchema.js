@@ -2,14 +2,7 @@
 
 module.exports = function (formio) {
   // Define the available permissions for a submission.
-  const available = [
-    'read',
-    'create',
-    'update',
-    'delete',
-    'write',
-    'admin',
-  ];
+  const available = ['read', 'create', 'update', 'delete', 'write', 'admin'];
 
   // Defines the permissions schema for submission permissions.
   return new formio.mongoose.Schema(
@@ -21,9 +14,7 @@ module.exports = function (formio) {
           'A permission type is required to associate an available permission with a Resource.',
       },
       resources: {
-        type: [
-          formio.mongoose.Schema.Types.Mixed,
-        ],
+        type: [formio.mongoose.Schema.Types.Mixed],
         ref: 'form',
         set(resources) {
           // Attempt to convert to objectId.

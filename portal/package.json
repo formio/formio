@@ -1,6 +1,6 @@
 {
   "name": "oss-portal",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "main": "index.js",
   "author": "brendanjbond <brendanbond@gmail.com>",
@@ -31,7 +31,7 @@
     "eslint": "^9.22.0",
     "eslint-config-prettier": "^10.1.1",
     "eslint-plugin-react": "^7.37.4",
-    "eslint-plugin-react-hooks": "^4.6.2",
+    "eslint-plugin-react-hooks": "^5.2.0",
     "globals": "^15.1.0",
     "jsdom": "^26.0.0",
     "msw": "^2.7.0",

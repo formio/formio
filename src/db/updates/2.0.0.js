@@ -66,20 +66,13 @@ module.exports = function (db, config, tools, done) {
         .catch((err) => next(err));
     };
 
-    async.series(
-      [
-        dropIndex,
-        rename,
-        createIndex,
-      ],
-      function (err) {
-        if (err) {
-          return cb(err);
-        }
+    async.series([dropIndex, rename, createIndex], function (err) {
+      if (err) {
+        return cb(err);
+      }
 
-        cb();
-      },
-    );
+      cb();
+    });
   };
 
   /**
@@ -115,34 +108,20 @@ module.exports = function (db, config, tools, done) {
         .catch((err) => next(err));
     };
 
-    async.series(
-      [
-        dropIndex,
-        rename,
-        createIndex,
-      ],
-      function (err) {
-        if (err) {
-          return cb(err);
-        }
-
-        cb();
-      },
-    );
-  };
-
-  async.series(
-    [
-      updateApplications,
-      updateForms,
-      updateRoles,
-    ],
-    function (err) {
+    async.series([dropIndex, rename, createIndex], function (err) {
       if (err) {
-        return done(err);
+        return cb(err);
       }
 
-      done();
-    },
-  );
+      cb();
+    });
+  };
+
+  async.series([updateApplications, updateForms, updateRoles], function (err) {
+    if (err) {
+      return done(err);
+    }
+
+    done();
+  });
 };

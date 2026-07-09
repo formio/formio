@@ -364,30 +364,19 @@ const insertSurveyTable = (componentRenderContext, value) => {
     </thead>`;
   const rows = value
     ? Object.entries(value)
-        .map(
-          ([
-            key,
-            value,
-          ]) => {
-            const question = _.find(component.questions, [
-              'value',
-              key,
-            ]);
-            const answer = _.find(component.values, [
-              'value',
-              value,
-            ]);
-            if (!question || !answer) {
-              return;
-            }
-            return `
+        .map(([key, value]) => {
+          const question = _.find(component.questions, ['value', key]);
+          const answer = _.find(component.values, ['value', value]);
+          if (!question || !answer) {
+            return;
+          }
+          return `
             <tr>
               <td style="text-align:center;padding: 5px 10px;">${question.label}</td>
               <td style="text-align:center;padding: 5px 10px;">${answer.label}</td>
             </tr>
         `;
-          },
-        )
+        })
         .join('')
     : '';
   insertTable(componentRenderContext, rows, tHead);
@@ -396,12 +385,7 @@ const insertSurveyTable = (componentRenderContext, value) => {
 const insertDataMapTable = (componentRenderContext, value) => {
   const rows = value
     ? Object.entries(value)
-        .map(
-          ([
-            key,
-            value,
-          ]) => insertRow(componentRenderContext, value, key, true),
-        )
+        .map(([key, value]) => insertRow(componentRenderContext, value, key, true))
         .join('')
     : '';
   insertTable(componentRenderContext, rows);

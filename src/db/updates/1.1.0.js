@@ -3,7 +3,6 @@
 let crypto = require('crypto');
 const { deriveKeyAndIv } = require('../util');
 
-
 /**
  * Encrypt some text
  * @param   {String} secret
@@ -19,10 +18,7 @@ function encrypt(secret, mixed) {
   const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
   let decryptedJSON = JSON.stringify(mixed);
 
-  return Buffer.concat([
-    cipher.update(decryptedJSON),
-    cipher.final(),
-  ]);
+  return Buffer.concat([cipher.update(decryptedJSON), cipher.final()]);
 }
 
 /**

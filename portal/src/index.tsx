@@ -9,6 +9,7 @@ import App from './components/App';
 import { InfoPanelProvider } from './hooks/useInfoPanelContext';
 import 'remixicon/fonts/remixicon.css';
 
+// eslint-disable-next-line react-hooks/rules-of-hooks -- Formio.use is a plugin registration, not a React hook
 Formio.use(AdditionalComponentsModule);
 const el = document.getElementById('root');
 if (!el) {

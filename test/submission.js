@@ -161,10 +161,7 @@ module.exports = function (app, template, hook) {
         helper.updateSubmission(
           updateSub,
           helper.owner,
-          [
-            /application\/json/,
-            400,
-          ],
+          [/application\/json/, 400],
           function (err, updated) {
             // It should fail validation.
             assert.equal(updated.name, 'ValidationError');
@@ -229,13 +226,7 @@ module.exports = function (app, template, hook) {
           objectval: {
             other: 'things',
           },
-          arrayVal: [
-            'never',
-            'gonna',
-            'give',
-            'you',
-            'up',
-          ],
+          arrayVal: ['never', 'gonna', 'give', 'you', 'up'],
         });
         helper
           .form('test', test.components)
@@ -292,9 +283,7 @@ module.exports = function (app, template, hook) {
                 },
                 message: 'Text Field does not match the mask.',
                 level: 'error',
-                path: [
-                  'textField',
-                ],
+                path: ['textField'],
               },
             ]);
             done();
@@ -318,9 +307,9 @@ module.exports = function (app, template, hook) {
       });
     });
 
-    describe ('Submissions with Data Source components', function () {
+    describe('Submissions with Data Source components', function () {
       const forms = require('./fixtures/forms/dataSourceComponents.js');
-      
+
       it('Data Source component with Trigger on Server: false should not be triggered on server', function (done) {
         const test = forms.triggerOnServer;
 
@@ -402,7 +391,7 @@ module.exports = function (app, template, hook) {
             done();
           });
       });
-    })
+    });
 
     describe('Server Calculated', function () {
       it('Recalculate value on server', function (done) {
@@ -932,12 +921,7 @@ module.exports = function (app, template, hook) {
           container1: Object.assign({}, test.submission, {
             extra: true,
             stuff: 'bad',
-            never: [
-              'gonna',
-              'give',
-              'you',
-              'up',
-            ],
+            never: ['gonna', 'give', 'you', 'up'],
           }),
         };
 
@@ -1097,10 +1081,7 @@ module.exports = function (app, template, hook) {
         ];
 
         var values = {
-          datagrid1: [
-            test.submission,
-            test.submission,
-          ],
+          datagrid1: [test.submission, test.submission],
         };
 
         helper
@@ -1202,9 +1183,7 @@ module.exports = function (app, template, hook) {
         var values = {
           datagrid1: [
             {
-              datagrid2: [
-                test.submission,
-              ],
+              datagrid2: [test.submission],
             },
           ],
         };
@@ -1263,9 +1242,7 @@ module.exports = function (app, template, hook) {
 
         var values = {
           container1: {
-            datagrid2: [
-              test.submission,
-            ],
+            datagrid2: [test.submission],
           },
         };
 
@@ -1467,9 +1444,7 @@ module.exports = function (app, template, hook) {
         ];
 
         var values = {
-          datagrid1: [
-            test.submission,
-          ],
+          datagrid1: [test.submission],
         };
 
         helper
@@ -1836,9 +1811,7 @@ module.exports = function (app, template, hook) {
                 },
                 message: 'Required Field is required',
                 level: 'error',
-                path: [
-                  'requiredField',
-                ],
+                path: ['requiredField'],
               },
             ]);
             done();
@@ -2312,9 +2285,7 @@ module.exports = function (app, template, hook) {
                 },
                 message: 'Required Field is required',
                 level: 'error',
-                path: [
-                  'requiredField',
-                ],
+                path: ['requiredField'],
               },
             ]);
             done();
@@ -2902,9 +2873,7 @@ module.exports = function (app, template, hook) {
 
             var submission = helper.getLastSubmission();
             assert.deepEqual(submission.data, {
-              textField: [
-                'My Value',
-              ],
+              textField: ['My Value'],
             });
             done();
           });
@@ -2996,13 +2965,7 @@ module.exports = function (app, template, hook) {
           },
         ];
         var values = {
-          textField: [
-            'Never',
-            'gonna',
-            'give',
-            'you',
-            'up',
-          ],
+          textField: ['Never', 'gonna', 'give', 'you', 'up'],
         };
 
         helper
@@ -3026,18 +2989,10 @@ module.exports = function (app, template, hook) {
                   setting: false,
                   path: 'textField',
                   validator: 'nonarray',
-                  value: [
-                    'Never',
-                    'gonna',
-                    'give',
-                    'you',
-                    'up',
-                  ],
+                  value: ['Never', 'gonna', 'give', 'you', 'up'],
                 },
                 message: 'Text Field must not be an array',
-                path: [
-                  'textField',
-                ],
+                path: ['textField'],
                 level: 'error',
               },
             ]);
@@ -3134,9 +3089,7 @@ module.exports = function (app, template, hook) {
             assert.equal(helper.lastResponse.body.name, 'ValidationError');
             assert.equal(helper.lastResponse.body.details.length, 1);
             assert.equal(helper.lastResponse.body.details[0].message, 'Text Field must be unique');
-            assert.deepEqual(helper.lastResponse.body.details[0].path, [
-              'textField',
-            ]);
+            assert.deepEqual(helper.lastResponse.body.details[0].path, ['textField']);
             done();
           });
       });
@@ -3180,13 +3133,9 @@ module.exports = function (app, template, hook) {
             assert.equal(helper.lastResponse.body.name, 'ValidationError');
             assert.equal(helper.lastResponse.body.details.length, 2);
             assert.equal(helper.lastResponse.body.details[0].message, 'Email must be unique');
-            assert.deepEqual(helper.lastResponse.body.details[0].path, [
-              'email',
-            ]);
+            assert.deepEqual(helper.lastResponse.body.details[0].path, ['email']);
             assert.equal(helper.lastResponse.body.details[1].message, 'Text Field must be unique');
-            assert.deepEqual(helper.lastResponse.body.details[1].path, [
-              'textField',
-            ]);
+            assert.deepEqual(helper.lastResponse.body.details[1].path, ['textField']);
             done();
           });
       });
@@ -3246,12 +3195,8 @@ module.exports = function (app, template, hook) {
               'Text Field must be an array',
             );
             assert.equal(helper.lastResponse.body.details[1].message, 'Text Field is required');
-            assert.deepEqual(helper.lastResponse.body.details[0].path, [
-              'textField',
-            ]);
-            assert.deepEqual(helper.lastResponse.body.details[1].path, [
-              'textField',
-            ]);
+            assert.deepEqual(helper.lastResponse.body.details[0].path, ['textField']);
+            assert.deepEqual(helper.lastResponse.body.details[1].path, ['textField']);
             done();
           });
       });
@@ -3295,16 +3240,10 @@ module.exports = function (app, template, hook) {
         helper
           .form('test', components)
           .submission({
-            textField: [
-              'Foo',
-              'Bar',
-            ],
+            textField: ['Foo', 'Bar'],
           })
           .submission({
-            textField: [
-              'Bar',
-              'Baz',
-            ],
+            textField: ['Bar', 'Baz'],
           })
           .execute(function (err) {
             if (err) {
@@ -3314,10 +3253,7 @@ module.exports = function (app, template, hook) {
             var submission = helper.getLastSubmission();
             assert(submission.hasOwnProperty('data'));
             assert.deepEqual(submission.data, {
-              textField: [
-                'Bar',
-                'Baz',
-              ],
+              textField: ['Bar', 'Baz'],
             });
             done();
           });
@@ -3327,10 +3263,7 @@ module.exports = function (app, template, hook) {
         helper
           .form('test', components)
           .submission({
-            textField: [
-              'Bar',
-              'Foo',
-            ],
+            textField: ['Bar', 'Foo'],
           })
           .expect(400)
           .execute(function (err) {
@@ -3342,9 +3275,7 @@ module.exports = function (app, template, hook) {
             assert.equal(helper.lastResponse.body.name, 'ValidationError');
             assert.equal(helper.lastResponse.body.details.length, 1);
             assert.equal(helper.lastResponse.body.details[0].message, 'Text Field must be unique');
-            assert.deepEqual(helper.lastResponse.body.details[0].path, [
-              'textField',
-            ]);
+            assert.deepEqual(helper.lastResponse.body.details[0].path, ['textField']);
             done();
           });
       });
@@ -3471,9 +3402,7 @@ module.exports = function (app, template, hook) {
             assert.equal(helper.lastResponse.body.name, 'ValidationError');
             assert.equal(helper.lastResponse.body.details.length, 1);
             assert.equal(helper.lastResponse.body.details[0].message, 'address must be unique');
-            assert.deepEqual(helper.lastResponse.body.details[0].path, [
-              'for213',
-            ]);
+            assert.deepEqual(helper.lastResponse.body.details[0].path, ['for213']);
             done();
           });
       });
@@ -3673,12 +3602,7 @@ module.exports = function (app, template, hook) {
                 !_.isEmpty(submission.metadata.headers),
               'Submission metadata should include post headers',
             );
-            assert.deepEqual(
-              _.omit(submission.metadata, [
-                'headers',
-              ]),
-              { testing: 'hello' },
-            );
+            assert.deepEqual(_.omit(submission.metadata, ['headers']), { testing: 'hello' });
             done();
           });
       });
@@ -3801,9 +3725,7 @@ module.exports = function (app, template, hook) {
                 helper.lastResponse.body.details[0].message,
                 'Select a fruit contains an invalid selection',
               );
-              assert.deepEqual(helper.lastResponse.body.details[0].path, [
-                'fruit',
-              ]);
+              assert.deepEqual(helper.lastResponse.body.details[0].path, ['fruit']);
               done();
             });
         });
@@ -3851,9 +3773,7 @@ module.exports = function (app, template, hook) {
                   helper.lastResponse.body.details[0].message,
                   'Select a fruit contains an invalid selection',
                 );
-                assert.deepEqual(helper.lastResponse.body.details[0].path, [
-                  'fruit',
-                ]);
+                assert.deepEqual(helper.lastResponse.body.details[0].path, ['fruit']);
                 done();
               });
           });
@@ -3885,9 +3805,7 @@ module.exports = function (app, template, hook) {
                   helper.lastResponse.body.details[0].message,
                   'Select a fruit contains an invalid selection',
                 );
-                assert.deepEqual(helper.lastResponse.body.details[0].path, [
-                  'fruit',
-                ]);
+                assert.deepEqual(helper.lastResponse.body.details[0].path, ['fruit']);
                 done();
               });
           });
@@ -3920,9 +3838,7 @@ module.exports = function (app, template, hook) {
                   submissionAccess: [
                     {
                       type: 'read_all',
-                      roles: [
-                        helper.template.roles.authenticated._id.toString(),
-                      ],
+                      roles: [helper.template.roles.authenticated._id.toString()],
                     },
                   ],
                 },
@@ -4014,209 +3930,209 @@ module.exports = function (app, template, hook) {
         });
       });
 
-      describe('Select resource with reference enabled', () => {
-        let referenceSubmissionId = null;
-        before((done) => {
-          // Create a resource to keep records.
-          helper
-            .form('resourceForm', [
-              {
-                label: 'Ref Id',
-                applyMaskOn: 'change',
-                tableView: true,
-                validateWhenHidden: false,
-                key: 'refId',
-                type: 'textfield',
-                input: true,
-              },
-              {
-                label: 'Code',
-                applyMaskOn: 'change',
-                tableView: true,
-                validateWhenHidden: false,
-                key: 'code',
-                type: 'textfield',
-                input: true,
-              },
-              {
-                label: 'Description',
-                applyMaskOn: 'change',
-                tableView: true,
-                validateWhenHidden: false,
-                key: 'description',
-                type: 'textfield',
-                input: true,
-              },
-              {
-                type: 'button',
-                label: 'Submit',
-                key: 'submit',
-                disableOnInvalid: true,
-                input: true,
-                tableView: false,
-              },
-            ])
-            .submission('resourceForm', { refId: '004', code: 'a', description: 'AAA' })
+    describe('Select resource with reference enabled', () => {
+      let referenceSubmissionId = null;
+      before((done) => {
+        // Create a resource to keep records.
+        helper
+          .form('resourceForm', [
+            {
+              label: 'Ref Id',
+              applyMaskOn: 'change',
+              tableView: true,
+              validateWhenHidden: false,
+              key: 'refId',
+              type: 'textfield',
+              input: true,
+            },
+            {
+              label: 'Code',
+              applyMaskOn: 'change',
+              tableView: true,
+              validateWhenHidden: false,
+              key: 'code',
+              type: 'textfield',
+              input: true,
+            },
+            {
+              label: 'Description',
+              applyMaskOn: 'change',
+              tableView: true,
+              validateWhenHidden: false,
+              key: 'description',
+              type: 'textfield',
+              input: true,
+            },
+            {
+              type: 'button',
+              label: 'Submit',
+              key: 'submit',
+              disableOnInvalid: true,
+              input: true,
+              tableView: false,
+            },
+          ])
+          .submission('resourceForm', { refId: '004', code: 'a', description: 'AAA' })
 
-            .execute(function (err) {
-              if (err) {
-                return done(err);
-              }
+          .execute(function (err) {
+            if (err) {
+              return done(err);
+            }
 
-              referenceSubmissionId = helper.getLastSubmission()._id;
-              helper
-                .form('selectRefTestForm', [
-                  {
-                    label: 'Select',
-                    widget: 'choicesjs',
-                    tableView: true,
-                    dataSrc: 'resource',
-                    data: {
-                      resource: helper.template.forms['resourceForm']._id,
-                    },
-                    template: '<span>{{ item.data.code }} - {{ item.data.description }}</span>',
-                    noRefreshOnScroll: false,
-                    addResource: false,
-                    reference: true,
-                    validate: {
-                      required: true,
-                    },
-                    validateWhenHidden: false,
-                    key: 'select',
-                    type: 'select',
-                    input: true,
+            referenceSubmissionId = helper.getLastSubmission()._id;
+            helper
+              .form('selectRefTestForm', [
+                {
+                  label: 'Select',
+                  widget: 'choicesjs',
+                  tableView: true,
+                  dataSrc: 'resource',
+                  data: {
+                    resource: helper.template.forms['resourceForm']._id,
                   },
-                  {
-                    label: 'Field A',
-                    applyMaskOn: 'change',
-                    tableView: true,
-                    validate: {
-                      required: true,
-                    },
-                    validateWhenHidden: false,
-                    key: 'fieldA',
-                    conditional: {
-                      show: true,
-                      conjunction: 'all',
-                      conditions: [
-                        {
-                          component: 'select',
-                          operator: 'isEqual',
-                          value: {
-                            data: {
-                              code: 'a',
-                              description: 'AAA',
-                            },
+                  template: '<span>{{ item.data.code }} - {{ item.data.description }}</span>',
+                  noRefreshOnScroll: false,
+                  addResource: false,
+                  reference: true,
+                  validate: {
+                    required: true,
+                  },
+                  validateWhenHidden: false,
+                  key: 'select',
+                  type: 'select',
+                  input: true,
+                },
+                {
+                  label: 'Field A',
+                  applyMaskOn: 'change',
+                  tableView: true,
+                  validate: {
+                    required: true,
+                  },
+                  validateWhenHidden: false,
+                  key: 'fieldA',
+                  conditional: {
+                    show: true,
+                    conjunction: 'all',
+                    conditions: [
+                      {
+                        component: 'select',
+                        operator: 'isEqual',
+                        value: {
+                          data: {
+                            code: 'a',
+                            description: 'AAA',
                           },
                         },
-                      ],
-                    },
-                    type: 'textfield',
-                    input: true,
-                    'widget.type': 'input',
+                      },
+                    ],
                   },
-                  {
-                    type: 'button',
-                    label: 'Submit',
-                    key: 'submit',
-                    disableOnInvalid: true,
-                    input: true,
-                    tableView: false,
-                  },
-                ])
-                .execute((err) => {
-                  if (err) {
-                    return done(err);
-                  }
-
-                  done();
-                });
-            });
-        });
-
-        it('Should return validation error on attempt to submit empty value for conditionally visible required field when correct select reference data is provided', (done) => {
-          helper
-            .submission('selectRefTestForm', {
-              data: {
-                select: {
-                  _id: referenceSubmissionId,
-                  data: {
-                    refId: '004',
-                    code: 'a',
-                    description: 'AAA',
-                  },
+                  type: 'textfield',
+                  input: true,
+                  'widget.type': 'input',
                 },
-                fieldA: null,
-              },
-            })
-            .expect(400)
-            .execute((err, res) => {
-              if (err) {
-                return done(err);
-              }
-              const response = res.lastSubmission;
-              assert.equal(response.name, 'ValidationError');
-              assert.equal(response.details[0].message, 'Field A is required');
-
-              done();
-            });
-        });
-
-        it('Should return validation error on attempt to submit empty value for conditionally visible required field when INcorrect select reference data is provided', (done) => {
-          helper
-            .submission('selectRefTestForm', {
-              data: {
-                select: {
-                  _id: referenceSubmissionId,
-                  data: {
-                    refId: '004',
-                  },
+                {
+                  type: 'button',
+                  label: 'Submit',
+                  key: 'submit',
+                  disableOnInvalid: true,
+                  input: true,
+                  tableView: false,
                 },
-                fieldA: null,
-              },
-            })
-            .expect(400)
-            .execute((err, res) => {
-              if (err) {
-                return done(err);
-              }
-              const response = res.lastSubmission;
-              assert.equal(response.name, 'ValidationError');
-              assert.equal(response.details[0].message, 'Field A is required');
+              ])
+              .execute((err) => {
+                if (err) {
+                  return done(err);
+                }
 
-              done();
-            });
-        });
-
-        it('Should create submission when INcorrect select reference data is provided and return correct data', (done) => {
-          helper
-            .submission('selectRefTestForm', {
-              data: {
-                select: {
-                  _id: referenceSubmissionId,
-                  data: {
-                    refId: '004',
-                  },
-                },
-                fieldA: 'test',
-              },
-            })
-            .execute((err) => {
-              if (err) {
-                return done(err);
-              }
-              const submission = helper.getLastSubmission();
-              assert.equal(submission.data.select._id, referenceSubmissionId);
-              assert.deepEqual(submission.data.select.data, {
-                refId: '004',
-                code: 'a',
-                description: 'AAA',
+                done();
               });
-
-              done();
-            });
-        });
+          });
       });
+
+      it('Should return validation error on attempt to submit empty value for conditionally visible required field when correct select reference data is provided', (done) => {
+        helper
+          .submission('selectRefTestForm', {
+            data: {
+              select: {
+                _id: referenceSubmissionId,
+                data: {
+                  refId: '004',
+                  code: 'a',
+                  description: 'AAA',
+                },
+              },
+              fieldA: null,
+            },
+          })
+          .expect(400)
+          .execute((err, res) => {
+            if (err) {
+              return done(err);
+            }
+            const response = res.lastSubmission;
+            assert.equal(response.name, 'ValidationError');
+            assert.equal(response.details[0].message, 'Field A is required');
+
+            done();
+          });
+      });
+
+      it('Should return validation error on attempt to submit empty value for conditionally visible required field when INcorrect select reference data is provided', (done) => {
+        helper
+          .submission('selectRefTestForm', {
+            data: {
+              select: {
+                _id: referenceSubmissionId,
+                data: {
+                  refId: '004',
+                },
+              },
+              fieldA: null,
+            },
+          })
+          .expect(400)
+          .execute((err, res) => {
+            if (err) {
+              return done(err);
+            }
+            const response = res.lastSubmission;
+            assert.equal(response.name, 'ValidationError');
+            assert.equal(response.details[0].message, 'Field A is required');
+
+            done();
+          });
+      });
+
+      it('Should create submission when INcorrect select reference data is provided and return correct data', (done) => {
+        helper
+          .submission('selectRefTestForm', {
+            data: {
+              select: {
+                _id: referenceSubmissionId,
+                data: {
+                  refId: '004',
+                },
+              },
+              fieldA: 'test',
+            },
+          })
+          .execute((err) => {
+            if (err) {
+              return done(err);
+            }
+            const submission = helper.getLastSubmission();
+            assert.equal(submission.data.select._id, referenceSubmissionId);
+            assert.deepEqual(submission.data.select.data, {
+              refId: '004',
+              code: 'a',
+              description: 'AAA',
+            });
+
+            done();
+          });
+      });
+    });
 
     describe('Data table validation', () => {
       before((done) => {
@@ -4287,9 +4203,7 @@ module.exports = function (app, template, hook) {
                   isSubmitData: false,
                   fetch: {
                     enableFetch: true,
-                    headers: [
-                      {},
-                    ],
+                    headers: [{}],
                     components: [
                       {
                         path: 'name',
@@ -4322,10 +4236,7 @@ module.exports = function (app, template, hook) {
       it('Should save the submission of the selected values', (done) => {
         helper
           .submission('fruitTable', {
-            dataTable: [
-              { name: 'Apple' },
-              { name: 'Pear' },
-            ],
+            dataTable: [{ name: 'Apple' }, { name: 'Pear' }],
           })
           .execute((err) => {
             if (err) {
@@ -4334,10 +4245,7 @@ module.exports = function (app, template, hook) {
 
             var submission = helper.getLastSubmission();
             assert.deepEqual(submission.data, {
-              dataTable: [
-                { name: 'Apple' },
-                { name: 'Pear' },
-              ],
+              dataTable: [{ name: 'Apple' }, { name: 'Pear' }],
             });
             done();
           });
@@ -4396,10 +4304,7 @@ module.exports = function (app, template, hook) {
       it('Should throw an error when the new field is not provided', (done) => {
         helper
           .submission('fruitTable', {
-            dataTable: [
-              { name: 'Apple' },
-              { name: 'Orange' },
-            ],
+            dataTable: [{ name: 'Apple' }, { name: 'Orange' }],
           })
           .expect(400)
           .execute((err) => {
@@ -4410,11 +4315,7 @@ module.exports = function (app, template, hook) {
             assert.equal(helper.lastResponse.body.name, 'ValidationError');
             assert.equal(helper.lastResponse.body.details.length, 2);
             assert.equal(helper.lastResponse.body.details[0].message, 'Color is required');
-            assert.deepEqual(helper.lastResponse.body.details[0].path, [
-              'dataTable',
-              0,
-              'color',
-            ]);
+            assert.deepEqual(helper.lastResponse.body.details[0].path, ['dataTable', 0, 'color']);
             done();
           });
       });
@@ -4556,9 +4457,7 @@ module.exports = function (app, template, hook) {
                 },
                 level: 'error',
                 message: 'Two is required',
-                path: [
-                  'changeme',
-                ],
+                path: ['changeme'],
               },
             ]);
             done();
@@ -4810,9 +4709,7 @@ module.exports = function (app, template, hook) {
                 },
                 level: 'error',
                 message: 'Test is required',
-                path: [
-                  'test',
-                ],
+                path: ['test'],
               },
             ]);
             done();
@@ -5421,19 +5318,15 @@ module.exports = function (app, template, hook) {
               // GET re-hydrates from the stored reference. If the stored _id
               // were a `{buffer: BinData}` plain doc instead of an ObjectId,
               // the lookup would fail and the response would expose that shape.
-              helper.getSubmission(
-                'patchReferenceLogic',
-                patched._id,
-                (err, fromGet) => {
-                  if (err) {
-                    return done(err);
-                  }
-                  assert.equal(typeof fromGet.data.pet._id, 'string');
-                  assert.match(fromGet.data.pet._id, /^[0-9a-f]{24}$/);
-                  assert.equal(fromGet.data.pet._id, petSubmissionId);
-                  done();
-                },
-              );
+              helper.getSubmission('patchReferenceLogic', patched._id, (err, fromGet) => {
+                if (err) {
+                  return done(err);
+                }
+                assert.equal(typeof fromGet.data.pet._id, 'string');
+                assert.match(fromGet.data.pet._id, /^[0-9a-f]{24}$/);
+                assert.equal(fromGet.data.pet._id, petSubmissionId);
+                done();
+              });
             },
           );
         });
@@ -5714,10 +5607,7 @@ module.exports = function (app, template, hook) {
         form,
         payload,
         null,
-        [
-          /application\/json/,
-          400,
-        ],
+        [/application\/json/, 400],
         false,
         function (err, res) {
           assert.equal(
@@ -5737,10 +5627,7 @@ module.exports = function (app, template, hook) {
         form,
         payload,
         null,
-        [
-          /application\/json/,
-          400,
-        ],
+        [/application\/json/, 400],
         false,
         function (err, res) {
           assert.equal(
@@ -5760,10 +5647,7 @@ module.exports = function (app, template, hook) {
         form,
         payload,
         null,
-        [
-          /application\/json/,
-          400,
-        ],
+        [/application\/json/, 400],
         false,
         function (err, res) {
           assert.equal(
@@ -5789,10 +5673,7 @@ module.exports = function (app, template, hook) {
         form,
         batch,
         null,
-        [
-          /application\/json/,
-          201,
-        ],
+        [/application\/json/, 201],
         false,
         function (err, res) {
           assert.equal(helper.getLastBulkSubmission().insertedCount, batch.length);
@@ -5822,10 +5703,7 @@ module.exports = function (app, template, hook) {
         form,
         submissions,
         null,
-        [
-          /application\/json/,
-          207,
-        ],
+        [/application\/json/, 207],
         false,
         function (err, res) {
           assert.equal(helper.getLastBulkSubmission().insertedCount, 1);
@@ -5845,10 +5723,7 @@ module.exports = function (app, template, hook) {
         form,
         submissions,
         null,
-        [
-          /application\/json/,
-          207,
-        ],
+        [/application\/json/, 207],
         false,
         function (err, res) {
           assert.equal(helper.getLastBulkSubmission().insertedCount, 1);
@@ -5868,10 +5743,7 @@ module.exports = function (app, template, hook) {
         form,
         submissions,
         null,
-        [
-          /application\/json/,
-          207,
-        ],
+        [/application\/json/, 207],
         false,
         function (err, res) {
           assert.equal(helper.getLastBulkSubmission().insertedCount, 1);
@@ -5894,10 +5766,7 @@ module.exports = function (app, template, hook) {
         form,
         submissions,
         null,
-        [
-          /application\/json/,
-          207,
-        ],
+        [/application\/json/, 207],
         false,
         function (err, res) {
           assert.equal(helper.getLastBulkSubmission().insertedCount, 1);
@@ -5918,10 +5787,7 @@ module.exports = function (app, template, hook) {
         form,
         submissions,
         null,
-        [
-          /application\/json/,
-          207,
-        ],
+        [/application\/json/, 207],
         false,
         function (err, res) {
           assert.equal(helper.getLastBulkSubmission().insertedCount, 1);
@@ -5954,10 +5820,7 @@ module.exports = function (app, template, hook) {
         form,
         submissions,
         null,
-        [
-          /application\/json/,
-          207,
-        ],
+        [/application\/json/, 207],
         false,
         function (err, res) {
           assert.equal(helper.getLastBulkSubmission().insertedCount, 1);
@@ -5983,10 +5846,7 @@ module.exports = function (app, template, hook) {
         form,
         submissions,
         null,
-        [
-          /application\/json/,
-          201,
-        ],
+        [/application\/json/, 201],
         false,
         function (err, res) {
           assert.equal(helper.getLastBulkSubmission().insertedCount, 1);
@@ -6009,10 +5869,7 @@ module.exports = function (app, template, hook) {
         form,
         submissions,
         null,
-        [
-          /application\/json/,
-          201,
-        ],
+        [/application\/json/, 201],
         false,
         function (err, res) {
           assert.equal(helper.getLastBulkSubmission().insertedCount, 3);
@@ -6023,12 +5880,13 @@ module.exports = function (app, template, hook) {
   });
 
   describe('Bulk Submissions, upsert endpoint', function () {
-    let existSubmissionId, bulkFixture, upsertFormName, formDef;
+    let existSubmissionId, bulkFixture, upsertFormName, formDef, insertedSubmissionId;
 
     before(function () {
       bulkFixture = require('./fixtures/forms/bulkUpsertForm.js');
       upsertFormName = 'bulkEndpointTest-upsert';
       formDef = bulkFixture.form;
+      foreignFormDef = bulkFixture.foreignForm;
       existSubmissionId = bulkFixture.existingSubmissionId;
     });
 
@@ -6049,10 +5907,7 @@ module.exports = function (app, template, hook) {
         form,
         payload,
         null,
-        [
-          /application\/json/,
-          400,
-        ],
+        [/application\/json/, 400],
         true,
         function (err, res) {
           assert.equal(
@@ -6072,10 +5927,7 @@ module.exports = function (app, template, hook) {
         form,
         payload,
         null,
-        [
-          /application\/json/,
-          400,
-        ],
+        [/application\/json/, 400],
         true,
         function (err, res) {
           assert.equal(
@@ -6095,10 +5947,7 @@ module.exports = function (app, template, hook) {
         form,
         payload,
         null,
-        [
-          /application\/json/,
-          400,
-        ],
+        [/application\/json/, 400],
         true,
         function (err, res) {
           assert.equal(
@@ -6123,10 +5972,7 @@ module.exports = function (app, template, hook) {
         form,
         batch,
         null,
-        [
-          /application\/json/,
-          200,
-        ],
+        [/application\/json/, 200],
         true,
         function (err, res) {
           assert.equal(helper.getLastBulkSubmission().upsertedCount, 200);
@@ -6157,10 +6003,7 @@ module.exports = function (app, template, hook) {
         form,
         submissions,
         null,
-        [
-          /application\/json/,
-          207,
-        ],
+        [/application\/json/, 207],
         true,
         function (err, res) {
           assert.equal(helper.getLastBulkSubmission().upsertedCount, 1);
@@ -6198,10 +6041,7 @@ module.exports = function (app, template, hook) {
         form,
         payload,
         null,
-        [
-          /application\/json/,
-          207,
-        ],
+        [/application\/json/, 207],
         true,
         function (err, res) {
           assert.equal(helper.getLastBulkSubmission().upsertedCount, 1);
@@ -6232,10 +6072,7 @@ module.exports = function (app, template, hook) {
         form,
         payload,
         null,
-        [
-          /application\/json/,
-          207,
-        ],
+        [/application\/json/, 207],
         true,
         function (err, res) {
           assert.equal(helper.getLastBulkSubmission().upsertedCount, 1);
@@ -6263,10 +6100,7 @@ module.exports = function (app, template, hook) {
         form,
         payload,
         null,
-        [
-          /application\/json/,
-          207,
-        ],
+        [/application\/json/, 207],
         true,
         function (err, res) {
           assert.equal(helper.getLastBulkSubmission().upsertedCount, 1);
@@ -6298,10 +6132,7 @@ module.exports = function (app, template, hook) {
         form,
         payload,
         null,
-        [
-          /application\/json/,
-          207,
-        ],
+        [/application\/json/, 207],
         true,
         function (err, res) {
           assert.equal(helper.getLastBulkSubmission().upsertedCount, 1);
@@ -6332,10 +6163,7 @@ module.exports = function (app, template, hook) {
         form,
         payload,
         null,
-        [
-          /application\/json/,
-          207,
-        ],
+        [/application\/json/, 207],
         true,
         function (err, res) {
           assert.equal(helper.getLastBulkSubmission().upsertedCount, 1);
@@ -6373,10 +6201,7 @@ module.exports = function (app, template, hook) {
         form,
         payload,
         null,
-        [
-          /application\/json/,
-          200,
-        ],
+        [/application\/json/, 200],
         true,
         function (err, res) {
           assert.equal(helper.getLastBulkSubmission().upsertedCount, 3);
@@ -6401,10 +6226,7 @@ module.exports = function (app, template, hook) {
         form,
         payload,
         null,
-        [
-          /application\/json/,
-          200,
-        ],
+        [/application\/json/, 200],
         true,
         function (err, res) {
           assert.equal(helper.getLastBulkSubmission().upsertedCount, 1);
@@ -6412,8 +6234,6 @@ module.exports = function (app, template, hook) {
         },
       );
     });
-
-    let insertedSubmissionId;
 
     it('Creates a single submission for upsert testing', function (done) {
       const initial = {
@@ -6454,10 +6274,7 @@ module.exports = function (app, template, hook) {
         upsertForm,
         updatedPayload,
         null,
-        [
-          /application\/json/,
-          206,
-        ],
+        [/application\/json/, 206],
         true,
         function (err, res) {
           assert.equal(
@@ -6501,10 +6318,7 @@ module.exports = function (app, template, hook) {
         upsertForm,
         payload,
         null,
-        [
-          /application\/json/,
-          200,
-        ],
+        [/application\/json/, 200],
         true,
         function (err, res) {
           assert.equal(helper.getLastBulkSubmission().upsertedCount, 1);
@@ -6561,21 +6375,13 @@ module.exports = function (app, template, hook) {
         },
       };
 
-      const payload = [
-        newSubWithId1,
-        newSubNoId,
-        existSub,
-        newSubWithId2,
-      ];
+      const payload = [newSubWithId1, newSubNoId, existSub, newSubWithId2];
 
       helper.bulkCreateUpsertSubmissions(
         upsertForm,
         payload,
         null,
-        [
-          /application\/json/,
-          200,
-        ],
+        [/application\/json/, 200],
         true,
         function (err, res) {
           assert.equal(res.modifiedCount, 1);
@@ -6601,6 +6407,439 @@ module.exports = function (app, template, hook) {
           done();
         },
       );
+    });
+  });
+
+  describe('Bulk Submissions bcross-form attack tests', function () {
+    let foreignFormDef, foreignFormSubmissionId;
+    const upsertFormName = 'bulkEndpointTest-upsert';
+
+    before(function () {
+      const bulkFixture = require('./fixtures/forms/bulkUpsertForm.js');
+      foreignFormDef = bulkFixture.foreignForm;
+    });
+
+    it('Creates a test form for bcross-form attack tests', function (done) {
+      helper.upsertForm(foreignFormDef, function (err) {
+        if (err) {
+          return done(err);
+        }
+        done();
+      });
+    });
+
+    it('Creates a submission in the foreign form for cross-form attack tests', function (done) {
+      helper
+        .submission('foreignForm-upsert', {
+          textField1: 'foreign-original',
+          requiredTextField2: 'required',
+          uniqueTextField3: 'foreign-uniq-1',
+        })
+        .expect(201)
+        .execute(function (err) {
+          if (err) {
+            return done(err);
+          }
+          const sub = helper.getLastSubmission();
+          foreignFormSubmissionId = sub._id;
+          assert(foreignFormSubmissionId, 'Foreign submission should have an _id');
+          assert.equal(sub.data.textField1, 'foreign-original');
+          done();
+        });
+    });
+
+    it('PUT with submission _id belonging to another form in the same project returns failure and does not modify the submission', function (done) {
+      const payload = [
+        {
+          _id: foreignFormSubmissionId,
+          data: {
+            textField1: 'pwned',
+            requiredTextField2: 'abc',
+            uniqueTextField3: 'upsert-bola-cross-form',
+          },
+        },
+      ];
+
+      helper.bulkCreateUpsertSubmissions(
+        upsertFormName,
+        payload,
+        null,
+        [
+          /application\/json/,
+          207,
+        ],
+        true,
+        function (err, res) {
+          const result = helper.getLastBulkSubmission();
+
+          assert.equal(result.upsertedCount, 0);
+          assert.equal(result.modifiedCount, 0);
+          assert.equal(result.failures.length, 1);
+          assert.equal(result.failures[0].originalIndex, 0);
+
+          // Verify the foreign submission was NOT modified
+          helper.getSubmission('foreignForm-upsert', foreignFormSubmissionId, function (err, sub) {
+            if (err) {
+              return done(err);
+            }
+            assert.equal(sub.data.textField1, 'foreign-original', 'Foreign submission must not be modified');
+            assert.equal(
+              sub.form.toString(),
+              helper.template.forms['foreignForm-upsert']._id.toString(),
+              'Form must not change',
+            );
+            done();
+          });
+        },
+      );
+    });
+
+    it('PUT with submission _id that does not exist in any form creates a new submission in the target form', function (done) {
+      const upsertForm = helper.template.forms[upsertFormName];
+      const nonExistentId = new mongoose.Types.ObjectId().toString();
+      const payload = [
+        {
+          _id: nonExistentId,
+          data: {
+            textField1: 'new',
+            requiredTextField2: 'abc',
+            uniqueTextField3: 'upsert-nonexistent-id',
+          },
+        },
+      ];
+
+      helper.bulkCreateUpsertSubmissions(
+        upsertFormName,
+        payload,
+        null,
+        [
+          /application\/json/,
+          200,
+        ],
+        true,
+        function (err, res) {
+          const result = helper.getLastBulkSubmission();
+
+          assert.equal(result.upsertedCount, 1);
+          assert.equal(result.modifiedCount, 0);
+          assert.equal(result.failures.length, 0);
+          assert.equal(result.upserted[0].submission._id, nonExistentId);
+
+          helper.getSubmission(upsertFormName, nonExistentId, function (err, sub) {
+            if (err) {
+              return done(err);
+            }
+            assert(sub, 'New submission should exist');
+            assert.equal(sub.data.textField1, 'new');
+            assert.equal(
+              sub.form.toString(),
+              upsertForm._id.toString(),
+              'Submission must belong to the target form',
+            );
+            done();
+          });
+        },
+      );
+    });
+
+    it('POST with submission _id belonging to another form does not modify the foreign submission and does not creates a new one', function (done) {
+      const payload = [
+        {
+          _id: foreignFormSubmissionId,
+          data: {
+            textField1: 'pwned',
+            requiredTextField2: 'abc',
+            uniqueTextField3: 'post-bola-cross-form',
+          },
+        },
+      ];
+
+      helper.bulkCreateUpsertSubmissions(
+        'bulkEndpointTest',
+        payload,
+        null,
+        [
+          /application\/json/,
+          201,
+        ],
+        false,
+        function (err, res) {
+          const result = helper.getLastBulkSubmission();
+          assert.equal(result.insertedCount, 0);
+          assert.equal(result.successes.length, 0);
+          assert.equal(result.failures.length, 1);
+
+          // Verify the foreign submission was NOT modified
+          helper.getSubmission('foreignForm-upsert', foreignFormSubmissionId, function (err, sub) {
+            if (err) {
+              return done(err);
+            }
+            assert.equal(sub.data.textField1, 'foreign-original', 'Foreign submission must not be modified');
+            assert.equal(
+              sub.form.toString(),
+              helper.template.forms['foreignForm-upsert']._id.toString(),
+              'Foreign submission form must not change',
+            );
+            done(err);
+          });
+        },
+      );
+    });
+
+    it('Form from payload is ignored, server-controlled value is used for POST request', function (done) {
+      const fakeFormId = new mongoose.Types.ObjectId().toString();
+
+      const payload = [
+        {
+          form: fakeFormId,
+          data: {
+            textField1: 'ok',
+            requiredTextField2: 'abc',
+            uniqueTextField3: 'post-protected-fields-check',
+          },
+        },
+      ];
+
+      helper.bulkCreateUpsertSubmissions(
+        'bulkEndpointTest',
+        payload,
+        null,
+        [
+          /application\/json/,
+          201,
+        ],
+        false,
+        function (err, res) {
+          const result = helper.getLastBulkSubmission();
+          assert.equal(result.insertedCount, 1);
+
+          const submissionId = result.successes[0].submission._id;
+
+          helper.getSubmission('bulkEndpointTest', submissionId, function (err, submission) {
+            if (err) {
+              return done(err);
+            }
+
+            assert.notEqual(
+              submission.form.toString(),
+              fakeFormId,
+              'form must not be taken from payload',
+            );
+
+            done(err);
+          });
+        },
+      );
+    });
+
+    it('Form from payload is ignored, server-controlled value is used for PUT request', function (done) {
+      const fakeFormId = new mongoose.Types.ObjectId().toString();
+
+      const payload = [
+        {
+          form: fakeFormId,
+          data: {
+            textField1: 'ok',
+            requiredTextField2: 'abc',
+            uniqueTextField3: 'put-protected-fields-check',
+          },
+        },
+      ];
+
+      helper.bulkCreateUpsertSubmissions(
+        upsertFormName,
+        payload,
+        null,
+        [
+          /application\/json/,
+          200,
+        ],
+        true,
+        function (err, res) {
+          const result = helper.getLastBulkSubmission();
+          assert.equal(result.upsertedCount, 1);
+
+          const submissionId = result.upserted[0].submission._id;
+
+          helper.getSubmission(upsertFormName, submissionId, function (err, submission) {
+            if (err) {
+              return done(err);
+            }
+            assert.notEqual(
+              submission.form.toString(),
+              fakeFormId,
+              'form must not be taken from payload',
+            );
+
+            done(err);
+          });
+        },
+      );
+    });
+  });
+
+  describe('Bulk Submission permissions', function () {
+    // Two forms: one grants every *_all to authenticated, one grants every
+    // *_own. user1 (authenticated role) exercises non-admin paths; project
+    // owner exercises the admin path. Bulk endpoints are restricted to
+    // admin / *_all, so *_own callers must be denied.
+    const minimalComponents = [
+      { type: 'textfield', label: 'Name', key: 'name', input: true, persistent: true },
+    ];
+
+    const buildUrl = (formName, plural) => {
+      const formId = helper.template.forms[formName]._id;
+      const project = helper.template.project && helper.template.project._id;
+      const prefix = project ? `/project/${project}` : '';
+      return `${prefix}/form/${formId}/submission${plural ? 's' : ''}`;
+    };
+
+    const ownerToken = () => helper.owner.token;
+    const user1Token = () => helper.template.users.user1.token;
+
+    const bulkPost = (formName, token, { trailingSlash = false } = {}) =>
+      request(app)
+        .post(buildUrl(formName, true) + (trailingSlash ? '/' : ''))
+        .set('x-jwt-token', token)
+        .send([{ data: { name: 'bulk' } }]);
+
+    const bulkPut = (formName, token, { trailingSlash = false } = {}) =>
+      request(app)
+        .put(buildUrl(formName, true) + (trailingSlash ? '/' : ''))
+        .set('x-jwt-token', token)
+        .send([
+          { _id: new mongoose.Types.ObjectId().toString(), data: { name: 'bulk' } },
+        ]);
+
+    const bulkDelete = (formName, token, { trailingSlash = false } = {}) =>
+      request(app)
+        .delete(buildUrl(formName, false) + (trailingSlash ? '/' : ''))
+        .set('x-jwt-token', token)
+        .set('x-delete-confirm', helper.template.forms[formName]._id);
+
+    before(async function () {
+      await new Promise((resolve, reject) => {
+        helper
+          .form('bulkPermsAll', minimalComponents, {
+            submissionAccess: [
+              { type: 'create_all', roles: ['authenticated'] },
+              { type: 'read_all', roles: ['authenticated'] },
+              { type: 'update_all', roles: ['authenticated'] },
+              { type: 'delete_all', roles: ['authenticated'] },
+            ],
+          })
+          .form('bulkPermsOwn', minimalComponents, {
+            submissionAccess: [
+              { type: 'create_own', roles: ['authenticated'] },
+              { type: 'read_own', roles: ['authenticated'] },
+              { type: 'update_own', roles: ['authenticated'] },
+              { type: 'delete_own', roles: ['authenticated'] },
+            ],
+          })
+          .execute((err) => (err ? reject(err) : resolve()));
+      });
+    });
+
+    describe('Bulk POST', function () {
+      it('admin → 201', async function () {
+        const res = await bulkPost('bulkPermsAll', ownerToken());
+        assert.equal(res.status, 201, 'admin must be allowed to bulk POST');
+      });
+
+      it('create_all caller → 201', async function () {
+        const res = await bulkPost('bulkPermsAll', user1Token());
+        assert.equal(res.status, 201, 'create_all caller must be allowed to bulk POST');
+      });
+
+      it('create_own caller → 403 (also verifies trailing slash does not bypass)', async function () {
+        const res = await bulkPost('bulkPermsOwn', user1Token());
+        assert.equal(
+          res.status,
+          403,
+          'create_own caller must be denied bulk POST (admin/*_all only)',
+        );
+        assert.match(
+          res.body.error || '',
+          /admin role or the `create_all` submission permission/,
+          'denial body must explain that admin/create_all is required',
+        );
+
+        // Express 4 default strict=false matches `/submissions` and
+        // `/submissions/` — auth must normalize trailing slashes or a caller
+        // with form-level `*_all` could bypass the bulk gate.
+        const resSlash = await bulkPost('bulkPermsOwn', user1Token(), { trailingSlash: true });
+        assert.equal(resSlash.status, 403, 'trailing slash must not bypass bulk gate');
+        assert.match(
+          resSlash.body.error || '',
+          /admin role or the `create_all` submission permission/,
+        );
+      });
+    });
+
+    describe('Bulk PUT (upsert)', function () {
+      it('admin → 200', async function () {
+        const res = await bulkPut('bulkPermsAll', ownerToken());
+        assert.equal(res.status, 200, 'admin must be allowed to bulk PUT');
+      });
+
+      it('update_all caller → 200', async function () {
+        const res = await bulkPut('bulkPermsAll', user1Token());
+        assert.equal(res.status, 200, 'update_all caller must be allowed to bulk PUT');
+      });
+
+      it('update_own caller → 403 (also verifies trailing slash does not bypass)', async function () {
+        const res = await bulkPut('bulkPermsOwn', user1Token());
+        assert.equal(
+          res.status,
+          403,
+          'update_own caller must be denied bulk PUT (admin/*_all only)',
+        );
+        assert.match(
+          res.body.error || '',
+          /admin role or the `update_all` submission permission/,
+          'denial body must explain that admin/update_all is required',
+        );
+
+        const resSlash = await bulkPut('bulkPermsOwn', user1Token(), { trailingSlash: true });
+        assert.equal(resSlash.status, 403, 'trailing slash must not bypass bulk gate');
+        assert.match(
+          resSlash.body.error || '',
+          /admin role or the `update_all` submission permission/,
+        );
+      });
+    });
+
+    describe('Bulk DELETE', function () {
+      it('admin → 200', async function () {
+        const res = await bulkDelete('bulkPermsAll', ownerToken());
+        assert.equal(res.status, 200, 'admin must be allowed to bulk DELETE');
+      });
+
+      it('delete_all caller → 200', async function () {
+        const res = await bulkDelete('bulkPermsAll', user1Token());
+        assert.equal(res.status, 200, 'delete_all caller must be allowed to bulk DELETE');
+      });
+
+      it('delete_own caller → 403 (also verifies trailing slash does not bypass)', async function () {
+        const res = await bulkDelete('bulkPermsOwn', user1Token());
+        assert.equal(
+          res.status,
+          403,
+          'delete_own caller must be denied bulk DELETE (admin/*_all only)',
+        );
+        assert.match(
+          res.body.error || '',
+          /admin role or the `delete_all` submission permission/,
+          'denial body must explain that admin/delete_all is required',
+        );
+
+        const resSlash = await bulkDelete('bulkPermsOwn', user1Token(), { trailingSlash: true });
+        assert.equal(resSlash.status, 403, 'trailing slash must not bypass bulk gate');
+        assert.match(
+          resSlash.body.error || '',
+          /admin role or the `delete_all` submission permission/,
+        );
+      });
     });
   });
 
@@ -6826,11 +7065,7 @@ module.exports = function (app, template, hook) {
 
           assert.equal(helper.lastResponse.body.details.length, 1);
           assert.equal(helper.lastResponse.body.details[0].message, 'A is required');
-          assert.deepEqual(helper.lastResponse.body.details[0].path, [
-            'childA',
-            'data',
-            'a',
-          ]);
+          assert.deepEqual(helper.lastResponse.body.details[0].path, ['childA', 'data', 'a']);
           done();
         });
     });
@@ -7882,7 +8117,9 @@ module.exports = function (app, template, hook) {
 
             // Verify Submission B was NOT modified.
             request(app)
-              .get(hook.alter('url', `/form/${idorForm._id}/submission/${submissionB._id}`, template))
+              .get(
+                hook.alter('url', `/form/${idorForm._id}/submission/${submissionB._id}`, template),
+              )
               .set('x-jwt-token', template.users.admin.token)
               .expect('Content-Type', /json/)
               .expect(200)
@@ -7923,7 +8160,9 @@ module.exports = function (app, template, hook) {
 
             // Verify Submission B was NOT modified.
             request(app)
-              .get(hook.alter('url', `/form/${idorForm._id}/submission/${submissionB._id}`, template))
+              .get(
+                hook.alter('url', `/form/${idorForm._id}/submission/${submissionB._id}`, template),
+              )
               .set('x-jwt-token', template.users.admin.token)
               .expect('Content-Type', /json/)
               .expect(200)

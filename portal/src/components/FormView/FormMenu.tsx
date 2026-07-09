@@ -6,14 +6,14 @@ export type FormDisplayData = {
   name: string;
 };
 
-export const FormMenu = ({ type, formDisplayData } : {
-  type: 'form' | 'resource',
-  formDisplayData: FormDisplayData | undefined,
+export const FormMenu = ({
+  type,
+  formDisplayData,
+}: {
+  type: 'form' | 'resource';
+  formDisplayData: FormDisplayData | undefined;
 }) => {
-  const [
-    location,
-    setLocation,
-  ] = useLocation();
+  const [location, setLocation] = useLocation();
   const [menuIsActive, setMenuIsActive] = useState(false);
   const toggleContentMenu = () => {
     setMenuIsActive((isActive) => !isActive);
@@ -28,8 +28,7 @@ export const FormMenu = ({ type, formDisplayData } : {
     <div className="panel-header">
       <div className="panel-header-section top">
         <div className="panel-title icon">
-          <img src={`icon-${type}.svg`} alt="" />{' '}
-          {formDisplayData?.title || formDisplayData?.name}
+          <img src={`icon-${type}.svg`} alt="" /> {formDisplayData?.title || formDisplayData?.name}
         </div>
         <button className="content-menu-button" onClick={() => toggleContentMenu()}>
           <i className="ri-menu-line"></i>Menu
