@@ -81,10 +81,7 @@ module.exports = {
           {
             long_name: 'Estonia',
             short_name: 'EE',
-            types: [
-              'country',
-              'political',
-            ],
+            types: ['country', 'political'],
           },
         ],
         formatted_address: 'Estonia',
@@ -116,10 +113,7 @@ module.exports = {
           },
         },
         place_id: 'ChIJ_UuggpyUkkYRwyW0T7qf6kA',
-        types: [
-          'country',
-          'political',
-        ],
+        types: ['country', 'political'],
       },
     },
   },

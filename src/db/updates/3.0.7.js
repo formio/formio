@@ -28,10 +28,7 @@ module.exports = function (db, config, tools, done) {
         formCollection
           .find({
             type: {
-              $nin: [
-                'form',
-                'resource',
-              ],
+              $nin: ['form', 'resource'],
             },
             deleted: { $eq: null },
           })

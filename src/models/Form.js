@@ -106,191 +106,169 @@ module.exports = (formio) => {
     "characters or must be equal to 'Enter' or 'Esc'";
 
   const model = require('./BaseModel')({
-    schema: new formio.mongoose.Schema(hook.alter('formSchema', {
-      title: {
-        type: String,
-        description: 'The title for the form.',
-        required: true,
-      },
-      name: {
-        type: String,
-        description: 'The machine name for this form.',
-        required: true,
-        validate: [
-          {
-            message: `The Name ${uniqueMessage}`,
-            validator: (value) => !invalidRegex.test(value),
-          },
-          {
-            message: 'The Name must be unique per Project.',
-            validator: uniqueValidator('name'),
-          },
-        ],
-      },
-      path: {
-        type: String,
-        description: 'The path for this resource.',
-        index: true,
-        required: true,
-        lowercase: true,
-        trim: true,
-        validate: [
-          {
-            message: `The Path ${uniqueMessage}`,
-            validator: (value) => !invalidRegex.test(value),
-          },
-          {
-            message: 'Path cannot end in `submission` or `action`',
-            validator: (path) => !path.match(/(submission|action)\/?$/),
-          },
-          {
-            message: 'The Path must be unique per Project.',
-            validator: uniqueValidator('path'),
-          },
-        ],
-      },
-      type: {
-        type: String,
-        enum: [
-          'form',
-          'resource',
-        ],
-        required: true,
-        default: 'form',
-        description: 'The form type.',
-        index: true,
-      },
-      display: {
-        type: String,
-        description: 'The display method for this form',
-      },
-      action: {
-        type: String,
-        description: 'A custom action URL to submit the data to.',
-      },
-      tags: {
-        type: [
-          String,
-        ],
-        index: true,
-      },
-      deleted: {
-        type: Number,
-        default: null,
-      },
-      access: [
-        formio.schemas.PermissionSchema,
-      ],
-      submissionAccess: [
-        formio.schemas.PermissionSchema,
-      ],
-      fieldMatchAccess: {
+    schema: new formio.mongoose.Schema(
+      hook.alter('formSchema', {
+        title: {
+          type: String,
+          description: 'The title for the form.',
+          required: true,
+        },
+        name: {
+          type: String,
+          description: 'The machine name for this form.',
+          required: true,
+          validate: [
+            {
+              message: `The Name ${uniqueMessage}`,
+              validator: (value) => !invalidRegex.test(value),
+            },
+            {
+              message: 'The Name must be unique per Project.',
+              validator: uniqueValidator('name'),
+            },
+          ],
+        },
+        path: {
+          type: String,
+          description: 'The path for this resource.',
+          index: true,
+          required: true,
+          lowercase: true,
+          trim: true,
+          validate: [
+            {
+              message: `The Path ${uniqueMessage}`,
+              validator: (value) => !invalidRegex.test(value),
+            },
+            {
+              message: 'Path cannot end in `submission` or `action`',
+              validator: (path) => !path.match(/(submission|action)\/?$/),
+            },
+            {
+              message: 'The Path must be unique per Project.',
+              validator: uniqueValidator('path'),
+            },
+          ],
+        },
         type: {
-          read: [
-            formio.schemas.FieldMatchAccessPermissionSchema,
-          ],
-          write: [
-            formio.schemas.FieldMatchAccessPermissionSchema,
-          ],
-          create: [
-            formio.schemas.FieldMatchAccessPermissionSchema,
-          ],
-          admin: [
-            formio.schemas.FieldMatchAccessPermissionSchema,
-          ],
-          delete: [
-            formio.schemas.FieldMatchAccessPermissionSchema,
-          ],
-          update: [
-            formio.schemas.FieldMatchAccessPermissionSchema,
-          ],
+          type: String,
+          enum: ['form', 'resource'],
+          required: true,
+          default: 'form',
+          description: 'The form type.',
+          index: true,
         },
-      },
-      owner: {
-        type: formio.mongoose.Schema.Types.Mixed,
-        ref: 'submission',
-        index: true,
-        default: null,
-        set: (owner) => {
-          // Attempt to convert to objectId.
-          return formio.util.ObjectId(owner);
+        display: {
+          type: String,
+          description: 'The display method for this form',
         },
-        get: (owner) => {
-          return owner ? owner.toString() : owner;
+        action: {
+          type: String,
+          description: 'A custom action URL to submit the data to.',
         },
-      },
-      components: {
-        type: [
-          formio.mongoose.Schema.Types.Mixed,
-        ],
-        description: 'An array of components within the form.',
-        validate: [
-          {
-            message: keyError,
-            validator: (components) =>
-              componentKeys(components).every((key) => key.match(validKeyRegex)),
+        tags: {
+          type: [String],
+          index: true,
+        },
+        deleted: {
+          type: Number,
+          default: null,
+        },
+        access: [formio.schemas.PermissionSchema],
+        submissionAccess: [formio.schemas.PermissionSchema],
+        fieldMatchAccess: {
+          type: {
+            read: [formio.schemas.FieldMatchAccessPermissionSchema],
+            write: [formio.schemas.FieldMatchAccessPermissionSchema],
+            create: [formio.schemas.FieldMatchAccessPermissionSchema],
+            admin: [formio.schemas.FieldMatchAccessPermissionSchema],
+            delete: [formio.schemas.FieldMatchAccessPermissionSchema],
+            update: [formio.schemas.FieldMatchAccessPermissionSchema],
           },
-          {
-            message: shortcutError,
-            validator: (components) =>
-              componentShortcuts(components).every((shortcut) =>
-                shortcut.match(validShortcutRegex),
-              ),
+        },
+        owner: {
+          type: formio.mongoose.Schema.Types.Mixed,
+          ref: 'submission',
+          index: true,
+          default: null,
+          set: (owner) => {
+            // Attempt to convert to objectId.
+            return formio.util.ObjectId(owner);
           },
-          {
-            validator: async (components) => {
-              const paths = componentPaths(components);
-              const msg = 'Component keys must be unique: ';
-              const uniq = paths.uniq();
-              const diff = paths.filter((value, index, collection) =>
-                _.includes(collection, value, index + 1),
-              );
-
-              if (_.isEqual(paths.value(), uniq.value())) {
-                return true;
-              }
-
-              throw new Error(msg + diff.value().join(', '));
+          get: (owner) => {
+            return owner ? owner.toString() : owner;
+          },
+        },
+        components: {
+          type: [formio.mongoose.Schema.Types.Mixed],
+          description: 'An array of components within the form.',
+          validate: [
+            {
+              message: keyError,
+              validator: (components) =>
+                componentKeys(components).every((key) => key.match(validKeyRegex)),
             },
-          },
-          {
-            validator: async (components) => {
-              const shortcuts = componentShortcuts(components);
-              const msg = 'Component shortcuts must be unique: ';
-              const uniq = shortcuts.uniq();
-              const diff = shortcuts.filter((value, index, collection) =>
-                _.includes(collection, value, index + 1),
-              );
-
-              if (_.isEqual(shortcuts.value(), uniq.value())) {
-                return true;
-              }
-
-              throw new Error(msg + diff.value().join(', '));
+            {
+              message: shortcutError,
+              validator: (components) =>
+                componentShortcuts(components).every((shortcut) =>
+                  shortcut.match(validShortcutRegex),
+                ),
             },
-          },
-        ],
-      },
-      pdfComponents: {
-        type: [
-          formio.mongoose.Schema.Types.Mixed,
-        ],
-        description: 'An array of components within the form displayed on the PDF Download page.',
-      },
-      translationsUrl: {
-        type: String,
-        description: 'URL to the json file with i18n translations that will be passed to the renderer and used when' +
+            {
+              validator: async (components) => {
+                const paths = componentPaths(components);
+                const msg = 'Component keys must be unique: ';
+                const uniq = paths.uniq();
+                const diff = paths.filter((value, index, collection) =>
+                  _.includes(collection, value, index + 1),
+                );
+
+                if (_.isEqual(paths.value(), uniq.value())) {
+                  return true;
+                }
+
+                throw new Error(msg + diff.value().join(', '));
+              },
+            },
+            {
+              validator: async (components) => {
+                const shortcuts = componentShortcuts(components);
+                const msg = 'Component shortcuts must be unique: ';
+                const uniq = shortcuts.uniq();
+                const diff = shortcuts.filter((value, index, collection) =>
+                  _.includes(collection, value, index + 1),
+                );
+
+                if (_.isEqual(shortcuts.value(), uniq.value())) {
+                  return true;
+                }
+
+                throw new Error(msg + diff.value().join(', '));
+              },
+            },
+          ],
+        },
+        pdfComponents: {
+          type: [formio.mongoose.Schema.Types.Mixed],
+          description: 'An array of components within the form displayed on the PDF Download page.',
+        },
+        translationsUrl: {
+          type: String,
+          description:
+            'URL to the json file with i18n translations that will be passed to the renderer and used when' +
             ' rendering form for PDF download.',
-      },
-      settings: {
-        type: formio.mongoose.Schema.Types.Mixed,
-        description: 'Custom form settings object.',
-      },
-      properties: {
-        type: formio.mongoose.Schema.Types.Mixed,
-        description: 'Custom form properties.',
-      },
-    })),
+        },
+        settings: {
+          type: formio.mongoose.Schema.Types.Mixed,
+          description: 'Custom form settings object.',
+        },
+        properties: {
+          type: formio.mongoose.Schema.Types.Mixed,
+          description: 'Custom form properties.',
+        },
+      }),
+    ),
   });
 
   model.schema.index(hook.alter('schemaIndex', { type: 1, deleted: 1, modified: -1 }));

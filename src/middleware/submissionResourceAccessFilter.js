@@ -29,11 +29,7 @@ module.exports = function (router) {
               access: {
                 $elemMatch: {
                   type: {
-                    $in: [
-                      'read',
-                      'write',
-                      'admin',
-                    ],
+                    $in: ['read', 'write', 'admin'],
                   },
                   resources: { $in: newSearch },
                 },
@@ -51,11 +47,7 @@ module.exports = function (router) {
           access: {
             $elemMatch: {
               type: {
-                $in: [
-                  'read',
-                  'write',
-                  'admin',
-                ],
+                $in: ['read', 'write', 'admin'],
               },
               resources: { $in: newSearch },
             },

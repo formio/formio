@@ -7,11 +7,7 @@ const _ = require('lodash');
 module.exports = (router) => {
   const hook = require('../util/hook')(router.formio);
   const handlers = router.formio.middleware.submissionHandler;
-  const hiddenFields = [
-    'deleted',
-    '__v',
-    'machineName',
-  ];
+  const hiddenFields = ['deleted', '__v', 'machineName'];
 
   // Manually update the handlers, to add additional middleware.
   handlers.beforePost = [
@@ -106,9 +102,7 @@ module.exports = (router) => {
     router.formio.middleware.filterProtectedFields('index', (req) =>
       router.formio.cache.getCurrentFormId(req),
     ),
-    router.formio.middleware.filterIndex([
-      'data',
-    ]),
+    router.formio.middleware.filterIndex(['data']),
   ];
   handlers.beforeDelete = [
     router.formio.middleware.permissionHandler,
@@ -174,7 +168,8 @@ module.exports = (router) => {
           return next();
         }
       } catch (err) {
-        return next(err);
+        // Don't expose error details to clients
+        return res.status(500).send('Internal server error');
       }
     },
     router.formio.middleware.permissionHandler,
@@ -211,10 +206,7 @@ module.exports = (router) => {
             return next();
           }
 
-          const update = _.omit(req.body, [
-            '_id',
-            '__v',
-          ]);
+          const update = _.omit(req.body, ['_id', '__v']);
           update.modified = new Date();
 
           options.hooks.put.before.call(this, req, res, update, () => {

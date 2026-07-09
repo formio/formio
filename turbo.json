@@ -1,13 +1,8 @@
 {
-  "extends": [
-    "//"
-  ],
+  "extends": ["//"],
   "tasks": {
     "build": {
-      "dependsOn": [
-        "^build",
-        "oss-portal#build"
-      ],
+      "dependsOn": ["^build", "oss-portal#build"],
       "inputs": [
         "!portal/**",
         "!src/vm/bundles/**",
@@ -20,20 +15,11 @@
         "turbo.json",
         "welcome.txt"
       ],
-      "outputs": [
-        "src/vm/bundles/**",
-        "dist/**",
-        "lib/**"
-      ]
+      "outputs": ["src/vm/bundles/**", "dist/**", "lib/**"]
     },
     "test": {
-      "dependsOn": [
-        "build",
-        "^test"
-      ],
-      "inputs": [
-        "test/**"
-      ],
+      "dependsOn": ["build", "^test"],
+      "inputs": ["test/**"],
       "env": [
         "ADMIN_KEY",
         "API_KEYS",

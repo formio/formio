@@ -60,9 +60,7 @@ module.exports = function (router) {
             if (!found) {
               form.access.push({
                 type: 'read_all',
-                roles: [
-                  _role,
-                ],
+                roles: [_role],
               });
             }
 
@@ -83,13 +81,7 @@ module.exports = function (router) {
     };
 
     const bound = [];
-    const fns = await hook.alter(
-      'newRoleAccess',
-      [
-        updateForms,
-      ],
-      req,
-    );
+    const fns = await hook.alter('newRoleAccess', [updateForms], req);
     fns.forEach(function (f) {
       bound.push(async.apply(f, roleId));
     });

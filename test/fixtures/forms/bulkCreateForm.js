@@ -8,17 +8,13 @@ module.exports = {
     access: [
       {
         type: 'create_all',
-        roles: [
-          'anonymous',
-        ],
+        roles: ['anonymous'],
       },
     ],
     submissionAccess: [
       {
         type: 'create_all',
-        roles: [
-          'anonymous',
-        ],
+        roles: ['anonymous'],
       },
     ],
     components: [

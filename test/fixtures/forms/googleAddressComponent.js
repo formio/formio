@@ -160,18 +160,12 @@ module.exports = {
             {
               long_name: 'Washington',
               short_name: 'WA',
-              types: [
-                'administrative_area_level_1',
-                'political',
-              ],
+              types: ['administrative_area_level_1', 'political'],
             },
             {
               long_name: 'United States',
               short_name: 'US',
-              types: [
-                'country',
-                'political',
-              ],
+              types: ['country', 'political'],
             },
           ],
           formatted_address: 'Washington, USA',
@@ -188,10 +182,7 @@ module.exports = {
             },
           },
           place_id: 'ChIJ-bDD5__lhVQRuvNfbGh4QpQ',
-          types: [
-            'administrative_area_level_1',
-            'political',
-          ],
+          types: ['administrative_area_level_1', 'political'],
           formattedPlace: 'Washington, USA',
         },
       },
@@ -200,26 +191,17 @@ module.exports = {
           {
             long_name: 'New York',
             short_name: 'New York',
-            types: [
-              'locality',
-              'political',
-            ],
+            types: ['locality', 'political'],
           },
           {
             long_name: 'New York',
             short_name: 'NY',
-            types: [
-              'administrative_area_level_1',
-              'political',
-            ],
+            types: ['administrative_area_level_1', 'political'],
           },
           {
             long_name: 'United States',
             short_name: 'US',
-            types: [
-              'country',
-              'political',
-            ],
+            types: ['country', 'political'],
           },
         ],
         formatted_address: 'New York, NY, USA',
@@ -236,10 +218,7 @@ module.exports = {
           },
         },
         place_id: 'ChIJOwg_06VPwokRYv534QaPC8g',
-        types: [
-          'locality',
-          'political',
-        ],
+        types: ['locality', 'political'],
         formattedPlace: 'New York, NY, USA',
       },
       submit: true,

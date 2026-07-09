@@ -28,9 +28,9 @@ function sanitizeMongoConnectionString(connectionString) {
 
 const keyLength = 32;
 const ivLength = 16;
-const digest = "md5";
+const digest = 'md5';
 function deriveKeyAndIv(password) {
-  const passwordBuffer = Buffer.from(password, "utf-8");
+  const passwordBuffer = Buffer.from(password, 'utf-8');
   let blocks = [];
   let currentHash = Buffer.alloc(0);
   let bytesGenerated = 0;

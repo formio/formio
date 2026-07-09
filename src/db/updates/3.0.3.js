@@ -51,13 +51,8 @@ module.exports = function (db, config, tools, done) {
                   title: 'Save Submission',
                   form: form._id,
                   priority: 10,
-                  handler: [
-                    'before',
-                  ],
-                  method: [
-                    'create',
-                    'update',
-                  ],
+                  handler: ['before'],
+                  method: ['create', 'update'],
                   machineName: resourceAction.machineName.replace(':resource', ':save'),
                   deleted: null,
                   settings: {
@@ -80,13 +75,8 @@ module.exports = function (db, config, tools, done) {
                   title: 'Save Submission',
                   form: form._id,
                   priority: 10,
-                  handler: [
-                    'before',
-                  ],
-                  method: [
-                    'create',
-                    'update',
-                  ],
+                  handler: ['before'],
+                  method: ['create', 'update'],
                   deleted: null,
                   settings: {},
                 });

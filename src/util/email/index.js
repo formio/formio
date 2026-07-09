@@ -123,13 +123,12 @@ module.exports = (formio) => {
    */
   const getParams = (req, res, form, submission) =>
     new Promise((resolve, reject) => {
-
-      function sanitizeFormData(components, data) {      
+      function sanitizeFormData(components, data) {
         const XSS_OPTIONS = {
           whiteList: {},
           stripIgnoreTag: true,
-          stripIgnoreTagBody: ['script', 'style']
-        };  
+          stripIgnoreTagBody: ['script', 'style'],
+        };
         util.eachComponentData(
           components,
           data,
@@ -139,7 +138,7 @@ module.exports = (formio) => {
             if (value === null || value === undefined) {
               return false;
             }
-            
+
             if (typeof value === 'string') {
               const sanitized = xss(value, XSS_OPTIONS);
               _.set(data, path, sanitized || '');
@@ -147,7 +146,7 @@ module.exports = (formio) => {
 
             return false; // Continue iteration
           },
-          true  // Process all components
+          true, // Process all components
         );
       }
 
@@ -161,11 +160,11 @@ module.exports = (formio) => {
         params.id = params._id.toString();
       }
       params = JSON.parse(JSON.stringify(params));
-      
+
       if (params.data) {
         sanitizeFormData(form.components, params.data);
       }
-    
+
       // The form components.
       params.components = {};
       params.componentsWithPath = {};
@@ -265,18 +264,10 @@ module.exports = (formio) => {
   const send = async (req, res, message, params, setActionItemMessage = () => {}) => {
     const setParams = (params, req, res, message) => {
       // Add the request params.
-      params.req = _.pick(req, [
-        'user',
-        'token',
-        'params',
-        'query',
-        'body',
-      ]);
+      params.req = _.pick(req, ['user', 'token', 'params', 'query', 'body']);
 
       // Add the response parameters.
-      params.res = _.pick(res, [
-        'token',
-      ]);
+      params.res = _.pick(res, ['token']);
 
       // Add the settings to the parameters.
       params.settings = message;
@@ -530,9 +521,7 @@ module.exports = (formio) => {
               // Make a copy of the email for each recipient.
               emails = addresses.map((address) => Object.assign({}, email, { to: address }));
             } else {
-              emails = [
-                email,
-              ];
+              emails = [email];
             }
 
             // debug.send(`emails: ${JSON.stringify(emails)}`);

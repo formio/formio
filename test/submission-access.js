@@ -233,9 +233,7 @@ module.exports = function (app, template, hook) {
         describe('Project Owner Submission', function () {
           it('The Project Owner should be able to Create a submission without explicit permissions', function (done) {
             // Test that roles can not be added on creation.
-            tempSubmission.roles = [
-              template.roles.administrator._id.toString(),
-            ];
+            tempSubmission.roles = [template.roles.administrator._id.toString()];
             request(app)
               .post(hook.alter('url', '/form/' + tempForm._id + '/submission', template))
               .set('x-jwt-token', template.users.admin.token)
@@ -357,9 +355,7 @@ module.exports = function (app, template, hook) {
           it('The Project Owner should not be able to add roles to a submission', (done) => {
             var updatedSubmission = _.clone(tempSubmission);
             updatedSubmission.data.value = 'bar';
-            updatedSubmission.roles = [
-              template.roles.administrator._id.toString(),
-            ];
+            updatedSubmission.roles = [template.roles.administrator._id.toString()];
             request(app)
               .put(
                 hook.alter(
@@ -535,9 +531,7 @@ module.exports = function (app, template, hook) {
               .set('x-jwt-token', template.users.admin.token)
               .send({
                 other: 'this should not save', // try to add a field that is not present
-                externalIds: [
-                  { foo: 'bar' },
-                ], // try to edit a field that exists on the submissions w/ timestamp plugin
+                externalIds: [{ foo: 'bar' }], // try to edit a field that exists on the submissions w/ timestamp plugin
                 roles: [].concat(tempSubmission.roles, template.users.admin._id), // try to edit a field that exists on the submissions
                 data: { value: updatedSubmission.data.value },
               })
@@ -1472,27 +1466,19 @@ module.exports = function (app, template, hook) {
           tempForm.submissionAccess = [
             {
               type: 'create_own',
-              roles: [
-                template.roles.authenticated._id.toString(),
-              ],
+              roles: [template.roles.authenticated._id.toString()],
             },
             {
               type: 'read_own',
-              roles: [
-                template.roles.authenticated._id.toString(),
-              ],
+              roles: [template.roles.authenticated._id.toString()],
             },
             {
               type: 'update_own',
-              roles: [
-                template.roles.authenticated._id.toString(),
-              ],
+              roles: [template.roles.authenticated._id.toString()],
             },
             {
               type: 'delete_own',
-              roles: [
-                template.roles.authenticated._id.toString(),
-              ],
+              roles: [template.roles.authenticated._id.toString()],
             },
           ];
         });
@@ -1624,9 +1610,7 @@ module.exports = function (app, template, hook) {
 
           it('A Registered user should be able to Create a submission with explicit Own permissions', function (done) {
             // Try to create a submission with elevated permissions.
-            templateSubmission.roles = [
-              template.roles.administrator._id.toString(),
-            ];
+            templateSubmission.roles = [template.roles.administrator._id.toString()];
             request(app)
               .post(hook.alter('url', '/form/' + tempForm._id + '/submission', template))
               .set('x-jwt-token', template.users.user1.token)
@@ -1719,9 +1703,7 @@ module.exports = function (app, template, hook) {
             var updatedSubmission = _.cloneDeep(tempSubmissionUser1);
             updatedSubmission.data.value = 'bar';
             // Attempt to elevate permissions.
-            updatedSubmission.roles = [
-              template.roles.administrator._id.toString(),
-            ];
+            updatedSubmission.roles = [template.roles.administrator._id.toString()];
 
             request(app)
               .put(
@@ -2156,6 +2138,16 @@ module.exports = function (app, template, hook) {
               .get(hook.alter('url', '/form/' + tempForm._id + '/exists', template))
               .expect(400)
               .end(done);
+          });
+
+          it('Should strip MongoDB operators (i.e. $where) from the /exists query', async function () {
+            // The sanitize middleware must remove the $where operator. Once it is
+            // gone the only query param is empty -> 400 'Invalid query'.
+           await request(app)
+              .get(hook.alter('url', '/form/' + tempForm._id + '/exists?$where=true', template))
+              .set('x-jwt-token', template.users.admin.token)
+              .expect(400)
+              .expect('Invalid query');
           });
 
           it('Test if a submissions exists', function (done) {
@@ -2841,27 +2833,19 @@ module.exports = function (app, template, hook) {
           tempForm.submissionAccess = [
             {
               type: 'create_all',
-              roles: [
-                template.roles.authenticated._id.toString(),
-              ],
+              roles: [template.roles.authenticated._id.toString()],
             },
             {
               type: 'read_all',
-              roles: [
-                template.roles.authenticated._id.toString(),
-              ],
+              roles: [template.roles.authenticated._id.toString()],
             },
             {
               type: 'update_all',
-              roles: [
-                template.roles.authenticated._id.toString(),
-              ],
+              roles: [template.roles.authenticated._id.toString()],
             },
             {
               type: 'delete_all',
-              roles: [
-                template.roles.authenticated._id.toString(),
-              ],
+              roles: [template.roles.authenticated._id.toString()],
             },
           ];
         });
@@ -3813,27 +3797,19 @@ module.exports = function (app, template, hook) {
           tempForm.submissionAccess = [
             {
               type: 'create_own',
-              roles: [
-                template.roles.authenticated._id.toString(),
-              ],
+              roles: [template.roles.authenticated._id.toString()],
             },
             {
               type: 'read_own',
-              roles: [
-                template.roles.authenticated._id.toString(),
-              ],
+              roles: [template.roles.authenticated._id.toString()],
             },
             {
               type: 'update_own',
-              roles: [
-                template.roles.authenticated._id.toString(),
-              ],
+              roles: [template.roles.authenticated._id.toString()],
             },
             {
               type: 'delete_own',
-              roles: [
-                template.roles.authenticated._id.toString(),
-              ],
+              roles: [template.roles.authenticated._id.toString()],
             },
           ];
         });
@@ -4304,27 +4280,19 @@ module.exports = function (app, template, hook) {
           tempForm.submissionAccess = [
             {
               type: 'create_all',
-              roles: [
-                template.roles.authenticated._id.toString(),
-              ],
+              roles: [template.roles.authenticated._id.toString()],
             },
             {
               type: 'read_all',
-              roles: [
-                template.roles.authenticated._id.toString(),
-              ],
+              roles: [template.roles.authenticated._id.toString()],
             },
             {
               type: 'update_all',
-              roles: [
-                template.roles.authenticated._id.toString(),
-              ],
+              roles: [template.roles.authenticated._id.toString()],
             },
             {
               type: 'delete_all',
-              roles: [
-                template.roles.authenticated._id.toString(),
-              ],
+              roles: [template.roles.authenticated._id.toString()],
             },
           ];
         });
@@ -4863,27 +4831,19 @@ module.exports = function (app, template, hook) {
           tempForm.submissionAccess = [
             {
               type: 'create_own',
-              roles: [
-                template.roles.anonymous._id.toString(),
-              ],
+              roles: [template.roles.anonymous._id.toString()],
             },
             {
               type: 'read_own',
-              roles: [
-                template.roles.anonymous._id.toString(),
-              ],
+              roles: [template.roles.anonymous._id.toString()],
             },
             {
               type: 'update_own',
-              roles: [
-                template.roles.anonymous._id.toString(),
-              ],
+              roles: [template.roles.anonymous._id.toString()],
             },
             {
               type: 'delete_own',
-              roles: [
-                template.roles.anonymous._id.toString(),
-              ],
+              roles: [template.roles.anonymous._id.toString()],
             },
           ];
         });
@@ -5097,9 +5057,7 @@ module.exports = function (app, template, hook) {
           it('Should be able to update the form with create_all permissions', function (done) {
             tempForm.submissionAccess.push({
               type: 'create_all',
-              roles: [
-                template.roles.anonymous._id.toString(),
-              ],
+              roles: [template.roles.anonymous._id.toString()],
             });
             request(app)
               .put(hook.alter('url', '/' + tempForm.path, template))
@@ -5338,27 +5296,19 @@ module.exports = function (app, template, hook) {
             tempForm.submissionAccess = [
               {
                 type: 'create_own',
-                roles: [
-                  template.roles.anonymous._id.toString(),
-                ],
+                roles: [template.roles.anonymous._id.toString()],
               },
               {
                 type: 'read_own',
-                roles: [
-                  template.roles.anonymous._id.toString(),
-                ],
+                roles: [template.roles.anonymous._id.toString()],
               },
               {
                 type: 'update_own',
-                roles: [
-                  template.roles.anonymous._id.toString(),
-                ],
+                roles: [template.roles.anonymous._id.toString()],
               },
               {
                 type: 'delete_own',
-                roles: [
-                  template.roles.anonymous._id.toString(),
-                ],
+                roles: [template.roles.anonymous._id.toString()],
               },
             ];
             request(app)
@@ -6064,27 +6014,19 @@ module.exports = function (app, template, hook) {
           tempForm.submissionAccess = [
             {
               type: 'create_all',
-              roles: [
-                template.roles.anonymous._id.toString(),
-              ],
+              roles: [template.roles.anonymous._id.toString()],
             },
             {
               type: 'read_all',
-              roles: [
-                template.roles.anonymous._id.toString(),
-              ],
+              roles: [template.roles.anonymous._id.toString()],
             },
             {
               type: 'update_all',
-              roles: [
-                template.roles.anonymous._id.toString(),
-              ],
+              roles: [template.roles.anonymous._id.toString()],
             },
             {
               type: 'delete_all',
-              roles: [
-                template.roles.anonymous._id.toString(),
-              ],
+              roles: [template.roles.anonymous._id.toString()],
             },
           ];
         });
@@ -6970,27 +6912,19 @@ module.exports = function (app, template, hook) {
           tempForm.submissionAccess = [
             {
               type: 'create_own',
-              roles: [
-                template.roles.anonymous._id.toString(),
-              ],
+              roles: [template.roles.anonymous._id.toString()],
             },
             {
               type: 'read_own',
-              roles: [
-                template.roles.anonymous._id.toString(),
-              ],
+              roles: [template.roles.anonymous._id.toString()],
             },
             {
               type: 'update_own',
-              roles: [
-                template.roles.anonymous._id.toString(),
-              ],
+              roles: [template.roles.anonymous._id.toString()],
             },
             {
               type: 'delete_own',
-              roles: [
-                template.roles.anonymous._id.toString(),
-              ],
+              roles: [template.roles.anonymous._id.toString()],
             },
           ];
         });
@@ -7488,27 +7422,19 @@ module.exports = function (app, template, hook) {
           tempForm.submissionAccess = [
             {
               type: 'create_all',
-              roles: [
-                template.roles.anonymous._id.toString(),
-              ],
+              roles: [template.roles.anonymous._id.toString()],
             },
             {
               type: 'read_all',
-              roles: [
-                template.roles.anonymous._id.toString(),
-              ],
+              roles: [template.roles.anonymous._id.toString()],
             },
             {
               type: 'update_all',
-              roles: [
-                template.roles.anonymous._id.toString(),
-              ],
+              roles: [template.roles.anonymous._id.toString()],
             },
             {
               type: 'delete_all',
-              roles: [
-                template.roles.anonymous._id.toString(),
-              ],
+              roles: [template.roles.anonymous._id.toString()],
             },
           ];
         });
@@ -8330,9 +8256,7 @@ module.exports = function (app, template, hook) {
         tempForm.submissionAccess = [
           {
             type: 'update_all',
-            roles: [
-              template.roles.authenticated._id.toString(),
-            ],
+            roles: [template.roles.authenticated._id.toString()],
           },
         ];
       });
@@ -8941,12 +8865,8 @@ module.exports = function (app, template, hook) {
               title: 'Role Assignment',
               name: 'role',
               priority: 1,
-              handler: [
-                'after',
-              ],
-              method: [
-                'create',
-              ],
+              handler: ['after'],
+              method: ['create'],
               form: managerResource._id,
               settings: {
                 association: 'new',
@@ -8966,13 +8886,8 @@ module.exports = function (app, template, hook) {
               title: 'Save Submission',
               name: 'save',
               form: managerResource._id,
-              handler: [
-                'before',
-              ],
-              method: [
-                'create',
-                'update',
-              ],
+              handler: ['before'],
+              method: ['create', 'update'],
               priority: 10,
             })
             .expect(201)
@@ -8991,17 +8906,13 @@ module.exports = function (app, template, hook) {
               submissionAccess: [
                 {
                   type: 'create_own',
-                  roles: [
-                    template.roles.anonymous._id.toString(),
-                  ],
+                  roles: [template.roles.anonymous._id.toString()],
                 },
               ],
               access: [
                 {
                   type: 'read_all',
-                  roles: [
-                    template.roles.anonymous._id.toString(),
-                  ],
+                  roles: [template.roles.anonymous._id.toString()],
                 },
               ],
               components: [
@@ -9040,13 +8951,8 @@ module.exports = function (app, template, hook) {
               title: 'Save Submission',
               form: managerRegister._id,
               priority: 11,
-              method: [
-                'create',
-                'update',
-              ],
-              handler: [
-                'before',
-              ],
+              method: ['create', 'update'],
+              handler: ['before'],
               settings: {
                 resource: managerResource._id,
                 fields: {
@@ -9068,16 +8974,10 @@ module.exports = function (app, template, hook) {
               title: 'Login',
               form: managerRegister._id,
               priority: 2,
-              method: [
-                'create',
-              ],
-              handler: [
-                'before',
-              ],
+              method: ['create'],
+              handler: ['before'],
               settings: {
-                resources: [
-                  managerResource._id,
-                ],
+                resources: [managerResource._id],
                 username: 'email',
                 password: 'password',
                 allowedAttempts: 5,
@@ -9115,9 +9015,7 @@ module.exports = function (app, template, hook) {
           tempForm.submissionAccess = [
             {
               type: 'read_all',
-              roles: [
-                managerRole._id,
-              ],
+              roles: [managerRole._id],
             },
           ];
 
@@ -9286,9 +9184,7 @@ module.exports = function (app, template, hook) {
         });
 
         it('An Admin, the owner, can update a submissions resource access, without explicit resource access (read)', (done) => {
-          tempSubmission.data.readPerm = [
-            template.users.admin,
-          ];
+          tempSubmission.data.readPerm = [template.users.admin];
 
           request(app)
             .put(
@@ -9308,9 +9204,7 @@ module.exports = function (app, template, hook) {
               expected.access = [
                 {
                   type: 'read',
-                  resources: [
-                    template.users.admin._id,
-                  ],
+                  resources: [template.users.admin._id],
                 },
               ];
 
@@ -9545,9 +9439,7 @@ module.exports = function (app, template, hook) {
         });
 
         it('An Admin, the owner, can update a submissions resource access, without explicit resource access (write)', (done) => {
-          tempSubmission.data.writePerm = [
-            template.users.admin,
-          ];
+          tempSubmission.data.writePerm = [template.users.admin];
           tempSubmission.data.readPerm = [];
           tempSubmission.data.adminPerm = [];
 
@@ -9569,21 +9461,15 @@ module.exports = function (app, template, hook) {
               expected.access = [
                 {
                   type: 'read',
-                  resources: [
-                    template.users.admin._id,
-                  ],
+                  resources: [template.users.admin._id],
                 },
                 {
                   type: 'create',
-                  resources: [
-                    template.users.admin._id,
-                  ],
+                  resources: [template.users.admin._id],
                 },
                 {
                   type: 'update',
-                  resources: [
-                    template.users.admin._id,
-                  ],
+                  resources: [template.users.admin._id],
                 },
               ];
 
@@ -9844,9 +9730,7 @@ module.exports = function (app, template, hook) {
         });
 
         it('An Admin, the owner, can update a submissions resource access, with explicit resource access (admin)', (done) => {
-          tempSubmission.data.adminPerm = [
-            template.users.admin,
-          ];
+          tempSubmission.data.adminPerm = [template.users.admin];
 
           request(app)
             .put(
@@ -9866,27 +9750,19 @@ module.exports = function (app, template, hook) {
               expected.access = [
                 {
                   type: 'read',
-                  resources: [
-                    template.users.admin._id,
-                  ],
+                  resources: [template.users.admin._id],
                 },
                 {
                   type: 'create',
-                  resources: [
-                    template.users.admin._id,
-                  ],
+                  resources: [template.users.admin._id],
                 },
                 {
                   type: 'update',
-                  resources: [
-                    template.users.admin._id,
-                  ],
+                  resources: [template.users.admin._id],
                 },
                 {
                   type: 'delete',
-                  resources: [
-                    template.users.admin._id,
-                  ],
+                  resources: [template.users.admin._id],
                 },
               ];
 
@@ -10175,9 +10051,7 @@ module.exports = function (app, template, hook) {
         });
 
         it('An Admin, not the owner, can update a submissions resource access, without explicit resource access (read)', (done) => {
-          tempSubmission.data.readPerm = [
-            template.users.admin2,
-          ];
+          tempSubmission.data.readPerm = [template.users.admin2];
 
           request(app)
             .put(
@@ -10197,9 +10071,7 @@ module.exports = function (app, template, hook) {
               expected.access = [
                 {
                   type: 'read',
-                  resources: [
-                    template.users.admin2._id,
-                  ],
+                  resources: [template.users.admin2._id],
                 },
               ];
               assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
@@ -10352,9 +10224,7 @@ module.exports = function (app, template, hook) {
         });
 
         it('An Admin, not the owner, can update a submissions resource access, without explicit resource access (read)', (done) => {
-          tempSubmission.data.readPerm = [
-            template.users.user2,
-          ];
+          tempSubmission.data.readPerm = [template.users.user2];
 
           request(app)
             .put(
@@ -10374,9 +10244,7 @@ module.exports = function (app, template, hook) {
               expected.access = [
                 {
                   type: 'read',
-                  resources: [
-                    template.users.user2._id,
-                  ],
+                  resources: [template.users.user2._id],
                 },
               ];
               assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
@@ -10471,9 +10339,7 @@ module.exports = function (app, template, hook) {
         });
 
         it('An Admin, not the owner, can update a submissions resource access, without explicit resource access (write)', (done) => {
-          tempSubmission.data.writePerm = [
-            template.users.admin2,
-          ];
+          tempSubmission.data.writePerm = [template.users.admin2];
 
           request(app)
             .put(
@@ -10493,21 +10359,15 @@ module.exports = function (app, template, hook) {
               expected.access = [
                 {
                   type: 'read',
-                  resources: [
-                    template.users.admin2._id,
-                  ],
+                  resources: [template.users.admin2._id],
                 },
                 {
                   type: 'create',
-                  resources: [
-                    template.users.admin2._id,
-                  ],
+                  resources: [template.users.admin2._id],
                 },
                 {
                   type: 'update',
-                  resources: [
-                    template.users.admin2._id,
-                  ],
+                  resources: [template.users.admin2._id],
                 },
               ];
               assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
@@ -10660,9 +10520,7 @@ module.exports = function (app, template, hook) {
         });
 
         it('An Admin, not the owner, can update a submissions resource access, without explicit resource access (write)', (done) => {
-          tempSubmission.data.writePerm = [
-            template.users.user2,
-          ];
+          tempSubmission.data.writePerm = [template.users.user2];
 
           request(app)
             .put(
@@ -10682,21 +10540,15 @@ module.exports = function (app, template, hook) {
               expected.access = [
                 {
                   type: 'read',
-                  resources: [
-                    template.users.user2._id,
-                  ],
+                  resources: [template.users.user2._id],
                 },
                 {
                   type: 'create',
-                  resources: [
-                    template.users.user2._id,
-                  ],
+                  resources: [template.users.user2._id],
                 },
                 {
                   type: 'update',
-                  resources: [
-                    template.users.user2._id,
-                  ],
+                  resources: [template.users.user2._id],
                 },
               ];
               assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
@@ -10791,9 +10643,7 @@ module.exports = function (app, template, hook) {
         });
 
         it('An Admin, not the owner, can update a submissions resource access, with explicit resource access (admin)', (done) => {
-          tempSubmission.data.adminPerm = [
-            template.users.admin2,
-          ];
+          tempSubmission.data.adminPerm = [template.users.admin2];
 
           request(app)
             .put(
@@ -10813,27 +10663,19 @@ module.exports = function (app, template, hook) {
               expected.access = [
                 {
                   type: 'read',
-                  resources: [
-                    template.users.admin2._id,
-                  ],
+                  resources: [template.users.admin2._id],
                 },
                 {
                   type: 'create',
-                  resources: [
-                    template.users.admin2._id,
-                  ],
+                  resources: [template.users.admin2._id],
                 },
                 {
                   type: 'update',
-                  resources: [
-                    template.users.admin2._id,
-                  ],
+                  resources: [template.users.admin2._id],
                 },
                 {
                   type: 'delete',
-                  resources: [
-                    template.users.admin2._id,
-                  ],
+                  resources: [template.users.admin2._id],
                 },
               ];
               assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
@@ -10986,9 +10828,7 @@ module.exports = function (app, template, hook) {
         });
 
         it('An Admin, not the owner, can update a submissions resource access, with explicit resource access (admin)', (done) => {
-          tempSubmission.data.adminPerm = [
-            template.users.user2,
-          ];
+          tempSubmission.data.adminPerm = [template.users.user2];
 
           request(app)
             .put(
@@ -11008,27 +10848,19 @@ module.exports = function (app, template, hook) {
               expected.access = [
                 {
                   type: 'read',
-                  resources: [
-                    template.users.user2._id,
-                  ],
+                  resources: [template.users.user2._id],
                 },
                 {
                   type: 'create',
-                  resources: [
-                    template.users.user2._id,
-                  ],
+                  resources: [template.users.user2._id],
                 },
                 {
                   type: 'update',
-                  resources: [
-                    template.users.user2._id,
-                  ],
+                  resources: [template.users.user2._id],
                 },
                 {
                   type: 'delete',
-                  resources: [
-                    template.users.user2._id,
-                  ],
+                  resources: [template.users.user2._id],
                 },
               ];
               assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
@@ -11225,9 +11057,7 @@ module.exports = function (app, template, hook) {
               access: [
                 {
                   type: 'delete',
-                  resources: [
-                    template.users.user1._id,
-                  ],
+                  resources: [template.users.user1._id],
                 },
               ],
             })
@@ -11272,9 +11102,7 @@ module.exports = function (app, template, hook) {
         });
 
         it('Give the user read access to the submission', (done) => {
-          tempSubmission.data.readPerm = [
-            template.users.user1,
-          ];
+          tempSubmission.data.readPerm = [template.users.user1];
 
           request(app)
             .put(
@@ -11293,9 +11121,7 @@ module.exports = function (app, template, hook) {
               expected.access = [
                 {
                   type: 'read',
-                  resources: [
-                    template.users.user1._id,
-                  ],
+                  resources: [template.users.user1._id],
                 },
               ];
 
@@ -11420,9 +11246,7 @@ module.exports = function (app, template, hook) {
               access: [
                 {
                   type: 'delete',
-                  resources: [
-                    template.users.user1._id,
-                  ],
+                  resources: [template.users.user1._id],
                 },
               ],
             })
@@ -11468,9 +11292,7 @@ module.exports = function (app, template, hook) {
 
         it('Give the user write access to the submission', (done) => {
           tempSubmission.data.readPerm = [];
-          tempSubmission.data.writePerm = [
-            template.users.user1,
-          ];
+          tempSubmission.data.writePerm = [template.users.user1];
           tempSubmission.data.adminPerm = [];
 
           request(app)
@@ -11490,21 +11312,15 @@ module.exports = function (app, template, hook) {
               expected.access = [
                 {
                   type: 'read',
-                  resources: [
-                    template.users.user1._id,
-                  ],
+                  resources: [template.users.user1._id],
                 },
                 {
                   type: 'create',
-                  resources: [
-                    template.users.user1._id,
-                  ],
+                  resources: [template.users.user1._id],
                 },
                 {
                   type: 'update',
-                  resources: [
-                    template.users.user1._id,
-                  ],
+                  resources: [template.users.user1._id],
                 },
               ];
 
@@ -11616,14 +11432,8 @@ module.exports = function (app, template, hook) {
 
               const response = res.body;
               assert.deepEqual(
-                _.omit(response, [
-                  'modified',
-                  'owner',
-                ]),
-                _.omit(tempSubmission, [
-                  'modified',
-                  'owner',
-                ]),
+                _.omit(response, ['modified', 'owner']),
+                _.omit(tempSubmission, ['modified', 'owner']),
               );
               assert.notEqual(response.owner, tempSubmission.owner);
 
@@ -11662,9 +11472,7 @@ module.exports = function (app, template, hook) {
         it('Give the user admin access to the submission', (done) => {
           tempSubmission.data.writePerm = [];
           tempSubmission.data.readPerm = [];
-          tempSubmission.data.adminPerm = [
-            template.users.user1,
-          ];
+          tempSubmission.data.adminPerm = [template.users.user1];
 
           request(app)
             .put(
@@ -11683,27 +11491,19 @@ module.exports = function (app, template, hook) {
               expected.access = [
                 {
                   type: 'read',
-                  resources: [
-                    template.users.user1._id,
-                  ],
+                  resources: [template.users.user1._id],
                 },
                 {
                   type: 'create',
-                  resources: [
-                    template.users.user1._id,
-                  ],
+                  resources: [template.users.user1._id],
                 },
                 {
                   type: 'update',
-                  resources: [
-                    template.users.user1._id,
-                  ],
+                  resources: [template.users.user1._id],
                 },
                 {
                   type: 'delete',
-                  resources: [
-                    template.users.user1._id,
-                  ],
+                  resources: [template.users.user1._id],
                 },
               ];
 
@@ -11993,9 +11793,7 @@ module.exports = function (app, template, hook) {
               access: [
                 {
                   type: 'admin',
-                  resources: [
-                    template.users.user2._id,
-                  ],
+                  resources: [template.users.user2._id],
                 },
               ],
             })
@@ -12093,9 +11891,7 @@ module.exports = function (app, template, hook) {
         });
 
         it('An Admin can update the submissions resource access', (done) => {
-          tempSubmission.data.readPerm = [
-            template.users.admin,
-          ];
+          tempSubmission.data.readPerm = [template.users.admin];
 
           request(app)
             .put(
@@ -12115,9 +11911,7 @@ module.exports = function (app, template, hook) {
               expected.access = [
                 {
                   type: 'read',
-                  resources: [
-                    template.users.admin._id,
-                  ],
+                  resources: [template.users.admin._id],
                 },
               ];
 
@@ -12132,16 +11926,9 @@ module.exports = function (app, template, hook) {
         });
 
         it('An update to the submissions resource access, will be condensed (single)', (done) => {
-          tempSubmission.data.readPerm = [
-            template.users.admin,
-            template.users.admin2,
-          ];
-          tempSubmission.data.writePerm = [
-            null,
-          ];
-          tempSubmission.data.adminPerm = [
-            null,
-          ];
+          tempSubmission.data.readPerm = [template.users.admin, template.users.admin2];
+          tempSubmission.data.writePerm = [null];
+          tempSubmission.data.adminPerm = [null];
 
           request(app)
             .put(
@@ -12161,10 +11948,7 @@ module.exports = function (app, template, hook) {
               expected.access = [
                 {
                   type: 'read',
-                  resources: [
-                    template.users.admin._id,
-                    template.users.admin2._id,
-                  ],
+                  resources: [template.users.admin._id, template.users.admin2._id],
                 },
               ];
 
@@ -12179,18 +11963,9 @@ module.exports = function (app, template, hook) {
         });
 
         it('An update to the submissions resource access, will be condensed (multi)', (done) => {
-          tempSubmission.data.readPerm = [
-            template.users.admin,
-            template.users.admin2,
-          ];
-          tempSubmission.data.writePerm = [
-            template.users.admin,
-            template.users.admin2,
-          ];
-          tempSubmission.data.adminPerm = [
-            template.users.admin,
-            template.users.admin2,
-          ];
+          tempSubmission.data.readPerm = [template.users.admin, template.users.admin2];
+          tempSubmission.data.writePerm = [template.users.admin, template.users.admin2];
+          tempSubmission.data.adminPerm = [template.users.admin, template.users.admin2];
 
           request(app)
             .put(
@@ -12210,31 +11985,19 @@ module.exports = function (app, template, hook) {
               expected.access = [
                 {
                   type: 'read',
-                  resources: [
-                    template.users.admin._id,
-                    template.users.admin2._id,
-                  ],
+                  resources: [template.users.admin._id, template.users.admin2._id],
                 },
                 {
                   type: 'create',
-                  resources: [
-                    template.users.admin._id,
-                    template.users.admin2._id,
-                  ],
+                  resources: [template.users.admin._id, template.users.admin2._id],
                 },
                 {
                   type: 'update',
-                  resources: [
-                    template.users.admin._id,
-                    template.users.admin2._id,
-                  ],
+                  resources: [template.users.admin._id, template.users.admin2._id],
                 },
                 {
                   type: 'delete',
-                  resources: [
-                    template.users.admin._id,
-                    template.users.admin2._id,
-                  ],
+                  resources: [template.users.admin._id, template.users.admin2._id],
                 },
               ];
 
@@ -12250,15 +12013,9 @@ module.exports = function (app, template, hook) {
 
         // FA-892
         it('An update to resource access, with null access, will not be saved (single)', (done) => {
-          tempSubmission.data.readPerm = [
-            null,
-          ];
-          tempSubmission.data.writePerm = [
-            null,
-          ];
-          tempSubmission.data.adminPerm = [
-            null,
-          ];
+          tempSubmission.data.readPerm = [null];
+          tempSubmission.data.writePerm = [null];
+          tempSubmission.data.adminPerm = [null];
 
           request(app)
             .put(
@@ -12389,17 +12146,11 @@ module.exports = function (app, template, hook) {
               },
               {
                 type: 'create',
-                roles: [
-                  'role1',
-                  'role2',
-                ],
+                roles: ['role1', 'role2'],
               },
               {
                 type: 'update',
-                roles: [
-                  'role1',
-                  'role2',
-                ],
+                roles: ['role1', 'role2'],
               },
               {
                 type: 'delete',
@@ -12420,9 +12171,7 @@ module.exports = function (app, template, hook) {
             submissionAccess: [
               {
                 type: 'read',
-                roles: [
-                  'role',
-                ],
+                roles: ['role'],
               },
             ],
             type: 'select',
@@ -12501,12 +12250,8 @@ module.exports = function (app, template, hook) {
         it('Submission should have appropriate access', (done) => {
           const submission = {
             data: {
-              perm1: [
-                template.users.admin,
-              ],
-              perm2: [
-                template.users.admin2,
-              ],
+              perm1: [template.users.admin],
+              perm2: [template.users.admin2],
               value: 'test',
             },
           };
@@ -12564,10 +12309,7 @@ module.exports = function (app, template, hook) {
               assert.deepEqual(response.access, [
                 {
                   type: 'read',
-                  resources: [
-                    template.users.admin._id,
-                    `${template.users.admin2._id}:role`,
-                  ],
+                  resources: [template.users.admin._id, `${template.users.admin2._id}:role`],
                 },
                 {
                   type: 'create',
@@ -12585,9 +12327,7 @@ module.exports = function (app, template, hook) {
                 },
                 {
                   type: 'delete',
-                  resources: [
-                    template.users.admin._id,
-                  ],
+                  resources: [template.users.admin._id],
                 },
               ]);
 
@@ -12660,9 +12400,7 @@ module.exports = function (app, template, hook) {
               submissionAccess: [
                 {
                   type: 'create_own',
-                  roles: [
-                    'anonymous',
-                  ],
+                  roles: ['anonymous'],
                 },
               ],
             },
@@ -12673,17 +12411,11 @@ module.exports = function (app, template, hook) {
           .action('clientLogin', {
             title: 'Client Login',
             name: 'login',
-            handler: [
-              'before',
-            ],
-            method: [
-              'create',
-            ],
+            handler: ['before'],
+            method: ['create'],
             priority: 0,
             settings: {
-              resources: [
-                'client',
-              ],
+              resources: ['client'],
               username: 'email',
               password: 'password',
             },
@@ -12718,9 +12450,7 @@ module.exports = function (app, template, hook) {
               submissionAccess: [
                 {
                   type: 'create_own',
-                  roles: [
-                    'anonymous',
-                  ],
+                  roles: ['anonymous'],
                 },
               ],
             },
@@ -12731,17 +12461,11 @@ module.exports = function (app, template, hook) {
           .action('managerLogin', {
             title: 'Manager Login',
             name: 'login',
-            handler: [
-              'before',
-            ],
-            method: [
-              'create',
-            ],
+            handler: ['before'],
+            method: ['create'],
             priority: 0,
             settings: {
-              resources: [
-                'manager',
-              ],
+              resources: ['manager'],
               username: 'email',
               password: 'password',
             },
@@ -12806,10 +12530,7 @@ module.exports = function (app, template, hook) {
             },
           },
           null,
-          [
-            /text\/plain/,
-            401,
-          ],
+          [/text\/plain/, 401],
           done,
         );
       });
@@ -12825,10 +12546,7 @@ module.exports = function (app, template, hook) {
             },
           },
           'clientuser',
-          [
-            /text\/plain/,
-            401,
-          ],
+          [/text\/plain/, 401],
           done,
         );
       });
@@ -12844,10 +12562,7 @@ module.exports = function (app, template, hook) {
             },
           },
           'client',
-          [
-            /text\/plain/,
-            401,
-          ],
+          [/text\/plain/, 401],
           done,
         );
       });
@@ -12863,10 +12578,7 @@ module.exports = function (app, template, hook) {
             },
           },
           'manager',
-          [
-            /json/,
-            201,
-          ],
+          [/json/, 201],
           done,
         );
       });
@@ -12892,154 +12604,54 @@ module.exports = function (app, template, hook) {
       });
 
       it('Should NOT allow an anonymous user to see the submission', (done) => {
-        helper.getSubmission(
-          'clientreg',
-          submission._id,
-          null,
-          [
-            /text\/plain/,
-            401,
-          ],
-          done,
-        );
+        helper.getSubmission('clientreg', submission._id, null, [/text\/plain/, 401], done);
       });
 
       it('Should NOT allow an anonymous user to update the submission', (done) => {
-        helper.updateSubmission(
-          submission,
-          null,
-          [
-            /text\/plain/,
-            401,
-          ],
-          done,
-        );
+        helper.updateSubmission(submission, null, [/text\/plain/, 401], done);
       });
 
       it('Should NOT allow an anonymous user to delete the submission', (done) => {
-        helper.deleteSubmission(
-          submission,
-          null,
-          [
-            /text\/plain/,
-            401,
-          ],
-          done,
-        );
+        helper.deleteSubmission(submission, null, [/text\/plain/, 401], done);
       });
 
       it('Should allow the clientuser to see this submission', (done) => {
-        helper.getSubmission(
-          'clientreg',
-          submission._id,
-          'clientuser',
-          [
-            /json/,
-            200,
-          ],
-          done,
-        );
+        helper.getSubmission('clientreg', submission._id, 'clientuser', [/json/, 200], done);
       });
 
       it('Should NOT allow the clientuser to update the submission', (done) => {
         submission.data.testing = 'hello';
-        helper.updateSubmission(
-          submission,
-          'clientuser',
-          [
-            /text\/plain/,
-            401,
-          ],
-          done,
-        );
+        helper.updateSubmission(submission, 'clientuser', [/text\/plain/, 401], done);
       });
 
       it('Should NOT allow the clientuser to delete the submission', (done) => {
-        helper.deleteSubmission(
-          submission,
-          'clientuser',
-          [
-            /text\/plain/,
-            401,
-          ],
-          done,
-        );
+        helper.deleteSubmission(submission, 'clientuser', [/text\/plain/, 401], done);
       });
 
       it('Should allow the client to see this submission', (done) => {
-        helper.getSubmission(
-          'clientreg',
-          submission._id,
-          'client',
-          [
-            /json/,
-            200,
-          ],
-          done,
-        );
+        helper.getSubmission('clientreg', submission._id, 'client', [/json/, 200], done);
       });
 
       it('Should NOT allow the client to update the submission', (done) => {
         submission.data.testing = 'hello';
-        helper.updateSubmission(
-          submission,
-          'client',
-          [
-            /text\/plain/,
-            401,
-          ],
-          done,
-        );
+        helper.updateSubmission(submission, 'client', [/text\/plain/, 401], done);
       });
 
       it('Should NOT allow the client to delete the submission', (done) => {
-        helper.deleteSubmission(
-          submission,
-          'client',
-          [
-            /text\/plain/,
-            401,
-          ],
-          done,
-        );
+        helper.deleteSubmission(submission, 'client', [/text\/plain/, 401], done);
       });
 
       it('Should allow the manager to see this submission', (done) => {
-        helper.getSubmission(
-          'clientreg',
-          submission._id,
-          'manager',
-          [
-            /json/,
-            200,
-          ],
-          done,
-        );
+        helper.getSubmission('clientreg', submission._id, 'manager', [/json/, 200], done);
       });
 
       it('Should allow allow the manager to update the submission', (done) => {
         submission.data.testing = 'hello';
-        helper.updateSubmission(
-          submission,
-          'manager',
-          [
-            /json/,
-            200,
-          ],
-          done,
-        );
+        helper.updateSubmission(submission, 'manager', [/json/, 200], done);
       });
 
       it('Should allow the manager to delete the submission', (done) => {
-        helper.deleteSubmission(
-          submission,
-          'manager',
-          [
-            /json/,
-            200,
-          ],
-          done,
-        );
+        helper.deleteSubmission(submission, 'manager', [/json/, 200], done);
       });
     });
 
@@ -13156,71 +12768,35 @@ module.exports = function (app, template, hook) {
         helper
           .resource('mixmatcha', components, {
             submissionAccess: helper.perms({
-              create_own: [
-                'authenticated',
-              ],
-              read_own: [
-                'authenticated',
-              ],
-              update_own: [
-                'authenticated',
-              ],
+              create_own: ['authenticated'],
+              read_own: ['authenticated'],
+              update_own: ['authenticated'],
             }),
           })
           .resource('mixmatchb', components, {
             submissionAccess: helper.perms({
-              create_own: [
-                'anonymous',
-              ],
-              read_own: [
-                'anonymous',
-              ],
-              update_own: [
-                'anonymous',
-              ],
-              delete_own: [
-                'anonymous',
-              ],
+              create_own: ['anonymous'],
+              read_own: ['anonymous'],
+              update_own: ['anonymous'],
+              delete_own: ['anonymous'],
             }),
           })
           .resource('mixmatchc', components, {
             submissionAccess: helper.perms({
-              create_all: [
-                'anonymous',
-              ],
-              create_own: [
-                'authenticated',
-                'anonymous',
-              ],
-              read_own: [
-                'authenticated',
-              ],
-              update_own: [
-                'authenticated',
-              ],
-              delete_own: [
-                'authenticated',
-              ],
+              create_all: ['anonymous'],
+              create_own: ['authenticated', 'anonymous'],
+              read_own: ['authenticated'],
+              update_own: ['authenticated'],
+              delete_own: ['authenticated'],
             }),
           })
           .resource('mixmatchd', components, {
             submissionAccess: helper.perms({
-              create_all: [
-                'authenticated',
-              ],
-              read_all: [
-                'anonymous',
-              ],
-              read_own: [
-                'authenticated',
-                'anonymous',
-              ],
-              update_own: [
-                'authenticated',
-              ],
-              delete_all: [
-                'anonymous',
-              ],
+              create_all: ['authenticated'],
+              read_all: ['anonymous'],
+              read_own: ['authenticated', 'anonymous'],
+              update_own: ['authenticated'],
+              delete_all: ['anonymous'],
             }),
           })
           .execute(done);
@@ -13236,10 +12812,7 @@ module.exports = function (app, template, hook) {
               c: 'test3',
             },
             null,
-            [
-              /text\/plain/,
-              401,
-            ],
+            [/text\/plain/, 401],
           )
           .execute(done);
       });
@@ -13263,10 +12836,7 @@ module.exports = function (app, template, hook) {
           'mixmatcha',
           helper.lastSubmission._id,
           'user2',
-          [
-            /text\/plain/,
-            401,
-          ],
+          [/text\/plain/, 401],
           done,
         );
       });
@@ -13356,10 +12926,7 @@ module.exports = function (app, template, hook) {
           'mixmatcha',
           helper.lastSubmission._id,
           'user1',
-          [
-            /text\/plain/,
-            401,
-          ],
+          [/text\/plain/, 401],
           done,
         );
       });
@@ -13369,27 +12936,11 @@ module.exports = function (app, template, hook) {
       });
 
       it('Should not allow user1 to delete the submission.', (done) => {
-        helper.deleteSubmission(
-          helper.lastSubmission,
-          'user1',
-          [
-            /text\/plain/,
-            401,
-          ],
-          done,
-        );
+        helper.deleteSubmission(helper.lastSubmission, 'user1', [/text\/plain/, 401], done);
       });
 
       it('Should not allow user2 to delete the submission.', (done) => {
-        helper.deleteSubmission(
-          helper.lastSubmission,
-          'user2',
-          [
-            /text\/plain/,
-            401,
-          ],
-          done,
-        );
+        helper.deleteSubmission(helper.lastSubmission, 'user2', [/text\/plain/, 401], done);
       });
 
       it('Should allow an administrator to delete the submission.', (done) => {
@@ -13405,10 +12956,7 @@ module.exports = function (app, template, hook) {
             c: 'two',
           },
           'user1',
-          [
-            /text\/plain/,
-            401,
-          ],
+          [/text\/plain/, 401],
           done,
         );
       });
@@ -13469,27 +13017,11 @@ module.exports = function (app, template, hook) {
           b: 'test3',
           c: 'test4',
         };
-        helper.updateSubmission(
-          helper.lastSubmission,
-          null,
-          [
-            /text\/plain/,
-            401,
-          ],
-          done,
-        );
+        helper.updateSubmission(helper.lastSubmission, null, [/text\/plain/, 401], done);
       });
 
       it('Should NOT allow anonymous user to delete the submission in mixmatchb', (done) => {
-        helper.deleteSubmission(
-          helper.lastSubmission,
-          null,
-          [
-            /text\/plain/,
-            401,
-          ],
-          done,
-        );
+        helper.deleteSubmission(helper.lastSubmission, null, [/text\/plain/, 401], done);
       });
 
       it('Should NOT allow anonymous to view the submission in mixmatchb', (done) => {
@@ -13497,10 +13029,7 @@ module.exports = function (app, template, hook) {
           'mixmatchb',
           helper.lastSubmission._id,
           null,
-          [
-            /text\/plain/,
-            401,
-          ],
+          [/text\/plain/, 401],
           done,
         );
       });
@@ -13510,24 +13039,13 @@ module.exports = function (app, template, hook) {
           'mixmatchb',
           helper.lastSubmission._id,
           'user1',
-          [
-            /text\/plain/,
-            401,
-          ],
+          [/text\/plain/, 401],
           done,
         );
       });
 
       it('Should NOT allow user1 to delete the submission in mixmatchb', (done) => {
-        helper.deleteSubmission(
-          helper.lastSubmission,
-          'user1',
-          [
-            /text\/plain/,
-            401,
-          ],
-          done,
-        );
+        helper.deleteSubmission(helper.lastSubmission, 'user1', [/text\/plain/, 401], done);
       });
 
       it('Should allow admin1 to get the submission in mixmatchb', (done) => {
@@ -13616,10 +13134,7 @@ module.exports = function (app, template, hook) {
           'mixmatchc',
           helper.lastSubmission._id,
           'user2',
-          [
-            /text\/plain/,
-            401,
-          ],
+          [/text\/plain/, 401],
           done,
         );
       });
@@ -13629,10 +13144,7 @@ module.exports = function (app, template, hook) {
           'mixmatchc',
           helper.lastSubmission._id,
           null,
-          [
-            /text\/plain/,
-            401,
-          ],
+          [/text\/plain/, 401],
           done,
         );
       });
@@ -13647,15 +13159,7 @@ module.exports = function (app, template, hook) {
           b: 'test3',
           c: 'test4',
         };
-        helper.updateSubmission(
-          helper.lastSubmission,
-          'user2',
-          [
-            /text\/plain/,
-            401,
-          ],
-          done,
-        );
+        helper.updateSubmission(helper.lastSubmission, 'user2', [/text\/plain/, 401], done);
       });
 
       it('Should NOT allow anonymous to update the created submission', (done) => {
@@ -13664,15 +13168,7 @@ module.exports = function (app, template, hook) {
           b: 'test3',
           c: 'test4',
         };
-        helper.updateSubmission(
-          helper.lastSubmission,
-          null,
-          [
-            /text\/plain/,
-            401,
-          ],
-          done,
-        );
+        helper.updateSubmission(helper.lastSubmission, null, [/text\/plain/, 401], done);
       });
 
       it('Should allow user1 to update their submission.', (done) => {
@@ -13716,27 +13212,11 @@ module.exports = function (app, template, hook) {
       });
 
       it('Should not allow user2 to delete the submission.', (done) => {
-        helper.deleteSubmission(
-          helper.lastSubmission,
-          'user2',
-          [
-            /text\/plain/,
-            401,
-          ],
-          done,
-        );
+        helper.deleteSubmission(helper.lastSubmission, 'user2', [/text\/plain/, 401], done);
       });
 
       it('Should not allow anonymous to delete the submission.', (done) => {
-        helper.deleteSubmission(
-          helper.lastSubmission,
-          null,
-          [
-            /text\/plain/,
-            401,
-          ],
-          done,
-        );
+        helper.deleteSubmission(helper.lastSubmission, null, [/text\/plain/, 401], done);
       });
 
       it('Should allow user1 to delete their own submission.', (done) => {
@@ -13752,10 +13232,7 @@ module.exports = function (app, template, hook) {
             c: 'c',
           },
           null,
-          [
-            /text\/plain/,
-            401,
-          ],
+          [/text\/plain/, 401],
           done,
         );
       });
@@ -13790,10 +13267,7 @@ module.exports = function (app, template, hook) {
           'mixmatchd',
           helper.lastSubmission._id,
           'user1',
-          [
-            /text\/plain/,
-            401,
-          ],
+          [/text\/plain/, 401],
           done,
         );
       });
@@ -13826,10 +13300,7 @@ module.exports = function (app, template, hook) {
           'mixmatchd',
           helper.lastSubmission._id,
           'user2',
-          [
-            /text\/plain/,
-            401,
-          ],
+          [/text\/plain/, 401],
           done,
         );
       });
@@ -13843,27 +13314,11 @@ module.exports = function (app, template, hook) {
       });
 
       it('Should NOT allow user1 to delete the submission.', (done) => {
-        helper.deleteSubmission(
-          helper.lastSubmission,
-          'user1',
-          [
-            /text\/plain/,
-            401,
-          ],
-          done,
-        );
+        helper.deleteSubmission(helper.lastSubmission, 'user1', [/text\/plain/, 401], done);
       });
 
       it('Should NOT allow user2 to delete the submission.', (done) => {
-        helper.deleteSubmission(
-          helper.lastSubmission,
-          'user2',
-          [
-            /text\/plain/,
-            401,
-          ],
-          done,
-        );
+        helper.deleteSubmission(helper.lastSubmission, 'user2', [/text\/plain/, 401], done);
       });
 
       it('Should allow an anonymous user to delete the submission.', (done) => {
@@ -13903,20 +13358,8 @@ module.exports = function (app, template, hook) {
           },
         ],
       };
-      var adminValues = [
-        'test1',
-        'test2',
-        'test3',
-        'test4',
-        'other7',
-        'other8',
-      ];
-      var userValues = [
-        'test5',
-        'test6',
-        'test7',
-        'test8',
-      ];
+      var adminValues = ['test1', 'test2', 'test3', 'test4', 'other7', 'other8'];
+      var userValues = ['test5', 'test6', 'test7', 'test8'];
 
       before(function () {
         tempForm.access = [
@@ -14132,20 +13575,8 @@ module.exports = function (app, template, hook) {
             var response = res.body;
             assert.equal(response.length, 2);
             assert(response instanceof Array);
-            assert(
-              [
-                'other7',
-                'other8',
-              ].indexOf(response[0].data.value) !== -1,
-              'Value not found',
-            );
-            assert(
-              [
-                'other7',
-                'other8',
-              ].indexOf(response[1].data.value) !== -1,
-              'Value not found',
-            );
+            assert(['other7', 'other8'].indexOf(response[0].data.value) !== -1, 'Value not found');
+            assert(['other7', 'other8'].indexOf(response[1].data.value) !== -1, 'Value not found');
             template.users.admin.token = res.headers['x-jwt-token'];
             done();
           });
@@ -14171,20 +13602,8 @@ module.exports = function (app, template, hook) {
             var response = res.body;
             assert.equal(response.length, 2);
             assert(response instanceof Array);
-            assert(
-              [
-                'other7',
-                'test7',
-              ].indexOf(response[0].data.value) !== -1,
-              'Value not found',
-            );
-            assert(
-              [
-                'other7',
-                'test7',
-              ].indexOf(response[1].data.value) !== -1,
-              'Value not found',
-            );
+            assert(['other7', 'test7'].indexOf(response[0].data.value) !== -1, 'Value not found');
+            assert(['other7', 'test7'].indexOf(response[1].data.value) !== -1, 'Value not found');
             template.users.admin.token = res.headers['x-jwt-token'];
             done();
           });
@@ -14502,20 +13921,8 @@ module.exports = function (app, template, hook) {
           },
         ],
       };
-      var adminValues = [
-        'test1',
-        'test2',
-        'test3',
-        'test4',
-        'other7',
-        'other8',
-      ];
-      var userValues = [
-        'test5',
-        'test6',
-        'test7',
-        'test8',
-      ];
+      var adminValues = ['test1', 'test2', 'test3', 'test4', 'other7', 'other8'];
+      var userValues = ['test5', 'test6', 'test7', 'test8'];
 
       before(function () {
         tempForm.access = [

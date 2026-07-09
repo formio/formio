@@ -71,8 +71,7 @@ module.exports = function (router) {
           if (req.body) {
             if (req.params.formId) {
               req.body._id = req.params.formId;
-            }
-            else {
+            } else {
               delete req.body._id;
             }
           }
@@ -91,23 +90,14 @@ module.exports = function (router) {
         router.formio.middleware.formRevisionLoader,
         router.formio.middleware.formLoader,
         router.formio.middleware.formActionHandler('after'),
-        router.formio.middleware.filterResourcejsResponse([
-          'deleted',
-          '__v',
-        ]),
-        router.formio.middleware.filterIndex([
-          'components',
-          'properties',
-        ]),
+        router.formio.middleware.filterResourcejsResponse(['deleted', '__v']),
+        router.formio.middleware.filterIndex(['components', 'properties']),
         router.formio.middleware.lastModifiedIndexHandler,
       ],
       hooks: {
         put: {
           before(req, res, item, next) {
-            util.markModifiedParameters(item, [
-              'components',
-              'properties',
-            ]);
+            util.markModifiedParameters(item, ['components', 'properties']);
             return next();
           },
         },

@@ -37,18 +37,11 @@ module.exports = function (db, config, tools, done) {
     callback();
   };
 
-  async.series(
-    [
-      update1,
-      update2,
-      update3,
-    ],
-    function (err) {
-      if (err) {
-        return done(err);
-      }
+  async.series([update1, update2, update3], function (err) {
+    if (err) {
+      return done(err);
+    }
 
-      done();
-    },
-  );
+    done();
+  });
 };

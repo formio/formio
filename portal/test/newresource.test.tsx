@@ -51,9 +51,7 @@ test('Creating a new resource should take you to edit resource', async () => {
         path: 'test',
         type: 'resource',
         display: 'form',
-        tags: [
-          '',
-        ],
+        tags: [''],
         owner: '6796959fd194b4e879fe3c97',
         components: [],
         pdfComponents: [],
@@ -81,9 +79,7 @@ test('Creating a new resource should take you to edit resource', async () => {
         path: 'test',
         type: 'resource',
         display: 'form',
-        tags: [
-          '',
-        ],
+        tags: [''],
         owner: '6796959fd194b4e879fe3c97',
         components: [],
         pdfComponents: [],

@@ -75,7 +75,7 @@ module.exports = (router) => {
 
     if (component.multiple && _.isArray(compValue)) {
       idQuery = {
-        $in: []
+        $in: [],
       };
       _.map(compValue, (val) => idQuery.$in.push(util.ObjectId(val._id)));
     } else if (compValue._id) {
@@ -86,7 +86,8 @@ module.exports = (router) => {
       return Promise.resolve();
     }
     return loadReferences(
-      component, {
+      component,
+      {
         _id: idQuery,
         limit: 10000000,
       },

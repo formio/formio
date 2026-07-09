@@ -36,8 +36,6 @@ module.exports = {
       }),
     ],
   },
-  target: [
-    'web',
-  ],
+  target: ['web'],
   plugins: [],
 };

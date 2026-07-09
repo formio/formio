@@ -34,10 +34,7 @@ let debug = {
 module.exports = function (db, config, tools, done) {
   let formCollection = db.collection('forms');
   let submissionCollection = db.collection('submissions');
-  let blackListedComponents = [
-    'select',
-    'address',
-  ];
+  let blackListedComponents = ['select', 'address'];
 
   // List of forms to sweep.
   let forms = [];

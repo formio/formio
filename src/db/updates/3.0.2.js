@@ -52,12 +52,8 @@ module.exports = function (db, config, tools, done) {
                     title: 'Role Assignment',
                     name: 'role',
                     priority: 1,
-                    handler: [
-                      'after',
-                    ],
-                    method: [
-                      'create',
-                    ],
+                    handler: ['after'],
+                    method: ['create'],
                     form: formId,
                     settings: {
                       association: 'new',

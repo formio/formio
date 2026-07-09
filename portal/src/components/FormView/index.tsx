@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Params, Route, Switch, useLocation } from 'wouter';
+import { Params, Route, Switch } from 'wouter';
 import { EnterData } from './EnterData';
 import { ViewData } from './ViewData';
 import { EditForm } from './EditForm';
@@ -18,10 +18,7 @@ export const FormView = ({
 }) => {
   useBodyClassName(`item-open ${type}-open`);
   const { id } = params;
-  const [
-    formDisplayData,
-    setFormDisplayData,
-  ] = useState<FormDisplayData | undefined>();
+  const [formDisplayData, setFormDisplayData] = useState<FormDisplayData | undefined>();
   const formUrl = `/form/${id}`;
   const { token } = useFormioContext();
 
@@ -42,9 +39,7 @@ export const FormView = ({
       setFormDisplayData(data);
     };
     fetchFormDisplayData();
-  }, [
-    formUrl,
-  ]);
+  }, [formUrl]);
 
   const onSaveForm = useCallback(
     (data: any) => {
@@ -52,9 +47,7 @@ export const FormView = ({
         setFormDisplayData(data);
       }
     },
-    [
-      setFormDisplayData,
-    ],
+    [setFormDisplayData],
   );
 
   return (

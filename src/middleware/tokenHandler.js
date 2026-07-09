@@ -213,7 +213,7 @@ module.exports = (router) => {
         if (!user && decoded.external && decoded.user) {
           user = decoded.user;
         }
-          if (!user) {
+        if (!user) {
           req.user = null;
           req.token = null;
           res.token = null;

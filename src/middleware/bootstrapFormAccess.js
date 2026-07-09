@@ -50,9 +50,7 @@ module.exports = function (router) {
           { _id: res.resource.item._id, deleted: { $eq: null } },
           {
             $set: {
-              access: [
-                { type: 'read_all', roles: roles },
-              ],
+              access: [{ type: 'read_all', roles: roles }],
             },
           },
         )

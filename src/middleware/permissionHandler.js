@@ -8,6 +8,28 @@ const EVERYONE = '000000000000000000000000';
 module.exports = function (router) {
   const hook = require('../util/hook')(router.formio);
 
+  // FIO-11586: bulk submission collection routes operate on many rows and
+  // don't implement owner-scoped filtering, so they must be evaluated against
+  // the submission entity (not the parent form) with `*_own` suppressed.
+  // Trailing slashes stripped — Express default strict=false matches both
+  // `/submissions` and `/submissions/`.
+  //
+  // Matches:
+  //   POST   /form/:formId/submissions   -> 'create'
+  //   PUT    /form/:formId/submissions   -> 'upsert'
+  //   DELETE /form/:formId/submission    -> 'delete'
+  // Returns null for non-bulk routes.
+  const getBulkSubmissionAction = (req) => {
+    if (!req.formId) return null;
+    const reqPath = req.path.replace(/\/+$/, '');
+    if (reqPath.endsWith('/submissions')) {
+      if (req.method === 'POST') return 'create';
+      if (req.method === 'PUT') return 'upsert';
+    }
+    if (reqPath.endsWith('/submission') && req.method === 'DELETE') return 'delete';
+    return null;
+  };
+
   /**
    * Convert the submissions resource access into the common roles/permissions format for processing during the request.
    *
@@ -135,29 +157,12 @@ module.exports = function (router) {
 
     // Allowed actions for each permission level
     const permissions = {
-      read: [
-        'read_all',
-      ],
-      create: [
-        'create_all',
-      ],
-      update: [
-        'update_all',
-      ],
-      delete: [
-        'delete_all',
-      ],
-      write: [
-        'read_all',
-        'create_all',
-        'update_all',
-      ],
-      admin: [
-        'read_all',
-        'create_all',
-        'update_all',
-        'delete_all',
-      ],
+      read: ['read_all'],
+      create: ['create_all'],
+      update: ['update_all'],
+      delete: ['delete_all'],
+      write: ['read_all', 'create_all', 'update_all'],
+      admin: ['read_all', 'create_all', 'update_all', 'delete_all'],
     };
 
     const isConditionMet = (value, formFieldValue, operator) => {
@@ -189,36 +194,31 @@ module.exports = function (router) {
     };
 
     // Iterate through each permission level
-    Object.entries(req.submissionFieldMatchAccess).forEach(
-      ([
-        permissionLevel,
-        conditions,
-      ]) => {
-        if (!Array.isArray(conditions)) {
-          return;
-        }
-        // Iterate through each condition within a permission level
-        conditions.forEach((condition) => {
-          // Get intersection of roles within condition and the user's roles
-          const rolesIntersection = _.intersectionWith(
-            condition.roles,
-            userRoles,
-            (role, userRole) => {
-              return role.toString() === userRole.toString();
-            },
-          ).map((role) => role.toString());
+    Object.entries(req.submissionFieldMatchAccess).forEach(([permissionLevel, conditions]) => {
+      if (!Array.isArray(conditions)) {
+        return;
+      }
+      // Iterate through each condition within a permission level
+      conditions.forEach((condition) => {
+        // Get intersection of roles within condition and the user's roles
+        const rolesIntersection = _.intersectionWith(
+          condition.roles,
+          userRoles,
+          (role, userRole) => {
+            return role.toString() === userRole.toString();
+          },
+        ).map((role) => role.toString());
 
-          // If the user has a role specified in condition
-          if (rolesIntersection.length) {
-            const { formFieldPath, operator, value, valueType } = condition;
-            const formFieldValue = _.get(submission, formFieldPath);
-            if (isConditionMet(util.castValue(valueType, value), formFieldValue, operator)) {
-              grantAccess(permissionLevel, rolesIntersection);
-            }
+        // If the user has a role specified in condition
+        if (rolesIntersection.length) {
+          const { formFieldPath, operator, value, valueType } = condition;
+          const formFieldValue = _.get(submission, formFieldPath);
+          if (isConditionMet(util.castValue(valueType, value), formFieldValue, operator)) {
+            grantAccess(permissionLevel, rolesIntersection);
           }
-        });
-      },
-    );
+        }
+      });
+    });
   };
 
   /**
@@ -279,9 +279,7 @@ module.exports = function (router) {
         let selectValue = _.get(req.body.data, path);
         if (selectValue) {
           if (!Array.isArray(selectValue)) {
-            selectValue = [
-              selectValue,
-            ];
+            selectValue = [selectValue];
           }
 
           const createAccess = component.submissionAccess
@@ -390,26 +388,15 @@ module.exports = function (router) {
 
               // check for group permissions, only if creating submission (POST request)
               if (req.method === 'POST') {
-                getAccessBasedOnMethod(req, item, access, [
-                  'create',
-                  'write',
-                  'admin',
-                ]);
+                getAccessBasedOnMethod(req, item, access, ['create', 'write', 'admin']);
               }
 
               if (req.method === 'DELETE') {
-                getAccessBasedOnMethod(req, item, access, [
-                  'delete',
-                  'admin',
-                ]);
+                getAccessBasedOnMethod(req, item, access, ['delete', 'admin']);
               }
 
               if (req.method === 'PUT' || req.method === 'PATCH') {
-                getAccessBasedOnMethod(req, item, access, [
-                  'update',
-                  'write',
-                  'admin',
-                ]);
+                getAccessBasedOnMethod(req, item, access, ['update', 'write', 'admin']);
               }
 
               // Return the updated access list.
@@ -447,9 +434,7 @@ module.exports = function (router) {
               }
 
               // Default the access roles.
-              access.roles = [
-                access.defaultRole,
-              ];
+              access.roles = [access.defaultRole];
 
               // Ensure the user only has valid roles.
               if (req.user) {
@@ -640,7 +625,7 @@ module.exports = function (router) {
       let search = methods[method];
       // If we are dealing with form actions then all permissions are based on the put permissions
       // of the form
-      if(entity?.type === 'form' && req.url.match(/\/action($|\/)/)){
+      if (entity?.type === 'form' && req.url.match(/\/action($|\/)/)) {
         search = methods.PUT;
       }
       if (!search || typeof search === 'undefined') {
@@ -706,8 +691,9 @@ module.exports = function (router) {
       const hasAllAccess = typedAccess(search.all);
       let _hasAccess = false;
 
-      // Check for self access.
+      // Check for self access. Suppressed for bulk submission routes.
       if (
+        !req.bulkSubmissionAction &&
         user &&
         ((req.selfAccess && user === access[entity.type]._id && hasOwnAccess) ||
           (isOwner && user === entity.id))
@@ -719,7 +705,9 @@ module.exports = function (router) {
       if (hasAllAccess) {
         const submissionResourceAdmin = _.get(req, 'submissionResourceAccessAdminBlock') || [];
         if (
-          (req.method === 'POST' || req.method === 'PUT' || (req.method === 'PATCH' && entity.type === 'submission')) &&
+          (req.method === 'POST' ||
+            req.method === 'PUT' ||
+            (req.method === 'PATCH' && entity.type === 'submission')) &&
           !_.intersection(submissionResourceAdmin, access.roles).length
         ) {
           // Allow them to assign the owner.
@@ -749,8 +737,8 @@ module.exports = function (router) {
         _hasAccess = true;
       }
 
-      // Check for own access.
-      if (hasOwnAccess && (isOwner || isIndex || isPost || isDelete)) {
+      // Check for own access. Suppressed for bulk submission routes.
+      if (!req.bulkSubmissionAction && hasOwnAccess && (isOwner || isIndex || isPost || isDelete)) {
         _hasAccess = true;
       }
 
@@ -810,6 +798,26 @@ module.exports = function (router) {
       return next();
     }
 
+    // FIO-11586: bulk submission collection routes are evaluated against the
+    // submission entity (not the form). `req.bulkSubmissionAction` tells
+    // hasAccess to suppress `*_own` / self-access grants — bulk handlers don't
+    // implement owner-scoped filtering, so only admin or submission `*_all`
+    // should pass. Callers needing owner-scoped operations must use the
+    // single-submission endpoints. Bulk create/upsert are gated by the
+    // BULK_S feature flag; bulk delete predates the flag and stays available.
+    const bulkSubmissionAction = getBulkSubmissionAction(req);
+    if (bulkSubmissionAction) {
+      if (
+        bulkSubmissionAction !== 'delete' &&
+        hook.alter('isFeatureEnabled', 'BULK_S') === false
+      ) {
+        return res.status(403).json({
+          error: 'Bulk submission endpoints are disabled.',
+        });
+      }
+      req.bulkSubmissionAction = bulkSubmissionAction;
+    }
+
     // Determine if we are trying to access an entity of the form or submission.
     router.formio.access.getAccess(req, res, function (err, access) {
       if (err) {
@@ -828,6 +836,14 @@ module.exports = function (router) {
         entity = {
           type: 'submission',
           id: req.subId,
+        };
+      } else if (bulkSubmissionAction) {
+        // FIO-11586: bulk submission routes carry no subId but operate on
+        // submissions, not the parent form — evaluate against the submission
+        // entity. `req.bulkSubmissionAction` suppresses `*_own` in hasAccess.
+        entity = {
+          type: 'submission',
+          id: '',
         };
       } else if (req.hasOwnProperty('formId') && req.formId !== null && req.formId !== undefined) {
         entity = {
@@ -867,6 +883,17 @@ module.exports = function (router) {
         res.status(401);
         return next();
       }
+
+      // FIO-11586: authenticated callers without bulk perms get a descriptive
+      // 403 so they understand `*_own` is intentionally not honored on
+      // collection routes. Unauthenticated callers stay on 401.
+      if (req.bulkSubmissionAction && req.user && !res.headersSent) {
+        const permAction = req.bulkSubmissionAction === 'upsert' ? 'update' : req.bulkSubmissionAction;
+        return res.status(403).json({
+          error: `Bulk submission ${req.bulkSubmissionAction} requires an admin role or the \`${permAction}_all\` submission permission. Use the single-submission endpoint for owner-scoped operations.`,
+        });
+      }
+
       return res.headersSent ? next() : res.sendStatus(401);
     });
   };

@@ -11,7 +11,7 @@ const util = require('../util/util');
 module.exports = async function (db, config) {
   util.log(' > Performing install.');
 
-  async function createActionsCollection () {
+  async function createActionsCollection() {
     // Create actions collections exist.
     const collection = await db.createCollection('actions', null);
     await collection.createIndexes([
@@ -29,9 +29,9 @@ module.exports = async function (db, config) {
         name: 'priority_1_title_1',
       },
     ]);
-  };
+  }
 
-  async function createProjectsCollection () {
+  async function createProjectsCollection() {
     // Create projects collections exist.
     const collection = await db.createCollection('projects', null);
     await collection.createIndexes([
@@ -54,9 +54,9 @@ module.exports = async function (db, config) {
         name: 'owner_1',
       },
     ]);
-  };
+  }
 
-  async function createFormsCollection () {
+  async function createFormsCollection() {
     // Create forms collections exist.
     const collection = await db.createCollection('forms', null);
     await collection.createIndexes([
@@ -103,9 +103,9 @@ module.exports = async function (db, config) {
         name: 'owner_1',
       },
     ]);
-  };
+  }
 
-  async function createRolesCollection () {
+  async function createRolesCollection() {
     // Create roles collections exist.
     const collection = await db.createCollection('roles', null);
     await collection.createIndexes([
@@ -116,9 +116,9 @@ module.exports = async function (db, config) {
         name: 'project_1',
       },
     ]);
-  };
+  }
 
-  async function createSchemaCollection () {
+  async function createSchemaCollection() {
     // Create schema collections exist.
     const collection = await db.createCollection('schema', null);
     await collection.createIndexes([
@@ -130,9 +130,9 @@ module.exports = async function (db, config) {
       },
     ]);
     await collection.insertOne({ key: 'formio', isLocked: false, version: config.schema });
-  };
+  }
 
-  async function createSubmissionsCollection () {
+  async function createSubmissionsCollection() {
     // Create submissions collections exist.
     const collection = await db.createCollection('submissions', null);
     await collection.createIndexes([
@@ -161,7 +161,7 @@ module.exports = async function (db, config) {
         name: 'roles_1',
       },
     ]);
-  };
+  }
 
   await Promise.all([
     createActionsCollection(),

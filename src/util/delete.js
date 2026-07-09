@@ -29,9 +29,7 @@ module.exports = (router) => {
     }
     // Convert the forms to an array if only one was provided.
     if (forms && !Array.isArray(forms)) {
-      forms = [
-        forms,
-      ];
+      forms = [forms];
     }
 
     // Build the query, using either the subId or forms array.
@@ -70,9 +68,7 @@ module.exports = (router) => {
     }
     // Convert the forms to an array if only one was provided.
     if (forms && !Array.isArray(forms)) {
-      forms = [
-        forms,
-      ];
+      forms = [forms];
     }
 
     const query = { deleted: { $eq: null } };
@@ -120,10 +116,7 @@ module.exports = (router) => {
         },
       })
       .then(() =>
-        Promise.all([
-          deleteAction(null, formId, req),
-          deleteSubmission(null, formId, req),
-        ]),
+        Promise.all([deleteAction(null, formId, req), deleteSubmission(null, formId, req)]),
       );
   }
 
@@ -152,10 +145,7 @@ module.exports = (router) => {
      */
     async function removeFromForm(formIds) {
       // Build the or query on accessTypes.
-      const accessTypes = [
-        'access',
-        'submissionAccess',
-      ];
+      const accessTypes = ['access', 'submissionAccess'];
       const or = accessTypes.map((accessType) => ({
         [`${accessType}.roles`]: util.idToBson(roleId),
       }));
@@ -243,10 +233,7 @@ module.exports = (router) => {
         // update the list of formIds
         const formIds = forms.map((form) => form._id).map(util.idToString);
 
-        return Promise.all([
-          removeFromForm(formIds),
-          removeFromSubmissions(formIds),
-        ]);
+        return Promise.all([removeFromForm(formIds), removeFromSubmissions(formIds)]);
       });
   }
 

@@ -26,63 +26,42 @@
           {
             "long_name": "1234",
             "short_name": "1234",
-            "types": [
-              "street_number"
-            ]
+            "types": ["street_number"]
           },
           {
             "long_name": "Main",
             "short_name": "Main",
-            "types": [
-              "route"
-            ]
+            "types": ["route"]
           },
           {
             "long_name": "Hampton",
             "short_name": "Hampton",
-            "types": [
-              "locality",
-              "political"
-            ]
+            "types": ["locality", "political"]
           },
           {
             "long_name": "Township 3",
             "short_name": "Township 3",
-            "types": [
-              "administrative_area_level_3",
-              "political"
-            ]
+            "types": ["administrative_area_level_3", "political"]
           },
           {
             "long_name": "Calhoun County",
             "short_name": "Calhoun County",
-            "types": [
-              "administrative_area_level_2",
-              "political"
-            ]
+            "types": ["administrative_area_level_2", "political"]
           },
           {
             "long_name": "Arkansas",
             "short_name": "AR",
-            "types": [
-              "administrative_area_level_1",
-              "political"
-            ]
+            "types": ["administrative_area_level_1", "political"]
           },
           {
             "long_name": "United States",
             "short_name": "US",
-            "types": [
-              "country",
-              "political"
-            ]
+            "types": ["country", "political"]
           },
           {
             "long_name": "71744",
             "short_name": "71744",
-            "types": [
-              "postal_code"
-            ]
+            "types": ["postal_code"]
           }
         ],
         "formatted_address": "1234 Main, Hampton, AR 71744, USA",
@@ -115,9 +94,7 @@
         },
         "partial_match": true,
         "place_id": "EiExMjM0IE1haW4sIEhhbXB0b24sIEFSIDcxNzQ0LCBVU0E",
-        "types": [
-          "street_address"
-        ]
+        "types": ["street_address"]
       }
     },
     "vehicles": [

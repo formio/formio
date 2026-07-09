@@ -1,13 +1,7 @@
 'use strict';
 
 module.exports = (router) => async (req, res, next) => {
-  if (
-    ![
-      'PUT',
-      'PATCH',
-      'DELETE',
-    ].includes(req.method)
-  ) {
+  if (!['PUT', 'PATCH', 'DELETE'].includes(req.method)) {
     return next();
   }
 

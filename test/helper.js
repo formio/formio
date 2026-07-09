@@ -260,10 +260,7 @@ module.exports = function (app) {
 
   Helper.prototype.getRolesAndForms = function (done) {
     async.series(
-      [
-        async.apply(this.getForms.bind(this)),
-        async.apply(this.getRoles.bind(this)),
-      ],
+      [async.apply(this.getForms.bind(this)), async.apply(this.getRoles.bind(this))],
       (err) => {
         if (err) {
           return done(err);
@@ -373,10 +370,7 @@ module.exports = function (app) {
     }
 
     // Convert the role names to role ids.
-    [
-      'access',
-      'submissionAccess',
-    ].forEach((accessName) =>
+    ['access', 'submissionAccess'].forEach((accessName) =>
       _.each(form[accessName], (perm, i) =>
         _.each(perm.roles, (permRole, j) => {
           if (this.template.roles.hasOwnProperty(permRole)) {
@@ -1221,10 +1215,7 @@ module.exports = function (app) {
             },
           },
           null,
-          [
-            /application\/json/,
-            200,
-          ],
+          [/application\/json/, 200],
           (err) => {
             if (err) {
               return done(err);

@@ -39,6 +39,7 @@ module.exports = (router) => {
             _.startsWith(fullPath, `${condComp.path}.`)),
       );
     };
+    // GOTCHA(G-FOS03)
     // Only execute if the component should save reference and conditions do not apply.
     if (
       (component.hasOwnProperty('reference') && !component.reference) ||
@@ -49,12 +50,7 @@ module.exports = (router) => {
     }
 
     let url = '/form/:formId/submission';
-    if (
-      [
-        'PUT',
-        'PATCH',
-      ].includes(req.method)
-    ) {
+    if (['PUT', 'PATCH'].includes(req.method)) {
       url += '/:submissionId';
     }
     const childRes = router.formio.util.createSubResponse((err) => {

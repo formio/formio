@@ -139,34 +139,35 @@ class CSVExporter extends Exporter {
             _.each(component.values, (option) => {
               items.push({
                 preprocessor: (value, submission) => {
-                if (component.dataSrc === 'url') {
-                  let dataValue = _.get(submission, `metadata.selectData.${path}`);
-                  if (_.isArray(dataValue) && !_.isEmpty(dataValue)) {
-                    const template = getSelectTemplate(component);
-                    return _.chain(dataValue).map(v => {
-                      return Evaluator.interpolate(template, {item: v});
-                    }).join(',').value();
-              
-                  }
-                  else {
-                    if (_.isPlainObject(value)) {
-                      return _.chain(Object.keys(value)).filter((v) => value[v]).join(',').value();
+                  if (component.dataSrc === 'url') {
+                    let dataValue = _.get(submission, `metadata.selectData.${path}`);
+                    if (_.isArray(dataValue) && !_.isEmpty(dataValue)) {
+                      const template = getSelectTemplate(component);
+                      return _.chain(dataValue)
+                        .map((v) => {
+                          return Evaluator.interpolate(template, { item: v });
+                        })
+                        .join(',')
+                        .value();
+                    } else {
+                      if (_.isPlainObject(value)) {
+                        return _.chain(Object.keys(value))
+                          .filter((v) => value[v])
+                          .join(',')
+                          .value();
+                      }
                     }
+                    return value;
                   }
-                  return value;
-                }
                   return value;
                 },
-                ...(component.dataSrc === 'url' 
-                  ? {} 
-                  : { 
-                    label: [
-                      path,
-                      option.value,
-                    ].join('.'),
-                    subpath: option.value,
-                    type: 'boolean',
-                  })
+                ...(component.dataSrc === 'url'
+                  ? {}
+                  : {
+                      label: [path, option.value].join('.'),
+                      subpath: option.value,
+                      type: 'boolean',
+                    }),
               });
             });
           } else if (component.type === 'radio') {
@@ -176,7 +177,7 @@ class CSVExporter extends Exporter {
                   const dataValue = _.get(submission, `metadata.selectData.${path}`, value);
                   if (_.isPlainObject(dataValue) && !_.isEmpty(dataValue)) {
                     const template = getSelectTemplate(component);
-                    return Evaluator.interpolate(template, {item: dataValue}) || value;
+                    return Evaluator.interpolate(template, { item: dataValue }) || value;
                   }
                   return value;
                 }
@@ -195,13 +196,7 @@ class CSVExporter extends Exporter {
                   : componentValue.value;
               },
             });
-          } else if (
-            formattedView &&
-            [
-              'currency',
-              'number',
-            ].includes(component.type)
-          ) {
+          } else if (formattedView && ['currency', 'number'].includes(component.type)) {
             const currency = component.type === 'currency';
 
             const formatOptions = {
@@ -236,10 +231,7 @@ class CSVExporter extends Exporter {
           } else if (component.type === 'survey') {
             _.each(component.questions, (question) => {
               items.push({
-                label: [
-                  path,
-                  question.value,
-                ].join('.'),
+                label: [path, question.value].join('.'),
                 subpath: question.value,
                 preprocessor: (value) => {
                   if (_.isObject(value)) {
@@ -257,26 +249,18 @@ class CSVExporter extends Exporter {
                 },
               });
             });
-          }
-          else if (component.type === 'datatable') {
-            if (component.fetch?.enableFetch && component.fetch?.components?.length ) {
+          } else if (component.type === 'datatable') {
+            if (component.fetch?.enableFetch && component.fetch?.components?.length) {
               _.each(component.fetch.components, (comp) => {
                 items.push({
-                  label: [
-                    path,
-                    comp.key,
-                  ].join('.'),
+                  label: [path, comp.key].join('.'),
                   subpath: comp.key,
                 });
               });
             }
-          } 
-          else if (component.type === 'datamap') {
+          } else if (component.type === 'datamap') {
             items.push({
-              label: [
-                path,
-                'key',
-              ].join('.'),
+              label: [path, 'key'].join('.'),
               preprocessor: (value) => {
                 if (!value && _.isEmpty(value)) {
                   return '';
@@ -286,14 +270,11 @@ class CSVExporter extends Exporter {
                   return value;
                 }
 
-                return (Object.keys(value)).join(',');
+                return Object.keys(value).join(',');
               },
             });
             items.push({
-              label: [
-                path,
-                component.valueComponent.key,
-              ].join('.'),
+              label: [path, component.valueComponent.key].join('.'),
               preprocessor: (value) => {
                 if (!value && _.isEmpty(value)) {
                   return '';
@@ -303,15 +284,12 @@ class CSVExporter extends Exporter {
                   return value;
                 }
 
-                return ((Object.keys(value)).map(key => value[key])).join(',');
+                return Object.keys(value)
+                  .map((key) => value[key])
+                  .join(',');
               },
             });
-          } else if (
-            [
-              'select',
-              'resource',
-            ].includes(component.type)
-          ) {
+          } else if (['select', 'resource'].includes(component.type)) {
             // Prepare the Lodash template by deleting tags and html entities
             const clearTemplate = Entities.decode(
               component.template.replace(/<\/?[^>]+(>|$)/g, ''),
@@ -325,7 +303,7 @@ class CSVExporter extends Exporter {
                 result = err.message;
               }
               return result;
-            }
+            };
 
             const valuesExtractor = (value) => {
               // Check if this is within a datagrid.
@@ -358,9 +336,9 @@ class CSVExporter extends Exporter {
                     return tempVal;
                   } else if (component.type === 'select') {
                     const transformedValue = this.customTransform(path, value);
-                    return !_.isEqual(transformedValue, value) 
+                    return !_.isEqual(transformedValue, value)
                       ? transformedValue
-                      : _.map(value, v => extractValue(v));
+                      : _.map(value, (v) => extractValue(v));
                   }
                 } else {
                   return extractValue(value);
@@ -508,7 +486,7 @@ class CSVExporter extends Exporter {
               key: component.key,
               label: (item.label || compPaths.path).replace(labelRegexp, '.'),
               title: component.label,
-              dataPath: compPaths.path
+              dataPath: compPaths.path,
             };
 
             if (item.hasOwnProperty('subpath')) {
@@ -562,16 +540,8 @@ class CSVExporter extends Exporter {
     });
 
     const labels = this.formattedView
-      ? [
-          'ID',
-          'Created',
-          'Modified',
-        ]
-      : [
-          '_id',
-          'created',
-          'modified',
-        ];
+      ? ['ID', 'Created', 'Modified']
+      : ['_id', 'created', 'modified'];
     this.fields.forEach((item) => {
       if (item.hasOwnProperty('rename')) {
         if (_.isFunction(item.rename)) {
@@ -629,7 +599,7 @@ class CSVExporter extends Exporter {
         const pathInsideContainer = [];
         let containerData;
         // find closest container data
-        while(!containerData && parts.length > 1) {
+        while (!containerData && parts.length > 1) {
           pathInsideContainer.unshift(parts.pop());
           containerData = _.get(submission.data, parts);
         }
@@ -641,10 +611,15 @@ class CSVExporter extends Exporter {
         // If the subdata is an array, coerce it to a displayable string.
         if (Array.isArray(containerData)) {
           // special check for tagpad
-          if (containerData.every(row => _.isPlainObject(row) 
-            && Object.keys(row).length === 2 
-            && ['data', 'coordinate'].every(prop => Object.keys(row).includes(prop)))) {
-            containerData = containerData.map(row => row.data);
+          if (
+            containerData.every(
+              (row) =>
+                _.isPlainObject(row) &&
+                Object.keys(row).length === 2 &&
+                ['data', 'coordinate'].every((prop) => Object.keys(row).includes(prop)),
+            )
+          ) {
+            containerData = containerData.map((row) => row.data);
           }
           // Update the column component path, since we removed part of it.
           const subcolumn = {
@@ -708,12 +683,7 @@ class CSVExporter extends Exporter {
       data = data.toString();
     }
 
-    const riskyChars = [
-      '=',
-      '+',
-      '-',
-      '@',
-    ];
+    const riskyChars = ['=', '+', '-', '@'];
     const regexStr = `(?<=(?:^|"|“)\\s*)([${riskyChars.join('\\')}])`;
     const regExp = new RegExp(regexStr, 'gm');
 

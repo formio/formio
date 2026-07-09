@@ -93,10 +93,10 @@ module.exports = (router) => {
       };
 
       const setRequestHeaders = (req) => {
-        const captureIpAddress = process.env.CAPTURE_IP_ADDRESS && (
-          process.env.CAPTURE_IP_ADDRESS.toLowerCase() === 'true' || 
-          process.env.CAPTURE_IP_ADDRESS === '1'
-        );
+        const captureIpAddress =
+          process.env.CAPTURE_IP_ADDRESS &&
+          (process.env.CAPTURE_IP_ADDRESS.toLowerCase() === 'true' ||
+            process.env.CAPTURE_IP_ADDRESS === '1');
 
         const allowlist = [
           'host',
@@ -212,15 +212,7 @@ module.exports = (router) => {
       req.noValidate = req.noValidate || (req.isAdmin && req.query.noValidate);
 
       // No need to validate on GET requests.
-      if (
-        !(
-          [
-            'POST',
-            'PUT',
-            'PATCH',
-          ].includes(req.method) && req.body
-        )
-      ) {
+      if (!(['POST', 'PUT', 'PATCH'].includes(req.method) && req.body)) {
         return;
       }
 
@@ -322,13 +314,7 @@ module.exports = (router) => {
               data &&
               component.hasOwnProperty('persistent') &&
               (!component.persistent || component.persistent === 'client-only') &&
-              ![
-                'columns',
-                'fieldset',
-                'panel',
-                'table',
-                'tabs',
-              ].includes(component.type)
+              !['columns', 'fieldset', 'panel', 'table', 'tabs'].includes(component.type)
             ) {
               util.deleteProp(component.key)(data);
             }

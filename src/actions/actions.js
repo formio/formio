@@ -875,8 +875,7 @@ module.exports = (router) => {
       // Ensure _id always comes from the URL params, never from the request body.
       if (req.params.actionId) {
         req.body._id = req.params.actionId;
-      }
-      else {
+      } else {
         delete req.body._id;
       }
 
@@ -924,13 +923,7 @@ module.exports = (router) => {
 
   // Build the middleware stack.
   const handlers = {};
-  const methods = [
-    'Post',
-    'Get',
-    'Put',
-    'Index',
-    'Delete',
-  ];
+  const methods = ['Post', 'Get', 'Put', 'Index', 'Delete'];
   methods.forEach((method) => {
     handlers[`before${method}`] = [
       (req, res, next) => {
@@ -950,11 +943,7 @@ module.exports = (router) => {
       actionPayload,
     ];
     handlers[`after${method}`] = [
-      router.formio.middleware.filterResourcejsResponse([
-        'deleted',
-        '__v',
-        'externalTokens',
-      ]),
+      router.formio.middleware.filterResourcejsResponse(['deleted', '__v', 'externalTokens']),
     ];
   });
   handlers['beforePatch'] = (req, res, next) => {
@@ -969,9 +958,7 @@ module.exports = (router) => {
   handlers['beforeDelete'] = handlers['beforeDelete'].concat([
     router.formio.middleware.deleteActionHandler,
   ]);
-  handlers['afterIndex'] = handlers['afterIndex'].concat([
-    indexPayload,
-  ]);
+  handlers['afterIndex'] = handlers['afterIndex'].concat([indexPayload]);
   handlers['afterGet'] = handlers['afterGet'].concat([
     (req, res, next) => {
       if (req.params && req.params.actionId && res.resource && res.resource.item) {

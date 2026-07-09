@@ -118,12 +118,7 @@ module.exports = function (app, template, hook) {
         type: 'textfield',
         key: 'someText',
       };
-      components = [
-        component1,
-        component2,
-        component3,
-        component4,
-      ];
+      components = [component1, component2, component3, component4];
       data = {
         firstName: 'John',
         lastName: 'Doe',
@@ -218,9 +213,7 @@ module.exports = function (app, template, hook) {
     it('should add rowIndex property to the nested components', () => {
       const root = new RootShim(
         {
-          components: [
-            dataGrid,
-          ],
+          components: [dataGrid],
         },
         {
           data: {
@@ -279,9 +272,7 @@ module.exports = function (app, template, hook) {
         { components },
         {
           data: {
-            dataGrid: [
-              { textField: 'hello' },
-            ],
+            dataGrid: [{ textField: 'hello' }],
           },
         },
       );
@@ -331,9 +322,7 @@ module.exports = function (app, template, hook) {
         { components },
         {
           data: {
-            dataGrid: [
-              { textField: 'hello' },
-            ],
+            dataGrid: [{ textField: 'hello' }],
           },
         },
       );

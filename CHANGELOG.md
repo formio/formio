@@ -1,5 +1,71 @@
 # formio
 
+## 4.7.2
+
+### Patch Changes
+
+- 829df59: FIO-11714: prevent mongoDB injection via query sanitization and suppress verbose MongoDB errors
+- e2bdabe: Fixes an issue where unlock is being called after connecting to the mongo has failed throwing a misleading error
+- bad62b9: FIO-11512: prevent cross form submission takeover
+- bad62b9: FIO-11586: Enforce correct bulk submission permissions
+- Updated dependencies [6e4e477]
+- Updated dependencies [12fb10b]
+- Updated dependencies [1d7f6d7]
+- Updated dependencies [67c0a04]
+- Updated dependencies [8f7cfab]
+- Updated dependencies [7a9f179]
+- Updated dependencies [799bfe5]
+- Updated dependencies [cd8fe42]
+- Updated dependencies [2526a3c]
+- Updated dependencies [7f5f0f2]
+- Updated dependencies [656fd3f]
+- Updated dependencies [5ea9453]
+- Updated dependencies [c40ad3e]
+- Updated dependencies [01ac28f]
+- Updated dependencies [1c260a2]
+- Updated dependencies [8a33709]
+- Updated dependencies [5b2937f]
+- Updated dependencies [189b6bb]
+- Updated dependencies [6528ca3]
+  - @formio/js@5.4.2
+  - @formio/feature-flags@1.2.1
+
+## 4.7.2-api99.1
+
+### Patch Changes
+
+- Updated dependencies [12fb10b]
+  - @formio/js@5.4.2-api99.1
+
+## 4.7.2-api99.0
+
+### Patch Changes
+
+- 829df59: FIO-11714: prevent mongoDB injection via query sanitization and suppress verbose MongoDB errors
+- e2bdabe: Fixes an issue where unlock is being called after connecting to the mongo has failed throwing a misleading error
+- bad62b9: FIO-11512: prevent cross form submission takeover
+- bad62b9: FIO-11586: Enforce correct bulk submission permissions
+- Updated dependencies [6e4e477]
+- Updated dependencies [1d7f6d7]
+- Updated dependencies [67c0a04]
+- Updated dependencies [8f7cfab]
+- Updated dependencies [7a9f179]
+- Updated dependencies [799bfe5]
+- Updated dependencies [cd8fe42]
+- Updated dependencies [2526a3c]
+- Updated dependencies [7f5f0f2]
+- Updated dependencies [656fd3f]
+- Updated dependencies [5ea9453]
+- Updated dependencies [c40ad3e]
+- Updated dependencies [01ac28f]
+- Updated dependencies [1c260a2]
+- Updated dependencies [8a33709]
+- Updated dependencies [5b2937f]
+- Updated dependencies [189b6bb]
+- Updated dependencies [6528ca3]
+  - @formio/js@5.4.2-api99.0
+  - @formio/feature-flags@1.2.1-api99.0
+
 ## 4.7.1
 
 ### Patch Changes

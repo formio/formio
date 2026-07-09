@@ -137,10 +137,7 @@ const rootLevelProperties = [
   {
     label: 'State',
     value: '(submission).state',
-    operators: [
-      'isEqual',
-      'isNotEqual',
-    ],
+    operators: ['isEqual', 'isNotEqual'],
     valueComponent: {
       valueType: 'string',
       data: {
@@ -186,20 +183,10 @@ const filterComponentsForConditionComponentFieldOptions = (flattenedComponents) 
       let allowed =
         component.key &&
         component.input === true &&
-        !(
-          component.hasOwnProperty('components') &&
-          ![
-            'address',
-          ].includes(component.type)
-        ) &&
-        ![
-          'form',
-          'datasource',
-          'button',
-          'reviewpage',
-          'password',
-          'datamap',
-        ].includes(component.type);
+        !(component.hasOwnProperty('components') && !['address'].includes(component.type)) &&
+        !['form', 'datasource', 'button', 'reviewpage', 'password', 'datamap'].includes(
+          component.type,
+        );
 
       const pathArr = component.path.split('.');
 
@@ -210,13 +197,7 @@ const filterComponentsForConditionComponentFieldOptions = (flattenedComponents) 
           const parent = flattenedComponents[subPath];
           if (
             parent &&
-            [
-              'datagrid',
-              'editgrid',
-              'tagpad',
-              'datamap',
-              'address',
-            ].includes(parent.type)
+            ['datagrid', 'editgrid', 'tagpad', 'datamap', 'address'].includes(parent.type)
           ) {
             allowed = false;
             break;

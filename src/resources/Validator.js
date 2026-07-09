@@ -206,19 +206,13 @@ class Validator {
       : value._id
         ? { _id: value._id }
         : {
-            $or: [
-              { data: value },
-              { data: { ...value, submit: true } },
-            ],
+            $or: [{ data: value }, { data: { ...value, submit: true } }],
           };
     if (!component.filter) {
       component.filter = '';
     }
     const filterQueries = component.filter.split(',').reduce((acc, filter) => {
-      const [
-        key,
-        value,
-      ] = filter.split('=');
+      const [key, value] = filter.split('=');
       return { ...acc, [key]: value };
     }, {});
     Utils.coerceQueryTypes(filterQueries, resource, 'data.');
@@ -230,10 +224,7 @@ class Validator {
         { state: 'submitted' }, // state is 'submitted'
         { state: { $exists: false } }, // state field does not exist (actual for formio)
       ],
-      $and: [
-        valueQuery,
-        this.submissionResource.getFindQuery({ query: filterQueries }),
-      ],
+      $and: [valueQuery, this.submissionResource.getFindQuery({ query: filterQueries })],
     };
     return submissionQueryExists(this.submissionModel, query);
   }
@@ -317,7 +308,10 @@ class Validator {
   }
 
   async dereferenceSelectResourceValue(component, compValue) {
-    if (!(component.type === 'select' && component.dataSrc === 'resource' && component.reference) || _.isEmpty(compValue)) {
+    if (
+      !(component.type === 'select' && component.dataSrc === 'resource' && component.reference) ||
+      _.isEmpty(compValue)
+    ) {
       return;
     }
 
