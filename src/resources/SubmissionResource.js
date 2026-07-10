@@ -183,20 +183,27 @@ module.exports = (router) => {
         }
 
         const update = _.omit(req.body, ['_id', '__v']);
+        update.modified = new Date();
 
-        router.formio.resources.submission.model.findOneAndUpdate(
-          {_id: req.params[`${this.name}Id`]},
-          {$set: update}
-        ).then((item) => {
-          if (!item) {
-            return Resource.setResponse(res, {status: 404}, next);
-          }
+        options.hooks.put.before.call(this, req, res, update, () => {
+          router.formio.resources.submission.model
+            .findOneAndUpdate({_id: req.params[`${this.name}Id`]}, {$set: update}, {new: true})
+            .then((item) => {
+              if (!item) {
+                return Resource.setResponse(res, {status: 404}, next);
+              }
 
-          const updatedItem = _.assign(item, update);
-
-          return Resource.setResponse(res, {status: 200, item: updatedItem}, next);
-        }).catch((err) => {
-          return Resource.setResponse(res, {status: 400, error: err}, next);
+              return options.hooks.put.after.call(
+                this,
+                req,
+                res,
+                item,
+                Resource.setResponse.bind(Resource, res, {status: 200, item}, next),
+              );
+            })
+            .catch((err) => {
+              return Resource.setResponse(res, {status: 400, error: err}, next);
+            });
         });
       }, Resource.respond, options);
       return this;
@@ -220,7 +227,7 @@ module.exports = (router) => {
     hooks: {
       put: {
         before(req, res, item, next) {
-          if (item.data) {
+          if (item.data && item.markModified) {
             item.markModified('data');
           }
 
