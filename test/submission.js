@@ -4103,7 +4103,7 @@ module.exports = function(app, template, hook) {
 
       describe('Filtering submissions', () => {
 
-        it('Should filter submission for Currency Component', function(done) {
+        it('Should filter submission for Currency Component', function (done) {
           var components = [
             {
               "label": "Currency",
@@ -4125,27 +4125,27 @@ module.exports = function(app, template, hook) {
             .submission({ currency: 10 })
             .submission({ currency: 20 })
             .expect(201)
-            .execute(function(err) {
+            .execute(function (err) {
               if (err) {
                 return done(err);
               }
               request(app)
-              .get(hook.alter('url', '/form/' + helper.template.forms['filterCurrency']._id + '/submission?data.currency=10', helper.template))
-              .set('x-jwt-token', helper.owner.token)
-              .send()
-              .expect(200)
-              .end(function(err, res) {
-                if (err) {
-                  return done(err);
-                }
-                assert.equal(res.body.length, 1);
-                assert.equal(res.body[0].data.currency, 10);
-                done();
-              });
+                .get(hook.alter('url', '/form/' + helper.template.forms['filterCurrency']._id + '/submission?data.currency=10', helper.template))
+                .set('x-jwt-token', helper.owner.token)
+                .send()
+                .expect(200)
+                .end(function (err, res) {
+                  if (err) {
+                    return done(err);
+                  }
+                  assert.equal(res.body.length, 1);
+                  assert.equal(res.body[0].data.currency, 10);
+                  done();
+                });
             });
         });
 
-        it('Should filter submission for SelectBoxes Component', function(done) {
+        it('Should filter submission for SelectBoxes Component', function (done) {
           var components = [
             {
               "label": "Select Boxes",
@@ -4174,31 +4174,31 @@ module.exports = function(app, template, hook) {
 
           helper
             .form('filterSelectBoxes', components)
-            .submission({ selectBoxes: {a: true, b: false} })
-            .submission({ selectBoxes: {a: false, b: true} })
+            .submission({ selectBoxes: { a: true, b: false } })
+            .submission({ selectBoxes: { a: false, b: true } })
             .expect(201)
-            .execute(function(err) {
+            .execute(function (err) {
               if (err) {
                 return done(err);
               }
               request(app)
-              .get(hook.alter('url', '/form/' + helper.template.forms['filterSelectBoxes']._id + '/submission?data.selectBoxes.a=true&data.selectBoxes.b=false', helper.template))
-              .set('x-jwt-token', helper.owner.token)
-              .send()
-              .expect(200)
-              .end(function(err, res) {
-                if (err) {
-                  return done(err);
-                }
-                assert.equal(res.body.length, 1);
-                assert.equal(res.body[0].data.selectBoxes.a, true);
-                assert.equal(res.body[0].data.selectBoxes.b, false);
-                done();
-              });
+                .get(hook.alter('url', '/form/' + helper.template.forms['filterSelectBoxes']._id + '/submission?data.selectBoxes.a=true&data.selectBoxes.b=false', helper.template))
+                .set('x-jwt-token', helper.owner.token)
+                .send()
+                .expect(200)
+                .end(function (err, res) {
+                  if (err) {
+                    return done(err);
+                  }
+                  assert.equal(res.body.length, 1);
+                  assert.equal(res.body[0].data.selectBoxes.a, true);
+                  assert.equal(res.body[0].data.selectBoxes.b, false);
+                  done();
+                });
             });
         });
 
-        it('Should return an empty array for incorrect filter', function(done) {
+        it('Should return an empty array for incorrect filter', function (done) {
           var components = [
             {
               "label": "Currency",
@@ -4240,30 +4240,57 @@ module.exports = function(app, template, hook) {
 
           helper
             .form('filter', components)
-            .submission({ currency: 10 , selectBoxes: {a: true, b: false}})
-            .submission({ currency: 20 , selectBoxes: {a: false, b: true}})
+            .submission({ currency: 10, selectBoxes: { a: true, b: false } })
+            .submission({ currency: 20, selectBoxes: { a: false, b: true } })
             .expect(201)
-            .execute(function(err) {
+            .execute(function (err) {
               if (err) {
                 return done(err);
               }
               request(app)
-              .get(hook.alter('url', '/form/' + helper.template.forms['filter']._id + '/submission?data.currency=20&data.selectBoxes.b=false', helper.template))
-              .set('x-jwt-token', helper.owner.token)
-              .send()
-              .expect(200)
-              .end(function(err, res) {
+                .get(hook.alter('url', '/form/' + helper.template.forms['filter']._id + '/submission?data.currency=20&data.selectBoxes.b=false', helper.template))
+                .set('x-jwt-token', helper.owner.token)
+                .send()
+                .expect(200)
+                .end(function (err, res) {
+                  if (err) {
+                    return done(err);
+                  }
+                  assert.equal(res.body.length, 0);
+                  assert.deepEqual(res.body, [])
+                  done();
+                });
+            });
+        });
+        
+        it('Should change modified date when patch submission', function (done) {
+          const test = require('./fixtures/forms/singlecomponentsSimple');
+          helper
+            .form('patchFormMike', test.components)
+            .submission(test.submission)
+            .execute(function (err) {
+              if (err) {
+                return done(err);
+              }
+              const submissionBeforePatch = helper.getLastSubmission();
+              const update = [
+                {
+                  "op": "replace",
+                  "path": "/data/textField",
+                  "value": "PATCH Update"
+                }
+              ]
+              helper.patchSubmission(submissionBeforePatch, update, (err) => {
                 if (err) {
                   return done(err);
                 }
-                assert.equal(res.body.length, 0);
-                assert.deepEqual(res.body, [])
+                const submissionAfterPatch = helper.getLastSubmission();
+                assert.notEqual(submissionBeforePatch.modified, submissionAfterPatch.modified)
                 done();
               });
             });
+          });
         });
-      });
-
     });
 
     describe('Filtering submissions', () => {
