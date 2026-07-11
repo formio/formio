@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
-## [Unreleased: 4.3.0-patch.3]
+## 4.3.0-patch.3
 ### Changed
  - FIO 11984: update to PATCH semantics for 4.3.0.x
 
