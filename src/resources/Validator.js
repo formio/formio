@@ -377,12 +377,50 @@ class Validator {
         ),
       },
     };
+    const useEncapsulatedEvaluation = this.hook.alter(
+      'useEncapsulatedEvaluation',
+      false,
+      this.form,
+    );
+
     try {
-      // Process the server processes
-      context.processors = FormioCore.Processors;
-      context.rules = this.hook.alter('serverRules', FormioCore.serverRules);
-      context.rules = FormioCore.rules.concat(context.rules);
-      context.scope = await FormioCore.process(context);
+      if (useEncapsulatedEvaluation) {
+        // Phase 1 (host): data-prep + filter processors needing DB/HTTP.
+        context.processors = [
+          FormioCore.serverOverrideProcessInfo,
+          FormioCore.defaultValueProcessInfo,
+          FormioCore.dereferenceProcessInfo,
+          FormioCore.fetchProcessInfo,
+          FormioCore.filterProcessInfo,
+        ];
+        context.scope = await FormioCore.process(context);
+
+        // Phase 2 (isolate): the JS-only evaluator processors in one sweep.
+        delete context.scope.filtered;
+        // Drop the database hooks: their functions can't cross the isolate boundary.
+        const { database, ...evaluationConfig } = context.config;
+        const evaluated = await FormioCore.Evaluator.evaluateProcess({
+          form: this.form,
+          submission: { ...context.submission, data: context.data },
+          scope: context.scope,
+          config: evaluationConfig,
+        });
+        context.data = evaluated.data;
+        context.scope = evaluated.scope;
+
+        // Phase 3 (host): server (database) validation against the evaluated/cleared data.
+        context.submission = { ...context.submission, data: context.data };
+        context.instances = new RootShim(this.form, context.submission, context.scope).instanceMap;
+        context.rules = this.hook.alter('serverRules', FormioCore.serverRules);
+        context.processors = [FormioCore.postValidateProcessInfo];
+        context.scope = await FormioCore.process(context);
+      } else {
+        // Process the server processes
+        context.processors = FormioCore.Processors;
+        context.rules = this.hook.alter('serverRules', FormioCore.serverRules);
+        context.rules = FormioCore.rules.concat(context.rules);
+        context.scope = await FormioCore.process(context);
+      }
       submission.data = context.data;
       submission.scope = context.scope;
     } catch (err) {

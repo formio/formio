@@ -28,6 +28,9 @@ class IsolateVMEvaluator extends DefaultEvaluator {
     if (options?.memoryLimitMb) {
       vmOptions.memoryLimitMb = options.memoryLimitMb;
     }
+    if (options?.timeoutMs) {
+      vmOptions.timeoutMs = options.timeoutMs;
+    }
     this.vm = new IsolateVM(vmOptions);
     this.hook = hook;
   }
@@ -99,6 +102,54 @@ class IsolateVMEvaluator extends DefaultEvaluator {
         return null;
       }
     }
+  }
+
+  // Runs the JS-only (evaluator) processors for a submission in a single sandbox sweep,
+  // returning the resulting { scope, data }. DB/HTTP processors run on the host around this.
+  async evaluateProcess({ form, submission, scope, config }) {
+    const serializedSubmission = JSON.parse(JSON.stringify(submission));
+    const evaluateContext = {
+      form,
+      components: form.components,
+      submission: serializedSubmission,
+      data: serializedSubmission.data,
+      scope: scope || {},
+      config: {
+        ...config,
+        server: true,
+      },
+      options: {
+        server: true,
+      },
+    };
+
+    let modifyEnv = 'const t = function (text) { return text; };';
+    modifyEnv = this.hook.alter('dynamicVmDependencies', modifyEnv, form);
+
+    // The JS-only evaluator sweep: calculate through validation, in one isolate pass. Uses the
+    // async process pipeline so the sweep traverses with eachComponentDataAsync, matching the
+    // default per-expression path exactly.
+    const code = `
+      console.error = console.error || console.log;
+      console.warn = console.warn || console.log;
+      console.info = console.info || console.log;
+      console.debug = console.debug || console.log;
+      const root = new RootShim(context.form, context.submission, context.scope);
+      context.instances = root.instanceMap;
+      context.processors = [
+        FormioCore.calculateProcessInfo,
+        FormioCore.conditionProcessInfo,
+        FormioCore.logicProcessInfo,
+        FormioCore.normalizeProcessInfo,
+        FormioCore.clearHiddenProcessInfo,
+        FormioCore.postValidateProcessInfo,
+      ];
+      // The script's completion value is this Promise; the promise:true option below tells
+      // isolated-vm to await it and return the resolved { scope, data } across the boundary.
+      FormioCore.process(context).then((scope) => ({ scope, data: context.data }));
+    `;
+
+    return this.vm.evaluate(code, { context: evaluateContext }, { modifyEnv, promise: true });
   }
 }
 

@@ -9,6 +9,7 @@ const { InstanceShim } = require('../src/InstanceShim');
 const { Event } = require('../src/polyfill');
 
 module.exports = {
+  FormioCore,
   util: FormioCore.Utils,
   utils: FormioCore.Utils,
   RootShim,

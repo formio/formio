@@ -251,4 +251,29 @@ module.exports = function (app, template, hook) {
       assert.equal(sanitized, 'mongodb://user:***@localhost:27017/db?authSource=admin');
     });
   });
+
+  describe('countCustomJsComponents', function () {
+    const util = require('../src/util/util');
+
+    it('Should count every component carrying custom JavaScript, recursing into nested components', function () {
+      const form = {
+        components: [
+          { type: 'textfield', key: 'a', customConditional: 'show = true;' },
+          { type: 'textfield', key: 'b', calculateValue: 'value = 1;' },
+          { type: 'textfield', key: 'c', validate: { custom: 'valid = true;' } },
+          { type: 'textfield', key: 'd', customDefaultValue: 'value = 2;' },
+          { type: 'textfield', key: 'e', logic: [{ name: 'l', trigger: {}, actions: [] }] },
+          { type: 'textfield', key: 'plain' },
+          { type: 'textfield', key: 'emptyLogic', logic: [] },
+          {
+            type: 'container',
+            key: 'cont',
+            components: [{ type: 'textfield', key: 'nested', customConditional: 'show = false;' }],
+          },
+        ],
+      };
+
+      assert.equal(util.countCustomJsComponents(form), 6);
+    });
+  });
 };

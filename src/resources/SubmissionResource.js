@@ -167,7 +167,7 @@ module.exports = (router) => {
           req.permissionsChecked = false;
           return next();
         }
-      } catch (err) {
+      } catch (ignoreErr) {
         // Don't expose error details to clients
         return res.status(500).send('Internal server error');
       }
