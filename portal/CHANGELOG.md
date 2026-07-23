@@ -1,5 +1,70 @@
 # oss-portal
 
+## 0.1.3
+
+### Patch Changes
+
+- Updated dependencies [10cae27]
+- Updated dependencies [be69fe1]
+- Updated dependencies [5ba7ff8]
+- Updated dependencies [c892a54]
+- Updated dependencies [d9d09ad]
+- Updated dependencies [201c538]
+- Updated dependencies [4df3010]
+- Updated dependencies [acc8772]
+- Updated dependencies [1578fb7]
+- Updated dependencies [476a632]
+- Updated dependencies [341af96]
+  - @formio/js@5.4.3
+  - @formio/react@6.2.1
+
+## 0.1.3-api98.4
+
+### Patch Changes
+
+- @formio/js@5.4.3-api98.4
+- @formio/react@6.2.1
+
+## 0.1.3-api98.3
+
+### Patch Changes
+
+- @formio/js@5.4.3-api98.3
+- @formio/react@6.2.1
+
+## 0.1.3-api98.2
+
+### Patch Changes
+
+- Updated dependencies [5ba7ff8]
+  - @formio/js@5.4.3-api98.2
+  - @formio/react@6.2.1
+
+## 0.1.3-api98.1
+
+### Patch Changes
+
+- Updated dependencies [be69fe1]
+- Updated dependencies [c892a54]
+  - @formio/js@5.4.3-api98.1
+  - @formio/react@6.2.1
+
+## 0.1.3-api98.0
+
+### Patch Changes
+
+- Updated dependencies [10cae27]
+- Updated dependencies [6431682]
+- Updated dependencies [d9d09ad]
+- Updated dependencies [201c538]
+- Updated dependencies [4df3010]
+- Updated dependencies [acc8772]
+- Updated dependencies [1578fb7]
+- Updated dependencies [476a632]
+- Updated dependencies [341af96]
+  - @formio/js@5.4.3-api98.0
+  - @formio/react@6.2.1
+
 ## 0.1.2
 
 ### Patch Changes
