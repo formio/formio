@@ -2,6 +2,7 @@
 
 const request = require('./formio-supertest');
 const assert = require('assert');
+const FormioCore = require('@formio/core');
 const Validator = require('../src/resources/Validator');
 
 module.exports = function (app, template, hook) {
@@ -601,6 +602,321 @@ module.exports = function (app, template, hook) {
         assert(err.name === 'ValidationError');
         assert(err.details[0]?.message === 'Should have Oopsie Label');
       });
+    });
+
+    it('Should run the encapsulated single-sweep path when opted in, matching default results', async function () {
+      const form = {
+        components: [
+          { type: 'number', key: 'a', input: true },
+          {
+            type: 'number',
+            key: 'b',
+            input: true,
+            calculateValue: 'value = data.a * 2;',
+            calculateServer: true,
+          },
+          {
+            type: 'textfield',
+            key: 'secret',
+            input: true,
+            validate: { required: true },
+            customConditional: 'show = data.a > 100;',
+          },
+          {
+            type: 'textfield',
+            key: 'c',
+            input: true,
+            validate: { custom: 'valid = (input === "ok") ? true : "must be ok";' },
+          },
+        ],
+      };
+      const submission = { data: { a: 5, c: 'bad' } };
+
+      const validator = new Validator({ headers: {}, currentForm: form }, { formio });
+      // Force the encapsulated path on for this validation only.
+      validator.hook = Object.create(formio.hook);
+      validator.hook.alter = (name, value, ...args) =>
+        name === 'useEncapsulatedEvaluation' ? true : formio.hook.alter(name, value, ...args);
+
+      // Spy on the single-sweep evaluator entry to prove the encapsulated path was taken.
+      const evaluator = FormioCore.Evaluator;
+      const originalEvaluateProcess = evaluator.evaluateProcess.bind(evaluator);
+      let sweepCalls = 0;
+      evaluator.evaluateProcess = (params) => {
+        sweepCalls++;
+        return originalEvaluateProcess(params);
+      };
+
+      try {
+        let cbErr;
+        await validator.validate(submission, (err) => {
+          cbErr = err;
+        });
+        assert.equal(sweepCalls, 1, 'the encapsulated sweep should run exactly once');
+        assert.ok(cbErr, 'custom validation on c should fail');
+        assert.equal(cbErr.name, 'ValidationError');
+        assert.ok(
+          cbErr.details.some((d) => d.message === 'must be ok'),
+          'custom validation message should be present',
+        );
+        assert.ok(
+          !cbErr.details.some((d) => d.context && d.context.path === 'secret'),
+          'a field hidden by a custom conditional should not raise its required error',
+        );
+        assert.equal(submission.data.b, 10, 'server calculation should be applied');
+      } finally {
+        evaluator.evaluateProcess = originalEvaluateProcess;
+      }
+    });
+
+    it('encapsulated mode does not re-evaluate custom conditionals per-expression during validation', async function () {
+      // All custom JS in encapsulated mode runs inside the single sweep (evaluateProcess). Phase 3's
+      // server-side validation must reuse the conditionals the sweep already computed, not re-run each
+      // custom conditional through the per-expression host evaluator (that regression made big forms
+      // take tens of seconds to submit).
+      const form = {
+        components: [
+          { type: 'textfield', key: 'trigger', input: true },
+          {
+            type: 'textfield',
+            key: 'x1',
+            input: true,
+            customConditional: 'show = data.trigger === "go";',
+          },
+          {
+            type: 'textfield',
+            key: 'x2',
+            input: true,
+            customConditional: 'show = data.trigger === "go";',
+          },
+          {
+            type: 'textfield',
+            key: 'x3',
+            input: true,
+            customConditional: 'show = data.trigger === "go";',
+          },
+        ],
+      };
+      const submission = { data: { trigger: 'go' } };
+
+      const validator = new Validator({ headers: {}, currentForm: form }, { formio });
+      validator.hook = Object.create(formio.hook);
+      validator.hook.alter = (name, value, ...args) =>
+        name === 'useEncapsulatedEvaluation' ? true : formio.hook.alter(name, value, ...args);
+
+      // Spy on the per-expression evaluator entry; it must not fire on the host in encapsulated mode.
+      const evaluator = FormioCore.Evaluator;
+      const originalEvaluate = evaluator.evaluate.bind(evaluator);
+      let perExpressionCalls = 0;
+      evaluator.evaluate = (...args) => {
+        perExpressionCalls++;
+        return originalEvaluate(...args);
+      };
+
+      try {
+        await validator.validate(submission, () => {});
+        assert.equal(
+          perExpressionCalls,
+          0,
+          'custom conditionals must not be evaluated per-expression on the host',
+        );
+      } finally {
+        evaluator.evaluate = originalEvaluate;
+      }
+    });
+
+    it('encapsulated mode yields the same validation result and data as the default path', async function () {
+      const form = {
+        components: [
+          { type: 'number', key: 'a', input: true },
+          {
+            type: 'number',
+            key: 'b',
+            input: true,
+            calculateValue: 'value = data.a * 2;',
+            calculateServer: true,
+          },
+          { type: 'textfield', key: 'req', input: true, validate: { required: true } },
+          {
+            type: 'textfield',
+            key: 'secret',
+            input: true,
+            validate: { required: true },
+            customConditional: 'show = data.a > 100;',
+          },
+          {
+            type: 'textfield',
+            key: 'c',
+            input: true,
+            validate: { custom: 'valid = (input === "ok") ? true : "must be ok";' },
+          },
+        ],
+      };
+
+      const runValidate = async (encapsulated) => {
+        const validator = new Validator({ headers: {}, currentForm: form }, { formio });
+        if (encapsulated) {
+          validator.hook = Object.create(formio.hook);
+          validator.hook.alter = (name, value, ...args) =>
+            name === 'useEncapsulatedEvaluation' ? true : formio.hook.alter(name, value, ...args);
+        }
+        const submission = { data: { a: 5, c: 'bad' } };
+        let result;
+        await validator.validate(submission, (err) => {
+          result = {
+            errors: (err?.details || []).map((d) => `${d.context?.path}:${d.message}`).sort(),
+            data: submission.data,
+          };
+        });
+        return result;
+      };
+
+      const def = await runValidate(false);
+      const enc = await runValidate(true);
+
+      assert.deepStrictEqual(enc, def);
+      // sanity: the form actually exercised calculation + required + custom validation
+      assert.equal(def.data.b, 10);
+      assert.ok(def.errors.some((e) => e.startsWith('req:')));
+      assert.ok(def.errors.some((e) => e.startsWith('c:')));
+      assert.ok(!def.errors.some((e) => e.startsWith('secret:')));
+    });
+
+    it('encapsulated mode does not validate phantom rows of an absent data grid in a nested form (matches default)', async function () {
+      const form = {
+        components: [
+          { type: 'textfield', key: 'req', input: true, validate: { required: true } },
+          {
+            type: 'form',
+            key: 'nested',
+            input: true,
+            components: [
+              {
+                type: 'datagrid',
+                key: 'grid',
+                input: true,
+                components: [
+                  { type: 'textfield', key: 'name', input: true, validate: { required: true } },
+                ],
+              },
+            ],
+          },
+        ],
+      };
+
+      const runValidate = async (encapsulated) => {
+        const validator = new Validator({ headers: {}, currentForm: form }, { formio });
+        if (encapsulated) {
+          validator.hook = Object.create(formio.hook);
+          validator.hook.alter = (name, value, ...args) =>
+            name === 'useEncapsulatedEvaluation' ? true : formio.hook.alter(name, value, ...args);
+        }
+        const submission = { data: { nested: { data: {} } } };
+        let result;
+        await validator.validate(submission, (err) => {
+          result = {
+            errors: (err?.details || [])
+              .map((d) => d.context?.path)
+              .filter(Boolean)
+              .sort(),
+          };
+        });
+        return result;
+      };
+
+      const def = await runValidate(false);
+      const enc = await runValidate(true);
+
+      assert.deepStrictEqual(enc, def);
+      assert.ok(
+        !enc.errors.some((e) => e.includes('grid')),
+        'a required child of an absent nested data grid should not be validated',
+      );
+    });
+
+    it('encapsulated mode exposes the form/project public config and headers to custom logic (matches default)', async function () {
+      const form = {
+        config: { publicSetting: 'expected' },
+        components: [
+          {
+            type: 'textfield',
+            key: 'c',
+            input: true,
+            validate: {
+              custom: 'valid = (config.publicSetting === "expected") ? true : "config missing";',
+            },
+          },
+          {
+            type: 'textfield',
+            key: 'h',
+            input: true,
+            validate: {
+              custom:
+                'valid = (config.headers && config.headers["x-parity"] === "on") ? true : "header missing";',
+            },
+          },
+        ],
+      };
+
+      const runValidate = async (encapsulated) => {
+        const validator = new Validator(
+          { headers: { 'x-parity': 'on' }, currentForm: form },
+          { formio },
+        );
+        if (encapsulated) {
+          validator.hook = Object.create(formio.hook);
+          validator.hook.alter = (name, value, ...args) =>
+            name === 'useEncapsulatedEvaluation' ? true : formio.hook.alter(name, value, ...args);
+        }
+        const submission = { data: { c: 'x', h: 'y' } };
+        let result;
+        await validator.validate(submission, (err) => {
+          result = {
+            errors: (err?.details || []).map((d) => `${d.context?.path}:${d.message}`).sort(),
+            data: submission.data,
+          };
+        });
+        return result;
+      };
+
+      const def = await runValidate(false);
+      const enc = await runValidate(true);
+
+      assert.deepStrictEqual(enc, def);
+      // sanity: the default path resolves both config.publicSetting and config.headers
+      assert.ok(
+        !def.errors.some((e) => e.startsWith('c:') || e.startsWith('h:')),
+        'default path should expose config public settings and headers to custom logic',
+      );
+    });
+
+    it('encapsulated mode fails the request when custom logic exceeds the VM timeout', async function () {
+      this.timeout(5000);
+      const form = {
+        components: [
+          {
+            type: 'textfield',
+            key: 'test',
+            input: true,
+            validate: { custom: "if (input === 'test') { while (true) {} }" },
+          },
+        ],
+      };
+      const validator = new Validator({ headers: {}, currentForm: form }, { formio });
+      validator.hook = Object.create(formio.hook);
+      validator.hook.alter = (name, value, ...args) =>
+        name === 'useEncapsulatedEvaluation' ? true : formio.hook.alter(name, value, ...args);
+
+      let cbErr;
+      await validator.validate({ data: { test: 'test' } }, (err) => {
+        cbErr = err;
+      });
+
+      assert.ok(cbErr, 'a runaway validation should fail the request');
+      assert.ok(
+        String(cbErr.message || cbErr).includes('Script execution timed out'),
+        `expected a timeout error, got: ${JSON.stringify(cbErr)}`,
+      );
     });
 
     it('Should return validation error when t() is used in custom validation logic', async function () {

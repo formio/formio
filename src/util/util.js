@@ -206,6 +206,41 @@ const Utils = {
   eachComponentData: Formio.Utils.eachComponentData.bind(Formio.Utils),
 
   /**
+   * Count the components in a form whose definition carries custom JavaScript:
+   * customConditional, calculateValue, validate.custom, customDefaultValue, or a
+   * non-empty logic array.
+   *
+   * @param {Object} form
+   *   The form definition.
+   * @returns {Number}
+   *   The number of components carrying custom JavaScript.
+   */
+  countCustomJsComponents(form) {
+    let count = 0;
+    if (!form || !form.components) {
+      return count;
+    }
+    const hasCustomJs = (component) =>
+      !!(
+        component.customConditional ||
+        component.calculateValue ||
+        component.validate?.custom ||
+        component.customDefaultValue ||
+        (Array.isArray(component.logic) && component.logic.length)
+      );
+    this.eachComponent(
+      form.components,
+      (component) => {
+        if (hasCustomJs(component)) {
+          count++;
+        }
+      },
+      true,
+    );
+    return count;
+  },
+
+  /**
    * Get a component by its key
    *
    * @param {Object} components

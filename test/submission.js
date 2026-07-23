@@ -5552,6 +5552,8 @@ module.exports = function (app, template, hook) {
     });
 
     describe('VM Timeouts', () => {
+      let restoreEncapsulation;
+
       before('Create form with a long running validation', (done) => {
         helper
           .form('timeout', [
@@ -5566,13 +5568,38 @@ module.exports = function (app, template, hook) {
           ])
           .execute(done);
       });
-      xit('Should timeout and throw an error when a validation takes too long', (done) => {
+
+      // The per-expression evaluator swallows a timed-out rule (core's validate wraps each
+      // rule in try/catch); only the encapsulated single-VM sweep surfaces the timeout as a
+      // failed request. Force encapsulated evaluation for this form so the timeout is enforced.
+      before('Force encapsulated evaluation', () => {
+        const formioApp = app.formio.formio || app.formio;
+        formioApp.hooks = formioApp.hooks || {};
+        formioApp.hooks.alter = formioApp.hooks.alter || {};
+        const previous = formioApp.hooks.alter.useEncapsulatedEvaluation;
+        formioApp.hooks.alter.useEncapsulatedEvaluation = () => true;
+        restoreEncapsulation = () => {
+          if (previous) {
+            formioApp.hooks.alter.useEncapsulatedEvaluation = previous;
+          } else {
+            delete formioApp.hooks.alter.useEncapsulatedEvaluation;
+          }
+        };
+      });
+
+      after('Restore the default evaluation mode', () => {
+        if (restoreEncapsulation) {
+          restoreEncapsulation();
+        }
+      });
+
+      it('Should timeout and throw an error when a validation takes too long', (done) => {
         helper
           .submission('timeout', { test: 'test' })
           .expect(400)
           .execute((err) => {
             if (err) {
-              done(err);
+              return done(err);
             }
             const response = helper.lastResponse;
             assert.equal(response.text, '"Script execution timed out."');
@@ -6464,10 +6491,7 @@ module.exports = function (app, template, hook) {
         upsertFormName,
         payload,
         null,
-        [
-          /application\/json/,
-          207,
-        ],
+        [/application\/json/, 207],
         true,
         function (err, res) {
           const result = helper.getLastBulkSubmission();
@@ -6482,7 +6506,11 @@ module.exports = function (app, template, hook) {
             if (err) {
               return done(err);
             }
-            assert.equal(sub.data.textField1, 'foreign-original', 'Foreign submission must not be modified');
+            assert.equal(
+              sub.data.textField1,
+              'foreign-original',
+              'Foreign submission must not be modified',
+            );
             assert.equal(
               sub.form.toString(),
               helper.template.forms['foreignForm-upsert']._id.toString(),
@@ -6512,10 +6540,7 @@ module.exports = function (app, template, hook) {
         upsertFormName,
         payload,
         null,
-        [
-          /application\/json/,
-          200,
-        ],
+        [/application\/json/, 200],
         true,
         function (err, res) {
           const result = helper.getLastBulkSubmission();
@@ -6558,10 +6583,7 @@ module.exports = function (app, template, hook) {
         'bulkEndpointTest',
         payload,
         null,
-        [
-          /application\/json/,
-          201,
-        ],
+        [/application\/json/, 201],
         false,
         function (err, res) {
           const result = helper.getLastBulkSubmission();
@@ -6574,7 +6596,11 @@ module.exports = function (app, template, hook) {
             if (err) {
               return done(err);
             }
-            assert.equal(sub.data.textField1, 'foreign-original', 'Foreign submission must not be modified');
+            assert.equal(
+              sub.data.textField1,
+              'foreign-original',
+              'Foreign submission must not be modified',
+            );
             assert.equal(
               sub.form.toString(),
               helper.template.forms['foreignForm-upsert']._id.toString(),
@@ -6604,10 +6630,7 @@ module.exports = function (app, template, hook) {
         'bulkEndpointTest',
         payload,
         null,
-        [
-          /application\/json/,
-          201,
-        ],
+        [/application\/json/, 201],
         false,
         function (err, res) {
           const result = helper.getLastBulkSubmission();
@@ -6650,10 +6673,7 @@ module.exports = function (app, template, hook) {
         upsertFormName,
         payload,
         null,
-        [
-          /application\/json/,
-          200,
-        ],
+        [/application\/json/, 200],
         true,
         function (err, res) {
           const result = helper.getLastBulkSubmission();
@@ -6707,9 +6727,7 @@ module.exports = function (app, template, hook) {
       request(app)
         .put(buildUrl(formName, true) + (trailingSlash ? '/' : ''))
         .set('x-jwt-token', token)
-        .send([
-          { _id: new mongoose.Types.ObjectId().toString(), data: { name: 'bulk' } },
-        ]);
+        .send([{ _id: new mongoose.Types.ObjectId().toString(), data: { name: 'bulk' } }]);
 
     const bulkDelete = (formName, token, { trailingSlash = false } = {}) =>
       request(app)

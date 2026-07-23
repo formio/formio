@@ -1,5 +1,44 @@
 # formio
 
+## 4.8.0
+
+### Minor Changes
+
+- 801970f: FIO-11861: add opt-in encapsulated (single-VM) server evaluation for forms with heavy custom JavaScript. Gated by the ENCAPSULATED_EVAL feature flag and a per-form custom-JS threshold, it runs the JS-only processor phase as one async `process` sweep in a single isolate (via a new additive `promise` option on `@formio/vm`'s `evaluate`) instead of a fresh VM context per expression, producing results identical to the default per-expression path. Also forwards the configured VM timeout to the isolate and fixes DefaultEvaluator's form-module evalContext injection in @formio/core.
+
+### Patch Changes
+
+- Updated dependencies [801970f]
+- Updated dependencies [8a329d9]
+- Updated dependencies [a03805a]
+  - @formio/core@2.8.0
+  - @formio/vm@2.2.0
+  - @formio/feature-flags@1.3.0
+  - @formio/js@5.5.0
+
+## 4.8.0-api99.1
+
+### Patch Changes
+
+- Updated dependencies [8a329d9]
+- Updated dependencies [a03805a]
+  - @formio/core@2.8.0-api99.1
+  - @formio/js@5.5.0-api99.1
+
+## 4.8.0-api99.0
+
+### Minor Changes
+
+- 801970f: FIO-11861: add opt-in encapsulated (single-VM) server evaluation for forms with heavy custom JavaScript. Gated by the ENCAPSULATED_EVAL feature flag and a per-form custom-JS threshold, it runs the JS-only processor phase as one async `process` sweep in a single isolate (via a new additive `promise` option on `@formio/vm`'s `evaluate`) instead of a fresh VM context per expression, producing results identical to the default per-expression path. Also forwards the configured VM timeout to the isolate and fixes DefaultEvaluator's form-module evalContext injection in @formio/core.
+
+### Patch Changes
+
+- Updated dependencies [801970f]
+  - @formio/core@2.8.0-api99.0
+  - @formio/vm@2.2.0-api99.0
+  - @formio/feature-flags@1.3.0-api99.0
+  - @formio/js@5.4.4-api99.0
+
 ## 4.7.3
 
 ### Patch Changes

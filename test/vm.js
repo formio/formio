@@ -353,4 +353,45 @@ module.exports = function (app, template, hook) {
       assert.equal(component.component.label, 'Text Field');
     });
   });
+
+  describe('IsolateVMEvaluator.evaluateProcess', function () {
+    const { IsolateVMEvaluator } = require('../src/vm');
+    let evaluator;
+
+    before(function () {
+      evaluator = new IsolateVMEvaluator({}, hook);
+    });
+
+    it('runs the evaluator processors (calculation + custom validation) in a single sweep', async function () {
+      const form = {
+        components: [
+          { type: 'number', key: 'a', input: true },
+          {
+            type: 'number',
+            key: 'b',
+            input: true,
+            calculateValue: 'value = data.a * 2;',
+            calculateServer: true,
+          },
+          {
+            type: 'textfield',
+            key: 'c',
+            input: true,
+            validate: { custom: 'valid = (input === "ok") ? true : "must be ok";' },
+          },
+        ],
+      };
+      const submission = { data: { a: 5, c: 'bad' } };
+
+      const { scope, data } = await evaluator.evaluateProcess({
+        form,
+        submission,
+        scope: {},
+      });
+
+      assert.equal(data.b, 10);
+      assert.ok(scope.errors && scope.errors.length >= 1);
+      assert.ok(scope.errors.some((err) => err.context && err.context.path === 'c'));
+    });
+  });
 };
