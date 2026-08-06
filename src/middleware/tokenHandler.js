@@ -59,7 +59,7 @@ module.exports = (router) => {
    * @param next
    */
   const userHandler = (req, res, decoded, token, user, next) => {
-    hook.alter('user', user, (err, user) => {
+    hook.alter('user', user, req, (err, user) => {
       if (err) {
         return next();
       }
