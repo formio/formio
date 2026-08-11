@@ -189,7 +189,7 @@ module.exports = (router) => {
      */
     async function initializeActions(req, res) {
       // If they wish to disable actions, then just skip.
-      if (req.query.hasOwnProperty('dryrun') && req.query.dryrun) {
+      if (req.query.dryrun) {
         return;
       }
       await new Promise((resolve, reject) => {
@@ -266,7 +266,7 @@ module.exports = (router) => {
      */
     async function executeActions(handler, req, res) {
       // If they wish to disable actions, then just skip.
-      if (req.query.hasOwnProperty('dryrun') && req.query.dryrun) {
+      if (req.query.dryrun) {
         return;
       }
       // If the body is undefined, then omit the body.

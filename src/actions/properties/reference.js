@@ -44,13 +44,17 @@ module.exports = (router) => {
     return sub;
   };
 
-  // Checks access within a form index.
+  // Checks access within a form index and resolves with the processed sub-request so
+  // buildPipeline can apply post-$lookup auth filtering. Running the referenced form's
+  // beforeIndex chain enforces the same access gate a direct index would; we then derive
+  // referenceHasReadAll for the owner decision (see buildLookupFilterCond for why this is
+  // computed here rather than read off the sub-request's owner-filter state).
   const checkAccess = function (component, query, req, res) {
     return new Promise((resolve, reject) => {
       let sub = {};
       const respond = function () {
         if (!sub.res.statusCode || sub.res.statusCode < 300 || sub.res.statusCode === 416) {
-          return resolve(true);
+          return resolve(sub.req);
         } else {
           return reject();
         }
@@ -69,7 +73,21 @@ module.exports = (router) => {
             return reject(err);
           }
 
-          return resolve();
+          // Determine read_all access on the referenced form by crossing its read_all
+          // role list against the caller's roles (req.accessRoles, set on the parent
+          // request by permissionHandler). This is computed independently of the
+          // sub-request's skipOwnerFilter/ownerFilter, which do not run reliably on the
+          // $lookup path — see buildLookupFilterCond.
+          router.formio.cache
+            .loadForm(sub.req, null, sub.req.formId)
+            .then((refForm) => {
+              sub.req.referenceHasReadAll = util.checkReferenceReadAccess(refForm, null, req);
+              return resolve(sub.req);
+            })
+            .catch(() => {
+              sub.req.referenceHasReadAll = false;
+              return resolve(sub.req);
+            });
         },
       );
     });
@@ -78,18 +96,27 @@ module.exports = (router) => {
   // Sets a resource object.
   const setResource = function (component, path, req) {
     const compValue = _.get(req.body.data, path);
-    if (compValue && compValue._id) {
-      if (!req.resources) {
-        req.resources = {};
+    if (!compValue) {
+      return Promise.resolve();
+    }
+    if (!req.resources) {
+      req.resources = {};
+    }
+
+    const stripItem = (item) => {
+      if (!item || !item._id) {
+        return item;
       }
-
       // Save for later.
-      req.resources[compValue._id.toString()] = _.omit(compValue, hiddenFields);
+      req.resources[item._id.toString()] = _.omit(item, hiddenFields);
+      // Ensure we only persist the _id of the resource.
+      return { _id: util.ObjectId(item._id) };
+    };
 
-      // Ensure we only set the _id of the resource.
-      _.set(req.body.data, path, {
-        _id: util.ObjectId(compValue._id),
-      });
+    if (component.multiple && _.isArray(compValue)) {
+      _.set(req.body.data, path, compValue.map(stripItem));
+    } else if (compValue._id) {
+      _.set(req.body.data, path, stripItem(compValue));
     }
     return Promise.resolve();
   };
@@ -99,15 +126,25 @@ module.exports = (router) => {
     if (!resource) {
       return Promise.resolve();
     }
-    // Make sure to reset the value on the return result.
     const compValue = _.get(resource, `data.${path}`);
-    if (!compValue || !compValue._id) {
+    if (!compValue) {
       return Promise.resolve();
     }
 
-    const compValueId = compValue._id.toString();
-    if (compValue && req.resources && req.resources.hasOwnProperty(compValueId)) {
-      _.set(resource, `data.${path}`, req.resources[compValueId]);
+    const restoreItem = (item) => {
+      if (!item || !item._id) {
+        return item;
+      }
+      const id = item._id.toString();
+      return req.resources && Object.prototype.hasOwnProperty.call(req.resources, id)
+        ? req.resources[id]
+        : item;
+    };
+
+    if (component.multiple && _.isArray(compValue)) {
+      _.set(resource, `data.${path}`, compValue.map(restoreItem));
+    } else if (compValue._id) {
+      _.set(resource, `data.${path}`, restoreItem(compValue));
     }
     return Promise.resolve();
   };
@@ -171,10 +208,90 @@ module.exports = (router) => {
     return subQuery;
   };
 
+  // Builds $filter conditions applied after an equality-match $lookup. Enforces form
+  // isolation, the delete filter, and an owner restriction for non-read_all callers.
+  //
+  // DocumentDB/Cosmos reject $lookup.let / pipeline, so auth cannot run inside the join
+  // (FIO-12058). Equality-match $lookup correlates on _id; this post-filter keeps the
+  // FIO-11566 access semantics.
+  //
+  // The owner decision uses subReq.referenceHasReadAll (computed in checkAccess) rather
+  // than the sub-request's skipOwnerFilter/ownerFilter state: on the $lookup path the
+  // sub-request's permissionHandler/ownerFilter do not run reliably (skipOwnerFilter can
+  // carry over as true from a read_all parent), so reusing that state would skip the owner
+  // restriction and leak read_own submissions owned by other users.
+  //   - referenceHasReadAll (read_all / admin): no owner restriction.
+  //   - otherwise (read_own): restrict the lookup to submissions owned by the caller.
+  const buildLookupFilterCond = function (formId, subReq) {
+    const conditions = [
+      { $eq: ['$$item.form', util.ObjectId(formId)] },
+      { $eq: ['$$item.deleted', null] },
+    ];
+
+    const hasCallerUserId = subReq.user && subReq.user._id;
+    const restrictToOwner = !subReq.referenceHasReadAll && hasCallerUserId;
+    if (restrictToOwner) {
+      conditions.push({ $eq: ['$$item.owner', util.ObjectId(subReq.user._id)] });
+    }
+
+    return { $and: conditions };
+  };
+
+  // Parent-pipeline $addFields that $convert(s) reference _id(s) to ObjectId before
+  // equality-match $lookup. Kept outside $lookup (no let/pipeline) for DocumentDB (FIO-12058).
+  const buildReferenceIdNormalizeStage = function (path) {
+    const dataPath = `$data.${path}`;
+    const toObjectId = function (input) {
+      return {
+        $convert: {
+          input,
+          to: 'objectId',
+          onError: input,
+          onNull: input,
+        },
+      };
+    };
+
+    return {
+      $addFields: {
+        [`data.${path}`]: {
+          $cond: [
+            { $isArray: dataPath },
+            {
+              $map: {
+                input: dataPath,
+                as: 'item',
+                in: {
+                  $mergeObjects: ['$$item', { _id: toObjectId('$$item._id') }],
+                },
+              },
+            },
+            {
+              $cond: [
+                {
+                  $and: [
+                    { $ne: [dataPath, null] },
+                    { $eq: [{ $type: dataPath }, 'object'] },
+                  ],
+                },
+                {
+                  $mergeObjects: [dataPath, { _id: toObjectId(`${dataPath}._id`) }],
+                },
+                dataPath,
+              ],
+            },
+          ],
+        },
+      },
+    };
+  };
+
   // Build a pipeline to load all references within an index.
   const buildPipeline = function (component, path, req, res) {
-    // First check their access within this form.
-    return checkAccess(component, req.query, req, res).then(async () => {
+    // First check their access within this form. checkAccess resolves with the processed
+    // sub-request carrying referenceHasReadAll, which buildLookupFilterCond uses to decide
+    // whether the post-$lookup $filter needs an owner restriction.
+    return checkAccess(component, req.query, req, res).then(async (subReq) => {
       const formId = component.form || component.resource || component.data.resource;
       const form = await router.formio.cache.loadForm(req, null, formId);
 
@@ -192,13 +309,41 @@ module.exports = (router) => {
               '',
             )}_${form.settings.collection.replace(/[^A-Za-z0-9]+/g, '')}`
           : 'submissions';
-      // Load the reference.
+
+      const origField = `__ref_orig_${path.replace(/\./g, '_')}`;
+      pipeline.push({
+        $addFields: {
+          [origField]: { $ifNull: [`$data.${path}`, null] },
+        },
+      });
+
+      // Normalize reference _id(s) to ObjectId before equality-match $lookup. Multiples and
+      // some nested-form writes store string ids; FIO-11566 used $convert inside $lookup.let
+      // (rejected on DocumentDB). $convert in a parent $addFields stays vendor-safe (FIO-12058).
+      pipeline.push(buildReferenceIdNormalizeStage(path));
+
+      // Load the reference via equality-match $lookup (DocumentDB/Cosmos-safe; FIO-12058).
+      // Access control (form / deleted / owner) is applied in the post-filter below.
       pipeline.push({
         $lookup: {
           from: submissionsCollectionName,
           localField: `data.${path}._id`,
           foreignField: '_id',
           as: `data.${path}`,
+        },
+      });
+
+      // Restrict joined docs to the referenced form, non-deleted rows, and (when needed)
+      // the caller's own submissions — same gates as the former in-pipeline $match.
+      pipeline.push({
+        $addFields: {
+          [`data.${path}`]: {
+            $filter: {
+              input: { $ifNull: [`$data.${path}`, []] },
+              as: 'item',
+              cond: buildLookupFilterCond(formId, subReq),
+            },
+          },
         },
       });
 
@@ -225,6 +370,27 @@ module.exports = (router) => {
           $sort: subQuery.sort,
         });
       }
+
+      if (!component.multiple) {
+        pipeline.push({
+          $addFields: {
+            [`data.${path}`]: { $ifNull: [`$data.${path}`, `$${origField}`] },
+          },
+        });
+      } else {
+        pipeline.push({
+          $addFields: {
+            [`data.${path}`]: {
+              $cond: [
+                { $gt: [{ $size: { $ifNull: [`$data.${path}`, []] } }, 0] },
+                `$data.${path}`,
+                { $ifNull: [`$${origField}`, []] },
+              ],
+            },
+          },
+        });
+      }
+      pipeline.push({ $unset: origField });
 
       return new Promise((resolve, reject) => {
         // Build the pipeline for the subdata.
@@ -315,6 +481,10 @@ module.exports = (router) => {
       case 'beforePut':
         return setResource(component, path, req, res);
       case 'afterPut':
+        return getResource(component, path, req, res);
+      case 'beforePatch':
+        return setResource(component, path, req, res);
+      case 'afterPatch':
         return getResource(component, path, req, res);
     }
   };

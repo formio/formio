@@ -807,10 +807,7 @@ module.exports = function (router) {
     // BULK_S feature flag; bulk delete predates the flag and stays available.
     const bulkSubmissionAction = getBulkSubmissionAction(req);
     if (bulkSubmissionAction) {
-      if (
-        bulkSubmissionAction !== 'delete' &&
-        hook.alter('isFeatureEnabled', 'BULK_S') === false
-      ) {
+      if (bulkSubmissionAction !== 'delete' && hook.alter('isFeatureEnabled', 'BULK_S') === false) {
         return res.status(403).json({
           error: 'Bulk submission endpoints are disabled.',
         });
@@ -888,7 +885,8 @@ module.exports = function (router) {
       // 403 so they understand `*_own` is intentionally not honored on
       // collection routes. Unauthenticated callers stay on 401.
       if (req.bulkSubmissionAction && req.user && !res.headersSent) {
-        const permAction = req.bulkSubmissionAction === 'upsert' ? 'update' : req.bulkSubmissionAction;
+        const permAction =
+          req.bulkSubmissionAction === 'upsert' ? 'update' : req.bulkSubmissionAction;
         return res.status(403).json({
           error: `Bulk submission ${req.bulkSubmissionAction} requires an admin role or the \`${permAction}_all\` submission permission. Use the single-submission endpoint for owner-scoped operations.`,
         });

@@ -1,5 +1,95 @@
 # formio
 
+## 4.8.1
+
+### Patch Changes
+
+- b3f8989: Bump body-parser to 2.3.0 (formio, formio-server) and 1.20.6 (pdf-server, resourcejs)
+- a5ded4d: Added app.set('query parser', 'simple'); to formio and formio-server
+- 46de2a5: FIO-12093: fixed an issue where some submission values were stored with the wrong type
+- c4882d2: FIO-11596: fix token handler middleware to not refresh temp tokens
+- a637d9a: FIO-11756: redact secrets from db update debug logs
+- 2f6dd61: Upgrades nodemailer from v8 to v9 and makes required changes
+- 98d100c: FIO-12058: use equality-match $lookup + post-filter for reference hydration so DocumentDB/Cosmos accept submission index queries
+- dedfb87: FIO-11566: enforce access control in $lookup pipeline
+- 67ba8f5: Fix an issue with ObjectId serialization with embedded Select component references
+- Updated dependencies [8eb6855]
+- Updated dependencies [b3f8989]
+- Updated dependencies [1d9fcee]
+- Updated dependencies [5d51d06]
+- Updated dependencies [20ed423]
+- Updated dependencies [6298b64]
+- Updated dependencies [3f8bcc1]
+- Updated dependencies [793d0d8]
+- Updated dependencies [2a0676a]
+- Updated dependencies [543b082]
+- Updated dependencies [c4882d2]
+- Updated dependencies [5fa2592]
+- Updated dependencies [587b8b4]
+- Updated dependencies [dc60a11]
+- Updated dependencies [b20c6e2]
+- Updated dependencies [5ec8478]
+- Updated dependencies [eccfae0]
+  - @formio/js@5.5.1
+  - resourcejs@2.6.2
+  - @formio/core@2.8.1
+
+## 4.8.1-api99.4
+
+### Patch Changes
+
+- 98d100c: FIO-12058: use equality-match $lookup + post-filter for reference hydration so DocumentDB/Cosmos accept submission index queries
+
+## 4.8.1-api99.3
+
+### Patch Changes
+
+- Updated dependencies [587b8b4]
+  - @formio/js@5.5.1-api99.1
+
+## 4.8.1-api99.2
+
+### Patch Changes
+
+- 46de2a5: FIO-12093: fixed an issue where some submission values were stored with the wrong type
+
+## 4.8.1-api99.1
+
+### Patch Changes
+
+- 2f6dd61: Upgrades nodemailer from v8 to v9 and makes required changes
+
+## 4.8.1-api99.0
+
+### Patch Changes
+
+- b3f8989: Bump body-parser to 2.3.0 (formio, formio-server) and 1.20.6 (pdf-server, resourcejs)
+- a5ded4d: Added app.set('query parser', 'simple'); to formio and formio-server
+- c4882d2: FIO-11596: fix token handler middleware to not refresh temp tokens
+- a637d9a: FIO-11756: redact secrets from db update debug logs
+- dedfb87: FIO-11566: enforce access control in $lookup pipeline
+- 67ba8f5: Fix an issue with ObjectId serialization with embedded Select component references
+- Updated dependencies [8eb6855]
+- Updated dependencies [b3f8989]
+- Updated dependencies [1d9fcee]
+- Updated dependencies [5d51d06]
+- Updated dependencies [20ed423]
+- Updated dependencies [6298b64]
+- Updated dependencies [3f8bcc1]
+- Updated dependencies [793d0d8]
+- Updated dependencies [82583ef]
+- Updated dependencies [2a0676a]
+- Updated dependencies [543b082]
+- Updated dependencies [c4882d2]
+- Updated dependencies [5fa2592]
+- Updated dependencies [dc60a11]
+- Updated dependencies [b20c6e2]
+- Updated dependencies [5ec8478]
+- Updated dependencies [eccfae0]
+  - @formio/js@5.5.1-api99.0
+  - resourcejs@2.6.2-api99.0
+  - @formio/core@2.8.1-api99.0
+
 ## 4.8.0
 
 ### Minor Changes

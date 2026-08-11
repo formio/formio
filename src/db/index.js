@@ -12,10 +12,19 @@ const debug = {
 };
 const path = require('path');
 const { customAlphabet } = require('nanoid/non-secure');
-const { sanitizeMongoConnectionString } = require('./util');
+const { sanitizeMongoConnectionString, redactConfig } = require('./util');
 
 // Random string generator HOF
 const nanoid = customAlphabet('1234567890abcdef', 10);
+
+const getDatabaseDebugInfo = (database) =>
+  database
+    ? {
+        databaseName: database.databaseName,
+      }
+    : database;
+
+const getToolsDebugInfo = (dbTools) => (dbTools ? Object.keys(dbTools) : dbTools);
 
 // The mongo database connection.
 let db = null;
@@ -276,7 +285,7 @@ module.exports = function (formio) {
       try {
         await featuresTest.createIndex(
           { test: 1 },
-          { collation: { locale: 'en_US', strength: 1 } },
+          { collation: { locale: 'en', strength: 2 } },
         );
         formio.util.log('Collation indexes are supported.');
       } catch (ignoreErr) {
@@ -634,9 +643,9 @@ module.exports = function (formio) {
             }
 
             debug.db('Update Params:');
-            debug.db(db);
-            debug.db(config);
-            debug.db(tools);
+            debug.db('Database:', getDatabaseDebugInfo(db));
+            debug.db('Config:', redactConfig(config));
+            debug.db('Tools:', getToolsDebugInfo(tools));
             _update(db, config, tools, function (err) {
               if (err) {
                 formio.util.log(` > ERROR in update ${pendingVersion}: ${err}`);
@@ -721,9 +730,9 @@ module.exports = function (formio) {
           }
 
           debug.db('Update Params:');
-          debug.db(db);
-          debug.db(config);
-          debug.db(tools);
+          debug.db('Database:', getDatabaseDebugInfo(db));
+          debug.db('Config:', redactConfig(config));
+          debug.db('Tools:', getToolsDebugInfo(tools));
           _update(db, config, tools, function (err) {
             if (err) {
               return callback(err);
