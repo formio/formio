@@ -107,9 +107,14 @@ module.exports = (router) => {
           if (!req.resources) {
             req.resources = {};
           }
-          req.resources[childRes.resource.item._id.toString()] = childRes.resource.item;
-          // Set child submission to { _id } to save only the reference
-          _.set(data, component.key, { _id: childRes.resource.item._id });
+          const childId = childRes.resource.item._id;
+          req.resources[childId.toString()] = childRes.resource.item;
+          // Set child submission to { _id } to save only the reference.
+          // Coerce to ObjectId: sub-responses can stringify ids, and bare `{_id}` shells
+          // must join via equality-match `$lookup` (FIO-12058 / FIO-12093).
+          _.set(data, component.key, {
+            _id: router.formio.util.ObjectId(childId),
+          });
         }
       }
       next();

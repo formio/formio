@@ -1,3 +1,9 @@
+const defaultBase = 'mongodb://localhost:27017';
+
+const mongoBase = process.env.MONGO
+  ? process.env.MONGO.replace(/\/[^/]*$/, '')
+  : defaultBase;
+
 module.exports = {
   port: 3001,
   appPort: 8080,
@@ -7,8 +13,8 @@ module.exports = {
   domain: 'http://localhost:3001',
   basePath: '',
   mongo: process.env.TEST_SUITE
-    ? 'mongodb://localhost:27017/formio-ce-test'
-    : 'mongodb://localhost:27017/formio-ce',
+    ? `${mongoBase}/formio-ce-test`
+    : `${mongoBase}/formio-ce`,
   mongoConfig: '',
   mongoCA: '',
   mongoSecret: '--- change me now ---',

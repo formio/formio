@@ -18,6 +18,8 @@ const debug = {
   uniqueMachineName: require('debug')('formio:util:uniqueMachineName'),
 };
 
+const SUBMISSION_ID_KEYS = ['_id', 'form', 'owner', 'project'];
+
 const Utils = {
   Formio: Formio.Formio,
   FormioUtils: Formio.Utils,
@@ -569,6 +571,7 @@ const Utils = {
     if (!data) {
       return false;
     }
+    const looksLikeSubmission = _.has(data, '_id') && _.has(data, 'data');
     let changed = false;
     _.each(data, (value, key) => {
       if (!value) {
@@ -581,11 +584,16 @@ const Utils = {
           }, false) || changed;
       } else if (_.isObject(value)) {
         changed = Utils.ensureIds(value) || changed;
-      } else if (
-        (key === '_id' || key === 'form' || key === 'owner') &&
-        typeof value === 'string' &&
-        ObjectID.isValid(value)
-      ) {
+      } else if (typeof value === 'string' && ObjectID.isValid(value)) {
+        // Always coerce `_id` (including save-as-reference shells `{_id}` with no `data`).
+        // Only coerce form/owner/project on real submission-shaped objects (FIO-12093) so
+        // form-field values with those keys stay strings. Bare `_id` must stay ObjectId so
+        // equality-match `$lookup` (FIO-12058) can join nested references.
+        const shouldCoerceSubmissionId =
+          SUBMISSION_ID_KEYS.includes(key) && (key === '_id' || looksLikeSubmission);
+        if (!shouldCoerceSubmissionId) {
+          return;
+        }
         const bsonId = Utils.idToBson(value);
         if (bsonId) {
           data[key] = bsonId;
@@ -916,6 +924,33 @@ const Utils = {
   getServerConfig() {
     const hook = require('../util/hook')(Formio);
     return hook.alter('getServerConfig') || require('../../config/default.cjs');
+  },
+
+  checkReferenceReadAccess(refForm, ownerId, req) {
+    if (req.isAdmin) {
+      return true;
+    }
+
+    const readAllRoles = [];
+    if (refForm && refForm.submissionAccess) {
+      refForm.submissionAccess.forEach((permission) => {
+        if (permission.type === 'read_all') {
+          permission.roles.forEach((id) => readAllRoles.push(id.toString()));
+        }
+      });
+    }
+
+    const userRoles = req.accessRoles || [];
+    if (_.intersection(readAllRoles, userRoles).length > 0) {
+      return true;
+    }
+
+    return !!(
+      ownerId &&
+      req.user &&
+      req.user._id &&
+      ownerId.toString() === req.user._id.toString()
+    );
   },
 };
 

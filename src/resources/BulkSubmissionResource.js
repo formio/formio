@@ -645,7 +645,7 @@ class BulkSubmission {
           updateOne: {
             filter: {
               _id: doc._id,
-              form: doc.form
+              form: doc.form,
             },
             update,
             upsert: true,

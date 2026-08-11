@@ -43,6 +43,8 @@ module.exports = function (options) {
   // Use the express application.
   const app = options.app || express();
 
+  app.set('query parser', 'simple');
+
   // Use the given config.
   const config = options.config || require('config');
 

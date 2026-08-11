@@ -421,6 +421,7 @@ class Validator {
         context.rules = FormioCore.rules.concat(context.rules);
         context.scope = await FormioCore.process(context);
       }
+      Utils.ensureIds(context.data);
       submission.data = context.data;
       submission.scope = context.scope;
     } catch (err) {

@@ -382,7 +382,7 @@ module.exports = (router) => {
       if (
         handler === 'after' &&
         method === 'form' &&
-        req.query.hasOwnProperty('live') &&
+        Object.hasOwn(req.query, 'live') &&
         parseInt(req.query.live, 10) === 1 &&
         res.hasOwnProperty('resource') &&
         res.resource.hasOwnProperty('item') &&
