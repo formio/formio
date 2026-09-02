@@ -12,6 +12,7 @@ const fetch = require('@formio/node-fetch-http-proxy');
 const { IsolateVM } = require('@formio/vm');
 const _ = require('lodash');
 const { renderEmail } = require('./renderEmail');
+const { renderEmailNextgen } = require('./renderEmailNextgen');
 const util = require('../util');
 const { CORE_LODASH_MOMENT_INPUTMASK_NUNJUCKS } = require('../../vm');
 
@@ -24,7 +25,8 @@ const EMAIL_CHUNK_SIZE = process.env.EMAIL_CHUNK_SIZE || 100;
  * @param formio
  * @returns {{send: Function}}
  */
-module.exports = (formio) => {
+module.exports = (router) => {
+  const formio = router.formio;
   const hook = require('../hook')(formio);
   const config = formio.config;
   const EmailRenderVM = new IsolateVM({
@@ -232,13 +234,24 @@ module.exports = (formio) => {
       // Allow the nunjucks templates to be reflective.
       params.mail = mail;
 
-      // Compile the email with nunjucks in a separate thread.
-      return renderEmail({
-        render: mail,
-        context: params,
-        vm: EmailRenderVM,
-        timeout: formio.config.vmTimeout,
-      })
+      // Compile the email with nunjucks in a separate thread. Behind
+      // NEXTGEN_VALIDATOR the render data (stage 1) comes from the nextgen
+      // isolate; the legacy @formio/core path is unchanged when the flag is off.
+      const renderPromise = config.useNextgenValidator
+        ? renderEmailNextgen({
+            render: mail,
+            context: params,
+            vm: EmailRenderVM,
+            renderer: config.nextgenRenderer,
+            callbacks: options.hostCallbacks,
+          })
+        : renderEmail({
+            render: mail,
+            context: params,
+            vm: EmailRenderVM,
+            timeout: formio.config.vmTimeout,
+          });
+      return renderPromise
         .then((injectedEmail) => {
           debug.nunjucksInjector(injectedEmail);
           if (!injectedEmail) {
@@ -594,6 +607,24 @@ module.exports = (formio) => {
       const options = {
         params,
       };
+
+      if (config.useNextgenValidator) {
+        const { buildNextgenHostCallbacks } = require('../nextgenAdapter');
+        options.hostCallbacks = buildNextgenHostCallbacks({
+          req,
+          router,
+          submissionModel: formio.resources.submission.model,
+          formModel: formio.resources.form.model,
+          currentForm: params.form,
+          submission: { _id: params._id, data: params.data },
+          cache: formio.cache,
+          hook,
+          config,
+          formioUtil: formio.util,
+          token: req && req.headers && req.headers['x-jwt-token'],
+          submissionResource: formio.resources.submission,
+        });
+      }
 
       return await send(transporter, message, options);
     } catch (err) {

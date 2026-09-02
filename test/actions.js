@@ -5,6 +5,8 @@ const request = require('./formio-supertest');
 const assert = require('assert');
 const _ = require('lodash');
 const chance = new (require('chance'))();
+const IS_NEXTGEN =
+  process.env.USE_NEXTGEN_VALIDATOR === '1' || process.env.USE_NEXTGEN_VALIDATOR === 'true';
 const http = require('http');
 const url = require('url');
 const testMappingDataForm = require('./fixtures/forms/testMappingDataForm');
@@ -5967,7 +5969,7 @@ module.exports = (app, template, hook) => {
             {
               component: 'day1',
               operator: 'isEqual',
-              value: '01/00/2025',
+              value: IS_NEXTGEN ? '01/2025' : '01/00/2025',
             },
           ],
         };
@@ -6018,7 +6020,7 @@ module.exports = (app, template, hook) => {
             {
               component: 'day1',
               operator: 'isNotEqual',
-              value: '01/00/2025',
+              value: IS_NEXTGEN ? '01/2025' : '01/00/2025',
             },
           ],
         };
@@ -6069,7 +6071,7 @@ module.exports = (app, template, hook) => {
             {
               component: 'day2',
               operator: 'isEqual',
-              value: '01/01/0000',
+              value: IS_NEXTGEN ? '01/01' : '01/01/0000',
             },
           ],
         };
@@ -6119,7 +6121,7 @@ module.exports = (app, template, hook) => {
             {
               component: 'day2',
               operator: 'isNotEqual',
-              value: '01/01/0000',
+              value: IS_NEXTGEN ? '01/01' : '01/01/0000',
             },
           ],
         };

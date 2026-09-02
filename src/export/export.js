@@ -1,6 +1,7 @@
 'use strict';
 
 const exporters = require('.');
+const resolveExporter = require('./resolveExporter');
 const _ = require('lodash');
 const through = require('through');
 const ResourceFactory = require('resourcejs');
@@ -129,7 +130,7 @@ module.exports = (router) => {
       }
 
       // Create the exporter.
-      const exporter = new exporters[format](form, req, res);
+      const exporter = new (resolveExporter(format, hook))(form, req, res);
 
       // Allow an alter of the export logic.
       hook.alter('export', req, query, form, exporter, (err) => {

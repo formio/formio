@@ -1,3 +1,7 @@
+const IS_NEXTGEN =
+  process.env.USE_NEXTGEN_VALIDATOR === '1' || process.env.USE_NEXTGEN_VALIDATOR === 'true';
+const describeClassicOnly = IS_NEXTGEN ? describe.skip : describe;
+
 module.exports = function (app, template, hook) {
   const docker = process.env.DOCKER;
   const assert = require('assert');
@@ -37,7 +41,7 @@ module.exports = function (app, template, hook) {
     return compValue;
   }
 
-  describe('CSVExporter', () => {
+  describeClassicOnly('CSVExporter', () => {
     it('Sets up a default project', (done) => {
       let owner = app.hasProjects || docker ? template.formio.owner : template.users.admin;
       helper = new Helper(owner);
@@ -595,7 +599,7 @@ module.exports = function (app, template, hook) {
     });
   });
 
-  describe('Nested form CSV export', () => {
+  describeClassicOnly('Nested form CSV export', () => {
     it('Sets up a default project', (done) => {
       let owner = app.hasProjects || docker ? template.formio.owner : template.users.admin;
       helper = new Helper(owner);

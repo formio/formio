@@ -1,6 +1,6 @@
 {
   "name": "oss-portal",
-  "version": "0.1.4",
+  "version": "0.1.6",
   "private": true,
   "main": "index.js",
   "author": "brendanjbond <brendanbond@gmail.com>",
@@ -26,7 +26,7 @@
     "@typescript-eslint/parser": "^7.6.0",
     "@vitejs/plugin-react": "^4.3.4",
     "concurrently": "^8.2.2",
-    "copy-webpack-plugin": "^12.0.2",
+    "copy-webpack-plugin": "^14.0.0",
     "css-loader": "^7.1.1",
     "eslint": "^9.22.0",
     "eslint-config-prettier": "^10.1.1",

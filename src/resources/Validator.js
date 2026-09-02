@@ -51,6 +51,7 @@ class Validator {
     }
 
     this.req = req;
+    this.router = router;
     this.submissionModel = req.submissionModel || formio.resources.submission.model;
     this.submissionResource = formio.resources.submission;
     this.cache = formio.cache;
@@ -328,6 +329,72 @@ class Validator {
    */
 
   async validate(submission, next) {
+    if (this.config.useNextgenValidator) {
+      return this.validateNextgen(submission, next);
+    }
+    return this.validateCore(submission, next);
+  }
+
+  async validateNextgen(submission, next) {
+    debug.validator('Starting validation');
+    if (!submission.data) {
+      debug.validator('No data skipping validation');
+      return next();
+    }
+
+    const renderer = this.config.nextgenRenderer;
+    if (!renderer) {
+      return next('Nextgen validator is enabled but the render isolate is not configured.');
+    }
+    const { buildNextgenHostCallbacks } = require('../util/nextgenAdapter');
+
+    // Request-scoped context the host callbacks close over to reach Mongo, the
+    // router, and the form — the whole render runs in the isolate and calls back
+    // out to these for DB/network work (see nextgenAdapter.buildNextgenHostCallbacks).
+    const store = {
+      req: this.req,
+      router: this.router,
+      submissionModel: this.submissionModel,
+      formModel: this.formModel,
+      currentForm: this.form,
+      currentProject: this.project,
+      submission,
+      cache: this.cache,
+      hook: this.hook,
+      config: this.config,
+      formioUtil: this.formioUtil,
+      token: this.tokens && this.tokens['x-jwt-token'],
+      submissionResource: this.submissionResource,
+    };
+
+    try {
+      // Plain JSON copies cross the sandbox boundary (same as validateCore); loaded
+      // Mongo docs are made boundary-safe inside the host callbacks.
+      const result = await renderer.renderProcess({
+        form: JSON.parse(JSON.stringify(this.form)),
+        submission: JSON.parse(JSON.stringify(submission)),
+        applyDefaults: this.req.method === 'POST',
+        serverHeaders: this.req.headers,
+        callbacks: buildNextgenHostCallbacks(store),
+      });
+
+      this.req.nextgenHidden = result.hiddenPaths || [];
+      this.req.protectedPaths = result.protectedPaths || [];
+
+      if (result.details && result.details.length) {
+        return next({ name: 'ValidationError', details: result.details });
+      }
+
+      submission.data = result.data;
+      Utils.ensureIds(submission.data);
+      return next(null, submission.data, this.form.components);
+    } catch (err) {
+      debug.error(err.message || err);
+      return next(err.message || String(err));
+    }
+  }
+
+  async validateCore(submission, next) {
     debug.validator('Starting validation');
 
     // Skip validation if no data is provided.
@@ -421,6 +488,7 @@ class Validator {
         context.rules = FormioCore.rules.concat(context.rules);
         context.scope = await FormioCore.process(context);
       }
+      Utils.ensureIds(context.data);
       submission.data = context.data;
       submission.scope = context.scope;
     } catch (err) {

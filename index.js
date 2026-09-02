@@ -10,7 +10,6 @@ const events = require('events');
 const nunjucks = require('nunjucks');
 const log = require('debug')('formio:log');
 const gc = require('expose-gc/function');
-const { registerEvaluator } = require('@formio/core');
 
 const util = require('./src/util/util');
 const { IsolateVMEvaluator } = require('./src/vm');
@@ -328,12 +327,30 @@ module.exports = function (config) {
     }
 
     function configureEvaluator() {
-      // Configure the evaluator
-      const evaluator = new IsolateVMEvaluator(
-        { timeoutMs: config.vmTimeout, memoryLimitMb: config.vmMemoryLimitMb },
-        router.formio.hook,
-      );
-      registerEvaluator(evaluator);
+      const vmOptions = { timeoutMs: config.vmTimeout, memoryLimitMb: config.vmMemoryLimitMb };
+      config.useNextgenValidator = util.isNextgenValidatorEnabled(router.formio.hook);
+      if (config.useNextgenValidator) {
+        // Encapsulated render: the whole nextgen validation runs inside one
+        // pre-scaffolded isolate, reaching Mongo/network via per-request host
+        // callbacks (see Validator.validateNextgen). The env bundle compiles once.
+        const { NextgenIsolateRenderer } = require('./src/vm/nextgen/renderer');
+        config.nextgenRenderer = new NextgenIsolateRenderer({
+          timeoutMs: config.vmTimeout,
+          memoryLimitMb: config.vmMemoryLimitMb,
+          maxConcurrent: config.nextgenRenderConcurrency,
+          poolSize: config.nextgenRenderPoolSize,
+          baseUrl: config.baseUrl,
+        });
+        require('./src/util/configureSanitizer').configureSanitizer();
+        require('./src/util/loadExtensions').loadExtensions();
+        require('./src/util/nextgenAdapter').registerNextgenEvaluator(
+          vmOptions,
+          router.formio.hook,
+        );
+      } else {
+        const { registerEvaluator } = require('@formio/core');
+        registerEvaluator(new IsolateVMEvaluator(vmOptions, router.formio.hook));
+      }
     }
 
     // Hooks system during boot.

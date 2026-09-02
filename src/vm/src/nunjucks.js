@@ -1,4 +1,4 @@
-/* global submissionTableHtml */
+/* global submissionTableHtml, componentValues, componentLabels */
 'use strict';
 
 const FormioCore = require('@formio/core');
@@ -419,12 +419,29 @@ environment.addFilter('submissionTable', (obj, components) => {
 });
 
 environment.addFilter('componentValue', (obj, key, components) => {
+  // componentValues is set only by renderEmailNextgen (behind NEXTGEN_VALIDATOR);
+  // the legacy @formio/core path never sets it, so this always falls back to core
+  // when the flag is off. Same override pattern as the submissionTableHtml global.
+  const hasNextgenValue =
+    typeof componentValues !== 'undefined' &&
+    componentValues &&
+    Object.hasOwn(componentValues, key);
+  if (hasNextgenValue) {
+    return new nunjucks.runtime.SafeString(componentValues[key]);
+  }
   const compValue = util.renderComponentValue(obj, key, components);
   return new nunjucks.runtime.SafeString(compValue.value);
 });
 
 environment.addFilter('componentLabel', (key, components) => {
-  if (!components.hasOwnProperty(key)) {
+  const hasNextgenLabel =
+    typeof componentLabels !== 'undefined' &&
+    componentLabels &&
+    Object.hasOwn(componentLabels, key);
+  if (hasNextgenLabel) {
+    return componentLabels[key];
+  }
+  if (!Object.hasOwn(components, key)) {
     return key;
   }
 

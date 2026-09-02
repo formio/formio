@@ -9,6 +9,7 @@ var _ = require('lodash');
 var docker = process.env.DOCKER;
 const nock = require('nock');
 const mongoose = require('mongoose');
+const { IS_NEXTGEN, nextgenExpectData } = require('./util');
 
 module.exports = function (app, template, hook) {
   var Helper = require('./helper')(app);
@@ -54,7 +55,7 @@ module.exports = function (app, template, hook) {
             }
 
             var submission = helper.getLastSubmission();
-            assert.deepEqual(test.submission, submission.data);
+            assert.deepEqual(nextgenExpectData(test.submission), submission.data);
             done();
           });
       });
@@ -70,7 +71,7 @@ module.exports = function (app, template, hook) {
             }
 
             signatureSubmission1 = helper.getLastSubmission();
-            assert.deepEqual(test.submission, signatureSubmission1.data);
+            assert.deepEqual(nextgenExpectData(test.submission), signatureSubmission1.data);
             done();
           });
       });
@@ -90,7 +91,7 @@ module.exports = function (app, template, hook) {
             signatureSubmission1 = helper.getLastSubmission();
             // Should coerse the value to an empty string.
             test.submission.signature2 = '';
-            assert.deepEqual(test.submission, signatureSubmission1.data);
+            assert.deepEqual(nextgenExpectData(test.submission), signatureSubmission1.data);
             done();
           });
       });
@@ -102,7 +103,7 @@ module.exports = function (app, template, hook) {
         helper.updateSubmission(updateSub, function (err, updated) {
           // Should coerse the value to an empty string.
           test.submission.signature2 = '';
-          assert.deepEqual(test.submission, updated.data);
+          assert.deepEqual(nextgenExpectData(test.submission), updated.data);
           done();
         });
       });
@@ -119,7 +120,7 @@ module.exports = function (app, template, hook) {
             }
 
             signatureSubmission = helper.getLastSubmission();
-            assert.deepEqual(test.submission, signatureSubmission.data);
+            assert.deepEqual(nextgenExpectData(test.submission), signatureSubmission.data);
             done();
           });
       });
@@ -128,7 +129,7 @@ module.exports = function (app, template, hook) {
         var test = _.cloneDeep(require('./fixtures/forms/singlecomponents3.js'));
         var updateSub = _.cloneDeep(signatureSubmission);
         helper.updateSubmission(updateSub, function (err, updated) {
-          assert.deepEqual(test.submission, updated.data);
+          assert.deepEqual(nextgenExpectData(test.submission), updated.data);
           done();
         });
       });
@@ -139,7 +140,7 @@ module.exports = function (app, template, hook) {
         updateSub.data.signature2 = 'YES';
         helper.updateSubmission(updateSub, function (err, updated) {
           // Ensure that it does not erase the signature.
-          assert.deepEqual(test.submission, updated.data);
+          assert.deepEqual(nextgenExpectData(test.submission), updated.data);
           done();
         });
       });
@@ -150,7 +151,7 @@ module.exports = function (app, template, hook) {
         updateSub.data.signature2 = 'sdfsfsdfsdf';
         helper.updateSubmission(updateSub, function (err, updated) {
           // Ensure that it does not erase the signature.
-          assert.deepEqual(test.submission, updated.data);
+          assert.deepEqual(nextgenExpectData(test.submission), updated.data);
           done();
         });
       });
@@ -237,7 +238,7 @@ module.exports = function (app, template, hook) {
             }
 
             var submission = helper.getLastSubmission();
-            assert.deepEqual(test.submission, submission.data);
+            assert.deepEqual(nextgenExpectData(test.submission), submission.data);
             done();
           });
       });
@@ -301,7 +302,7 @@ module.exports = function (app, template, hook) {
             }
 
             var submission = helper.getLastSubmission();
-            assert.deepEqual(test.submission, submission.data);
+            assert.deepEqual(nextgenExpectData(test.submission), submission.data);
             done();
           });
       });
@@ -405,7 +406,7 @@ module.exports = function (app, template, hook) {
             }
 
             var submission = helper.getLastSubmission();
-            assert.deepEqual(test.submission, submission.data);
+            assert.deepEqual(nextgenExpectData(test.submission), submission.data);
 
             done();
           });
@@ -457,7 +458,7 @@ module.exports = function (app, template, hook) {
             }
 
             var submission = helper.getLastSubmission();
-            assert.deepEqual(test.submission, submission.data);
+            assert.deepEqual(nextgenExpectData(test.submission), submission.data);
             done();
           });
       });
@@ -489,7 +490,7 @@ module.exports = function (app, template, hook) {
             }
 
             var submission = helper.getLastSubmission();
-            assert.deepEqual(test.submission, submission.data);
+            assert.deepEqual(nextgenExpectData(test.submission), submission.data);
             done();
           });
       });
@@ -530,7 +531,7 @@ module.exports = function (app, template, hook) {
             }
 
             var submission = helper.getLastSubmission();
-            assert.deepEqual(combined, submission.data);
+            assert.deepEqual(nextgenExpectData(combined), submission.data);
             done();
           });
       });
@@ -569,7 +570,7 @@ module.exports = function (app, template, hook) {
             }
 
             var submission = helper.getLastSubmission();
-            assert.deepEqual(combined, submission.data);
+            assert.deepEqual(nextgenExpectData(combined), submission.data);
             done();
           });
       });
@@ -603,7 +604,7 @@ module.exports = function (app, template, hook) {
             }
 
             var submission = helper.getLastSubmission();
-            assert.deepEqual(test.submission, submission.data);
+            assert.deepEqual(nextgenExpectData(test.submission), submission.data);
             done();
           });
       });
@@ -635,7 +636,7 @@ module.exports = function (app, template, hook) {
             }
 
             var submission = helper.getLastSubmission();
-            assert.deepEqual(test.submission, submission.data);
+            assert.deepEqual(nextgenExpectData(test.submission), submission.data);
             done();
           });
       });
@@ -667,7 +668,7 @@ module.exports = function (app, template, hook) {
             }
 
             var submission = helper.getLastSubmission();
-            assert.deepEqual(test.submission, submission.data);
+            assert.deepEqual(nextgenExpectData(test.submission), submission.data);
             done();
           });
       });
@@ -697,7 +698,7 @@ module.exports = function (app, template, hook) {
             }
 
             var submission = helper.getLastSubmission();
-            assert.deepEqual(test.submission, submission.data);
+            assert.deepEqual(nextgenExpectData(test.submission), submission.data);
             done();
           });
       });
@@ -774,7 +775,7 @@ module.exports = function (app, template, hook) {
             }
 
             var submission = helper.getLastSubmission();
-            assert.deepEqual(values, submission.data);
+            assert.deepEqual(nextgenExpectData(values), submission.data);
             done();
           });
       });
@@ -792,7 +793,7 @@ module.exports = function (app, template, hook) {
             }
 
             var submission = helper.getLastSubmission();
-            assert.deepEqual(test.submission, submission.data);
+            assert.deepEqual(nextgenExpectData(test.submission), submission.data);
             done();
           });
       });
@@ -819,7 +820,7 @@ module.exports = function (app, template, hook) {
             }
 
             var submission = helper.getLastSubmission();
-            assert.deepEqual(test.submission, submission.data);
+            assert.deepEqual(nextgenExpectData(test.submission), submission.data);
             done();
           });
       });
@@ -888,7 +889,7 @@ module.exports = function (app, template, hook) {
             }
 
             var submission = helper.getLastSubmission();
-            assert.deepEqual(values, submission.data);
+            assert.deepEqual(nextgenExpectData(values), submission.data);
             done();
           });
       });
@@ -934,7 +935,7 @@ module.exports = function (app, template, hook) {
             }
 
             var submission = helper.getLastSubmission();
-            assert.deepEqual(sub, submission.data);
+            assert.deepEqual(nextgenExpectData(sub), submission.data);
             done();
           });
       });
@@ -992,7 +993,7 @@ module.exports = function (app, template, hook) {
             }
 
             var submission = helper.getLastSubmission();
-            assert.deepEqual(values, submission.data);
+            assert.deepEqual(nextgenExpectData(values), submission.data);
             done();
           });
       });
@@ -1052,7 +1053,7 @@ module.exports = function (app, template, hook) {
             }
 
             var submission = helper.getLastSubmission();
-            assert.deepEqual(values, submission.data);
+            assert.deepEqual(nextgenExpectData(values), submission.data);
             done();
           });
       });
@@ -1093,7 +1094,7 @@ module.exports = function (app, template, hook) {
             }
 
             var submission = helper.getLastSubmission();
-            assert.deepEqual(values, submission.data);
+            assert.deepEqual(nextgenExpectData(values), submission.data);
             done();
           });
       });
@@ -1197,7 +1198,7 @@ module.exports = function (app, template, hook) {
             }
 
             var submission = helper.getLastSubmission();
-            assert.deepEqual(values, submission.data);
+            assert.deepEqual(nextgenExpectData(values), submission.data);
             done();
           });
       });
@@ -1255,7 +1256,7 @@ module.exports = function (app, template, hook) {
             }
 
             var submission = helper.getLastSubmission();
-            assert.deepEqual(values, submission.data);
+            assert.deepEqual(nextgenExpectData(values), submission.data);
             done();
           });
       });
@@ -1346,7 +1347,7 @@ module.exports = function (app, template, hook) {
             }
 
             var submission = helper.getLastSubmission();
-            assert.deepEqual(test.submission, submission.data);
+            assert.deepEqual(nextgenExpectData(test.submission), submission.data);
             done();
           });
       });
@@ -1456,7 +1457,7 @@ module.exports = function (app, template, hook) {
             }
 
             var submission = helper.getLastSubmission();
-            assert.deepEqual(values, submission.data);
+            assert.deepEqual(nextgenExpectData(values), submission.data);
             done();
           });
       });
@@ -1566,7 +1567,7 @@ module.exports = function (app, template, hook) {
             }
 
             var submission = helper.getLastSubmission();
-            assert.deepEqual(values, submission.data);
+            assert.deepEqual(nextgenExpectData(values), submission.data);
             done();
           });
       });
@@ -1896,7 +1897,7 @@ module.exports = function (app, template, hook) {
             }
 
             var submission = helper.getLastSubmission();
-            assert.deepEqual(values, submission.data);
+            assert.deepEqual(nextgenExpectData(values), submission.data);
             done();
           });
       });
@@ -1984,7 +1985,7 @@ module.exports = function (app, template, hook) {
             }
 
             var submission = helper.getLastSubmission();
-            assert.deepEqual(values, submission.data);
+            assert.deepEqual(nextgenExpectData(values), submission.data);
 
             var updatedSubmission = _.cloneDeep(submission);
             var updatedData = {
@@ -2088,7 +2089,7 @@ module.exports = function (app, template, hook) {
 
             var result = { textField: 'My Value' };
             var submission = helper.getLastSubmission();
-            assert.deepEqual(values, submission.data);
+            assert.deepEqual(nextgenExpectData(values), submission.data);
             done();
           });
       });
@@ -2385,7 +2386,7 @@ module.exports = function (app, template, hook) {
 
             var result = { textField: 'My Value' };
             var submission = helper.getLastSubmission();
-            assert.deepEqual(values, submission.data);
+            assert.deepEqual(nextgenExpectData(values), submission.data);
             done();
           });
       });
@@ -2483,7 +2484,7 @@ module.exports = function (app, template, hook) {
             }
 
             var submission = helper.getLastSubmission();
-            assert.deepEqual(values, submission.data);
+            assert.deepEqual(nextgenExpectData(values), submission.data);
             done();
           });
       });
@@ -3189,14 +3190,18 @@ module.exports = function (app, template, hook) {
             var submission = helper.getLastSubmission();
             assert.equal(helper.lastResponse.statusCode, 400);
             assert.equal(helper.lastResponse.body.name, 'ValidationError');
-            assert.equal(helper.lastResponse.body.details.length, 2);
-            assert.equal(
-              helper.lastResponse.body.details[0].message,
-              'Text Field must be an array',
-            );
-            assert.equal(helper.lastResponse.body.details[1].message, 'Text Field is required');
-            assert.deepEqual(helper.lastResponse.body.details[0].path, ['textField']);
-            assert.deepEqual(helper.lastResponse.body.details[1].path, ['textField']);
+            const details = helper.lastResponse.body.details;
+            if (IS_NEXTGEN) {
+              assert.equal(details.length, 1);
+              assert.equal(details[0].message, 'Text Field is required');
+              assert.deepEqual(details[0].path, ['textField']);
+            } else {
+              assert.equal(details.length, 2);
+              assert.equal(details[0].message, 'Text Field must be an array');
+              assert.equal(details[1].message, 'Text Field is required');
+              assert.deepEqual(details[0].path, ['textField']);
+              assert.deepEqual(details[1].path, ['textField']);
+            }
             done();
           });
       });
@@ -3293,7 +3298,7 @@ module.exports = function (app, template, hook) {
             }
 
             var submission = helper.getLastSubmission();
-            assert.deepEqual(test.submission, submission.data);
+            assert.deepEqual(nextgenExpectData(test.submission), submission.data);
             done();
           });
       });
@@ -3708,7 +3713,7 @@ module.exports = function (app, template, hook) {
             }
 
             var submission = helper.getLastSubmission();
-            assert.deepEqual({}, submission.data);
+            assert.deepEqual(IS_NEXTGEN ? { fruit: '' } : {}, submission.data);
             done();
           });
         });
@@ -5331,6 +5336,243 @@ module.exports = function (app, template, hook) {
           );
         });
       });
+
+      describe('Multi-select with embedded submission shapes (no save-as-reference)', () => {
+        const embeddedFakeIds = {
+          _id: '507f1f77bcf86cd799439011',
+          form: '5692b920d1028f01000407e7',
+          owner: '5692b920d1028f01000407e8',
+          project: '5692b920d1028f01000407e9',
+        };
+
+        before('sets up a parent form with embedded submission data', (done) => {
+          helper
+            .form('embeddedParent', [
+              {
+                type: 'textfield',
+                label: 'Text Field',
+                key: 'textField',
+                input: true,
+              },
+              {
+                type: 'select',
+                label: 'Embedded',
+                key: 'embedded',
+                dataSrc: 'resource',
+                data: { resource: '5692b920d1028f01000407e7' },
+                template: '<span>{{ item.data.name }}</span>',
+                multiple: true,
+                input: true,
+                persistent: true,
+              },
+            ])
+            .submission('embeddedParent', {
+              textField: 'initial',
+              embedded: [
+                {
+                  ...embeddedFakeIds,
+                  data: { name: 'Apple' },
+                  metadata: {},
+                },
+              ],
+            })
+            .execute(done);
+        });
+
+        it('keeps _id, form, owner, project as ObjectIds in the DB after PATCH', (done) => {
+          const submission = helper.getLastSubmission();
+          helper.patchSubmission(
+            submission,
+            [{ op: 'replace', path: '/data/textField', value: 'patched' }],
+            async (err) => {
+              if (err) {
+                return done(err);
+              }
+              try {
+                const formio = hook.alter('formio', app.formio);
+                const stored = await formio.resources.submission.model.collection.findOne({
+                  _id: new mongoose.Types.ObjectId(submission._id),
+                });
+                assert.ok(stored, 'submission should exist in the database');
+                assert.ok(
+                  Array.isArray(stored.data.embedded) && stored.data.embedded.length === 1,
+                  'data.embedded should be a one-element array',
+                );
+                const item = stored.data.embedded[0];
+                ['_id', 'form', 'owner', 'project'].forEach((key) => {
+                  assert.ok(
+                    item[key] instanceof mongoose.Types.ObjectId,
+                    `data.embedded[0].${key} should be a BSON ObjectId, got ${
+                      item[key] && item[key].constructor
+                        ? item[key].constructor.name
+                        : typeof item[key]
+                    } (${item[key]})`,
+                  );
+                  assert.equal(item[key].toString(), embeddedFakeIds[key]);
+                });
+                done();
+              } catch (assertErr) {
+                done(assertErr);
+              }
+            },
+          );
+        });
+      });
+
+      describe('Reference select with multiple values', () => {
+        const petSubmissionIds = [];
+        before('sets up a multi-reference parent form', (done) => {
+          helper
+            .form('multipets', [
+              {
+                label: 'Pet',
+                key: 'pet',
+                type: 'textfield',
+                input: true,
+              },
+            ])
+            .submission('multipets', { pet: 'Turtle' })
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+              petSubmissionIds.push(helper.getLastSubmission()._id);
+              helper.submission('multipets', { pet: 'Hamster' }).execute((err2) => {
+                if (err2) {
+                  return done(err2);
+                }
+                petSubmissionIds.push(helper.getLastSubmission()._id);
+                helper
+                  .form('multiPetReference', [
+                    {
+                      type: 'textfield',
+                      label: 'Text Field',
+                      key: 'textField',
+                      input: true,
+                    },
+                    {
+                      type: 'select',
+                      label: 'Pets',
+                      key: 'pets',
+                      dataSrc: 'resource',
+                      data: { resource: helper.template.forms['multipets']._id },
+                      template: '<span>{{ item.data.pet }}</span>',
+                      reference: true,
+                      multiple: true,
+                      input: true,
+                    },
+                  ])
+                  .submission('multiPetReference', {
+                    textField: 'initial',
+                    pets: petSubmissionIds.map((id) => ({
+                      _id: id,
+                      form: helper.template.forms['multipets']._id,
+                    })),
+                  })
+                  .execute(done);
+              });
+            });
+        });
+
+        // For multi-reference fields, the existing setResource only fires for
+        // single objects (`compValue && compValue._id`), so when component.multiple
+        // is true the dereferenced array — full embedded docs with stringified
+        // _id/form/owner/project — is what reaches `findOneAndUpdate`. We expect
+        // the persisted shape to mirror the single-ref case: an array of
+        // `{ _id: ObjectId }` only.
+        it('persists data.pets as an array of `{ _id: ObjectId }` after PATCH', (done) => {
+          const submission = helper.getLastSubmission();
+          helper.patchSubmission(
+            submission,
+            [{ op: 'replace', path: '/data/textField', value: 'multi-db-check' }],
+            async (err) => {
+              if (err) {
+                return done(err);
+              }
+              try {
+                const formio = hook.alter('formio', app.formio);
+                const stored = await formio.resources.submission.model.collection.findOne({
+                  _id: new mongoose.Types.ObjectId(submission._id),
+                });
+                assert.ok(stored, 'submission should exist in the database');
+                assert.ok(
+                  Array.isArray(stored.data.pets),
+                  `data.pets should be an array, got ${typeof stored.data.pets}`,
+                );
+                assert.equal(stored.data.pets.length, petSubmissionIds.length);
+                stored.data.pets.forEach((item, i) => {
+                  assert.deepEqual(
+                    Object.keys(item).sort(),
+                    ['_id'],
+                    `data.pets[${i}] should only contain _id, got keys: ${Object.keys(item).join(', ')}`,
+                  );
+                  assert.ok(
+                    item._id instanceof mongoose.Types.ObjectId,
+                    `data.pets[${i}]._id should be a BSON ObjectId, got ${
+                      item._id && item._id.constructor ? item._id.constructor.name : typeof item._id
+                    } (${item._id})`,
+                  );
+                  assert.equal(item._id.toString(), petSubmissionIds[i]);
+                });
+                done();
+              } catch (assertErr) {
+                done(assertErr);
+              }
+            },
+          );
+        });
+      });
+
+      describe('Textfield keyed `project` holding an id-shaped string', () => {
+        const projectIdString = '58e44a71412603008b727506';
+
+        before('sets up a form with a textfield keyed project', (done) => {
+          helper
+            .form('pdfLikeResource', [
+              {
+                type: 'textfield',
+                label: 'Project',
+                key: 'project',
+                input: true,
+                persistent: true,
+              },
+              {
+                type: 'textfield',
+                label: 'ID',
+                key: 'id',
+                input: true,
+                persistent: true,
+              },
+            ])
+            .submission('pdfLikeResource', {
+              project: projectIdString,
+              id: '58e44a72412603008b72750d',
+            })
+            .execute(done);
+        });
+
+        it('stores data.project as a string, not an ObjectId', (done) => {
+          const submission = helper.getLastSubmission();
+          const formio = hook.alter('formio', app.formio);
+          formio.resources.submission.model.collection
+            .findOne({ _id: new mongoose.Types.ObjectId(submission._id) })
+            .then((stored) => {
+              assert.ok(stored, 'submission should exist in the database');
+              assert.equal(
+                typeof stored.data.project,
+                'string',
+                `data.project should be a string, got ${
+                  stored.data.project && stored.data.project.constructor
+                    ? stored.data.project.constructor.name
+                    : typeof stored.data.project
+                } (${stored.data.project})`,
+              );
+              assert.equal(stored.data.project, projectIdString);
+              done();
+            })
+            .catch(done);
+        });
+      });
     });
 
     describe('Filtering submissions', () => {
@@ -5551,7 +5793,7 @@ module.exports = function (app, template, hook) {
       });
     });
 
-    describe('VM Timeouts', () => {
+    (IS_NEXTGEN ? describe.skip : describe)('VM Timeouts', () => {
       let restoreEncapsulation;
 
       before('Create form with a long running validation', (done) => {
@@ -5604,6 +5846,70 @@ module.exports = function (app, template, hook) {
             const response = helper.lastResponse;
             assert.equal(response.text, '"Script execution timed out."');
             done();
+          });
+      });
+    });
+
+    describe('Queries', function () {
+      it('should not allow [$operation]', function (done) {
+        const components = [
+          {
+            type: 'email',
+            unique: true,
+            required: true,
+            placeholder: 'Enter your email address',
+            key: 'email',
+            label: 'Email',
+            tableView: true,
+            input: true,
+          },
+          {
+            type: 'password',
+            protected: true,
+            placeholder: 'Enter your password.',
+            key: 'password',
+            label: 'Password',
+            inputType: 'password',
+            tableView: false,
+            input: true,
+          },
+        ];
+
+        const submissionOne = {
+          email: 'test@example.com',
+          password: 'pass123',
+        };
+        const submissionTwo = {
+          email: 'test2@example.com',
+          password: '123pass',
+        };
+
+        helper
+          .form('adminquery', components)
+          .submission(submissionOne)
+          .submission(submissionTwo)
+          .expect(201)
+          .execute(function (err) {
+            if (err) {
+              done(err);
+            }
+            request(app)
+              .get(
+                hook.alter(
+                  'url',
+                  `/form/${helper.template.forms['adminquery']._id}/submission?data.email[$regex]=^test`,
+                  helper.template,
+                ),
+              )
+              .set('x-jwt-token', helper.owner.token)
+              .expect(200)
+              .end(function (err, res) {
+                if (err) {
+                  done(err);
+                }
+                assert.equal(res.body.length, 0);
+                done();
+              });
           });
       });
     });
@@ -5702,9 +6008,22 @@ module.exports = function (app, template, hook) {
         null,
         [/application\/json/, 201],
         false,
-        function (err, res) {
-          assert.equal(helper.getLastBulkSubmission().insertedCount, batch.length);
-          done(err, res);
+        function (err) {
+          if (err) {
+            return done(err);
+          }
+          const bulkRes = helper.getLastBulkSubmission();
+          assert.equal(bulkRes.insertedCount, batch.length);
+          // A bulk-created submission must have both Created and Modified timestamps set.
+          const createdId = bulkRes.successes[0].submission._id;
+          helper.getSubmission('bulkEndpointTest', createdId, function (err, sub) {
+            if (err) {
+              return done(err);
+            }
+            assert(sub.created, 'Bulk-created submission should have a created timestamp');
+            assert(sub.modified, 'Bulk-created submission should have a modified timestamp');
+            done();
+          });
         },
       );
     });
@@ -5907,7 +6226,12 @@ module.exports = function (app, template, hook) {
   });
 
   describe('Bulk Submissions, upsert endpoint', function () {
-    let existSubmissionId, bulkFixture, upsertFormName, formDef, insertedSubmissionId;
+    let existSubmissionId,
+      bulkFixture,
+      upsertFormName,
+      formDef,
+      insertedSubmissionId,
+      insertedCreated;
 
     before(function () {
       bulkFixture = require('./fixtures/forms/bulkUpsertForm.js');
@@ -6277,7 +6601,9 @@ module.exports = function (app, template, hook) {
           }
           const sub = helper.getLastSubmission();
           insertedSubmissionId = sub._id;
+          insertedCreated = sub.created;
           assert(sub._id, 'Inserted submission should have an _id');
+          assert(sub.created, 'Inserted submission should have a created timestamp');
           assert.equal(sub.data.textField1, 'original');
           done();
         });
@@ -6319,6 +6645,17 @@ module.exports = function (app, template, hook) {
             assert.equal(actual.textField1, updated.textField1);
             assert.equal(actual.requiredTextField2, updated.requiredTextField2);
             assert.equal(actual.uniqueTextField3, updated.uniqueTextField3);
+            // Updating an existing submission via bulk upsert must preserve the original
+            // Created timestamp must not be replaced with the Modified timestamp
+            assert.equal(
+              new Date(sub.created).getTime(),
+              new Date(insertedCreated).getTime(),
+              'Created timestamp must be preserved on bulk upsert update',
+            );
+            assert(
+              new Date(sub.modified).getTime() > new Date(sub.created).getTime(),
+              'Modified timestamp should advance past the preserved Created timestamp on update',
+            );
             done();
           });
         },
@@ -6357,6 +6694,9 @@ module.exports = function (app, template, hook) {
             }
             assert(sub, 'New upserted submission should exist');
             assert.equal(sub.data.textField1, 'newrecord');
+            // A record inserted via bulk upsert must have both timestamps stamped.
+            assert(sub.created, 'Upsert-inserted submission should have a created timestamp');
+            assert(sub.modified, 'Upsert-inserted submission should have a modified timestamp');
             existSubmissionId = sub._id;
             done();
           });
@@ -6440,6 +6780,7 @@ module.exports = function (app, template, hook) {
   describe('Bulk Submissions bcross-form attack tests', function () {
     let foreignFormDef, foreignFormSubmissionId;
     const upsertFormName = 'bulkEndpointTest-upsert';
+    const forgedCreated = '1999-01-01T00:00:00.000Z';
 
     before(function () {
       const bulkFixture = require('./fixtures/forms/bulkUpsertForm.js');
@@ -6695,6 +7036,139 @@ module.exports = function (app, template, hook) {
           });
         },
       );
+    });
+
+    it('Created from payload is ignored, server-controlled value is used for POST request', function (done) {
+      const payload = [
+        {
+          created: forgedCreated,
+          data: {
+            textField1: 'ok',
+            requiredTextField2: 'abc',
+            uniqueTextField3: 'post-forged-created-check',
+          },
+        },
+      ];
+
+      helper.bulkCreateUpsertSubmissions(
+        'bulkEndpointTest',
+        payload,
+        null,
+        [/application\/json/, 201],
+        false,
+        function (err, res) {
+          const result = helper.getLastBulkSubmission();
+          assert.equal(result.insertedCount, 1);
+
+          const submissionId = result.successes[0].submission._id;
+
+          helper.getSubmission('bulkEndpointTest', submissionId, function (err, submission) {
+            if (err) {
+              return done(err);
+            }
+
+            assert.notEqual(
+              new Date(submission.created).getTime(),
+              new Date(forgedCreated).getTime(),
+              'created must not be taken from payload',
+            );
+
+            done(err);
+          });
+        },
+      );
+    });
+
+    it('Created from payload is ignored when PUT inserts a new submission', function (done) {
+      const payload = [
+        {
+          created: forgedCreated,
+          data: {
+            textField1: 'ok',
+            requiredTextField2: 'abc',
+            uniqueTextField3: 'put-insert-forged-created-check',
+          },
+        },
+      ];
+
+      helper.bulkCreateUpsertSubmissions(
+        upsertFormName,
+        payload,
+        null,
+        [/application\/json/, 200],
+        true,
+        function (err, res) {
+          const result = helper.getLastBulkSubmission();
+          assert.equal(result.upsertedCount, 1);
+
+          const submissionId = result.upserted[0].submission._id;
+
+          helper.getSubmission(upsertFormName, submissionId, function (err, submission) {
+            if (err) {
+              return done(err);
+            }
+
+            assert.notEqual(
+              new Date(submission.created).getTime(),
+              new Date(forgedCreated).getTime(),
+              'created must not be taken from payload',
+            );
+
+            done(err);
+          });
+        },
+      );
+    });
+
+    it('Created from payload is ignored when PUT updates an existing submission', function (done) {
+      helper
+        .submission(upsertFormName, {
+          textField1: 'original',
+          requiredTextField2: 'required',
+          uniqueTextField3: 'put-update-forged-created-check',
+        })
+        .expect(201)
+        .execute(function (err) {
+          if (err) {
+            return done(err);
+          }
+
+          const existing = helper.getLastSubmission();
+          const payload = [
+            {
+              _id: existing._id,
+              created: forgedCreated,
+              data: {
+                textField1: 'updated',
+                requiredTextField2: 'required',
+                uniqueTextField3: 'put-update-forged-created-check',
+              },
+            },
+          ];
+
+          helper.bulkCreateUpsertSubmissions(
+            upsertFormName,
+            payload,
+            null,
+            [/application\/json/, 200],
+            true,
+            function () {
+              helper.getSubmission(upsertFormName, existing._id, function (err, submission) {
+                if (err) {
+                  return done(err);
+                }
+
+                assert.equal(
+                  new Date(submission.created).getTime(),
+                  new Date(existing.created).getTime(),
+                  'created must not be taken from payload',
+                );
+
+                done(err);
+              });
+            },
+          );
+        });
     });
   });
 
@@ -7116,10 +7590,14 @@ module.exports = function (app, template, hook) {
           assert.equal(submission.data.showA, false);
           assert.equal(submission.data.showB, true);
           assert.equal(submission.data.showC, true);
-          assert(
-            !submission.data.hasOwnProperty('childA'),
-            'The childA form should not be present.',
-          );
+          if (IS_NEXTGEN) {
+            assert.deepEqual(submission.data.childA, { data: {} });
+          } else {
+            assert(
+              !submission.data.hasOwnProperty('childA'),
+              'The childA form should not be present.',
+            );
+          }
           assert(submission.data.childB.hasOwnProperty('_id'), 'The childB form was not submitted');
           assert(submission.data.childC.hasOwnProperty('_id'), 'The childC form was not submitted');
           assert.deepEqual(submission.data.childB.data, {
@@ -7432,9 +7910,9 @@ module.exports = function (app, template, hook) {
           }
 
           const submission = helper.lastSubmission;
-          const expectedData = {
-            textField: '123',
-          };
+          const expectedData = IS_NEXTGEN
+            ? { textField: '123', checkbox: false }
+            : { textField: '123' };
 
           assert.equal(JSON.stringify(submission.data), JSON.stringify(expectedData));
           done();
@@ -7723,7 +8201,12 @@ module.exports = function (app, template, hook) {
           }
 
           nestedSubmission = helper.lastSubmission;
-          assert.deepEqual(nestedSubmission.data, { radio: 'b', submit: true });
+          assert.deepEqual(
+            nestedSubmission.data,
+            IS_NEXTGEN
+              ? { radio: 'b', submit: true, form: { data: {} } }
+              : { radio: 'b', submit: true },
+          );
           done();
         });
     });
@@ -7999,12 +8482,12 @@ module.exports = function (app, template, hook) {
           }
 
           const subm = helper.lastSubmission;
+          const expectedForm = IS_NEXTGEN
+            ? { data: { textField2Child: '' }, metadata: {} }
+            : { data: {}, metadata: {} };
           assert.deepEqual(subm.data, {
             textFieldParent: '',
-            form: {
-              data: {},
-              metadata: {},
-            },
+            form: expectedForm,
             submit: true,
           });
           helper.deleteSubmission(helper.lastSubmission, undefined, undefined, done);
@@ -8241,6 +8724,646 @@ module.exports = function (app, template, hook) {
             done();
           });
       });
+    });
+  });
+
+  describe('Reference component $lookup access control (FIO-11566)', function () {
+    // Forms / submissions created during setup.
+    let refTargetReadOwn = null; // resource whose submissions are read_own
+    let refTargetReadAll = null; // resource whose submissions are read_all
+    let refTargetResource = null; // resource using submission resource access
+    let otherForm = null; // an unrelated form, used to prove cross-form isolation
+    let parentReadOwn = null; // single reference -> refTargetReadOwn
+    let parentReadAll = null; // single reference -> refTargetReadAll
+    let parentMultiple = null; // multiple reference -> refTargetReadOwn
+    let parentResource = null; // single reference -> refTargetResource
+
+    let refUser1 = null; // refTargetReadOwn submission owned by user1
+    let refUser1b = null; // a second refTargetReadOwn submission owned by user1
+    let refUser2 = null; // refTargetReadOwn submission owned by user2
+    let refAll = null; // refTargetReadAll submission owned by user1
+    let otherSub = null; // otherForm submission (the cross-form leak target)
+    let resourceSub = null; // refTargetResource submission owned by user1, read-granted to user2
+
+    const authRole = () => template.roles.authenticated._id.toString();
+    const submissionModel = () => hook.alter('formio', app.formio).resources.submission.model;
+    const projectFields = () =>
+      refTargetReadOwn && refTargetReadOwn.project
+        ? { project: new mongoose.Types.ObjectId(refTargetReadOwn.project) }
+        : {};
+    // Distinct, non-overlapping secrets (no value is a substring of another) so a missing
+    // hydration can be asserted structurally rather than by scanning serialized output.
+    const SECRET_RO_U1 = 'refReadOwnUserOneSecret';
+    const SECRET_RO_U1B = 'refReadOwnUserOneBetaSecret';
+    const SECRET_RO_U2 = 'refReadOwnUserTwoSecret';
+    const SECRET_ALL = 'refReadAllSecretValue';
+    const SECRET_CROSS = 'refCrossFormSecretValue';
+    const SECRET_RES = 'refResourceAccessSecretValue';
+
+    const refTargetForm = (name, readType) => ({
+      title: name,
+      name,
+      path: name.toLowerCase(),
+      type: 'resource',
+      access: [{ type: 'read_all', roles: [authRole()] }],
+      submissionAccess: [
+        { type: 'create_own', roles: [authRole()] },
+        { type: readType, roles: [authRole()] },
+        { type: 'update_own', roles: [authRole()] },
+      ],
+      components: [
+        { type: 'textfield', key: 'secret', label: 'Secret', input: true },
+        { type: 'button', key: 'submit', label: 'Submit', input: true },
+      ],
+    });
+
+    const parentForm = (name, resourceId, multiple) => ({
+      title: name,
+      name,
+      path: name.toLowerCase(),
+      type: 'form',
+      access: [{ type: 'read_all', roles: [authRole()] }],
+      submissionAccess: [
+        { type: 'create_own', roles: [authRole()] },
+        // read_all so any authenticated user can index every parent submission;
+        // the access decision under test is on the *referenced* form, not the parent.
+        { type: 'read_all', roles: [authRole()] },
+      ],
+      components: [
+        // A stable, non-reference field so each parent submission can be located in the
+        // index response regardless of whether its reference hydrated.
+        { type: 'textfield', key: 'tag', label: 'Tag', input: true },
+        {
+          label: 'Ref',
+          key: 'ref',
+          type: 'select',
+          input: true,
+          dataSrc: 'resource',
+          data: { resource: resourceId },
+          reference: true,
+          multiple: !!multiple,
+          template: '<span>{{ item.data.secret }}</span>',
+        },
+        { type: 'button', key: 'submit', label: 'Submit', input: true },
+      ],
+    });
+
+    const createForm = (def, done) => {
+      request(app)
+        .post(hook.alter('url', '/form', template))
+        .set('x-jwt-token', template.users.admin.token)
+        .send(def)
+        .expect(201)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+          template.users.admin.token = res.headers['x-jwt-token'];
+          done(null, res.body);
+        });
+    };
+
+    const createSub = (formId, data, user, done) => {
+      request(app)
+        .post(hook.alter('url', `/form/${formId}/submission`, template))
+        .set('x-jwt-token', user.token)
+        .send({ data })
+        .expect(201)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+          user.token = res.headers['x-jwt-token'];
+          done(null, res.body);
+        });
+    };
+
+    const indexSubs = (formId, user, done) => {
+      request(app)
+        .get(hook.alter('url', `/form/${formId}/submission?limit=100&skip=0`, template))
+        .set('x-jwt-token', user.token)
+        .expect(200)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+          user.token = res.headers['x-jwt-token'];
+          done(null, res.body);
+        });
+    };
+
+    // Write a parent submission straight to the collection, bypassing the reference
+    // component's create-time validation. Used to forge references a user could not
+    // create through the API (another form's submission, another user's submission).
+    const insertParent = (formId, refValue, owner, tag) =>
+      submissionModel().create({
+        ...projectFields(),
+        form: new mongoose.Types.ObjectId(formId),
+        owner: new mongoose.Types.ObjectId(owner._id),
+        data: { ref: refValue, tag },
+        roles: [],
+        access: [],
+        deleted: null,
+      });
+
+    const findByTag = (list, tag) => list.find((s) => _.get(s, 'data.tag') === tag);
+
+    // True if the parent's reference hydrated to a full submission (carries data), rather
+    // than staying an un-hydrated { _id } shell (or being filtered out of the result).
+    const refHydrated = (sub) => {
+      const ref = _.get(sub, 'data.ref');
+      if (!ref) {
+        return false;
+      }
+      return (Array.isArray(ref) ? ref : [ref]).some((r) => r && r.data);
+    };
+
+    // Every reference secret hydrated anywhere in an index response.
+    const hydratedSecrets = (list) =>
+      list.flatMap((sub) => {
+        const ref = _.get(sub, 'data.ref');
+        if (!ref) {
+          return [];
+        }
+        return (Array.isArray(ref) ? ref : [ref])
+          .map((r) => _.get(r, 'data.secret'))
+          .filter((v) => v !== undefined);
+      });
+
+    // Asserts that a denied/unreadable reference is preserved as a bare { _id } shell
+    // rather than being dropped from the response entirely (FIO-11566 regression guard).
+    // - single reference: ref must be an object with the expected _id and no data key.
+    // - multiple reference: every entry must be a bare { _id } shell with no data key.
+    const assertBareRef = (ref, expectedId, msg) => {
+      assert.ok(ref, `${msg}: reference field must still be present, not dropped`);
+      if (Array.isArray(ref)) {
+        ref.forEach((r) => {
+          assert.ok(r && r._id, `${msg}: each entry must retain its _id`);
+          assert.equal(_.has(r, 'data'), false, `${msg}: entry must not carry hydrated data`);
+        });
+      } else {
+        assert.equal(
+          ref._id && ref._id.toString(),
+          expectedId && expectedId.toString(),
+          `${msg}: must retain the original _id`,
+        );
+        assert.equal(_.has(ref, 'data'), false, `${msg}: must not carry hydrated data`);
+      }
+    };
+
+    before('Creates the referenced resources and an unrelated form', (done) => {
+      createForm(refTargetForm('refTargetReadOwn', 'read_own'), (err, form) => {
+        if (err) {
+          return done(err);
+        }
+        refTargetReadOwn = form;
+        createForm(refTargetForm('refTargetReadAll', 'read_all'), (err, form) => {
+          if (err) {
+            return done(err);
+          }
+          refTargetReadAll = form;
+          createForm(
+            {
+              title: 'refOtherForm',
+              name: 'refOtherForm',
+              path: 'refotherform',
+              type: 'form',
+              access: [{ type: 'read_all', roles: [authRole()] }],
+              submissionAccess: [{ type: 'create_own', roles: [authRole()] }],
+              components: [
+                { type: 'textfield', key: 'secret', label: 'Secret', input: true },
+                { type: 'button', key: 'submit', label: 'Submit', input: true },
+              ],
+            },
+            (err, form) => {
+              if (err) {
+                return done(err);
+              }
+              otherForm = form;
+              createForm(
+                {
+                  title: 'refTargetResource',
+                  name: 'refTargetResource',
+                  path: 'reftargetresource',
+                  type: 'resource',
+                  access: [{ type: 'read_all', roles: [authRole()] }],
+                  submissionAccess: [{ type: 'create_own', roles: [authRole()] }],
+                  components: [
+                    { type: 'textfield', key: 'secret', label: 'Secret', input: true },
+                    // defaultPermission flags the form for submission resource access, so
+                    // permissionHandler enables submissionResourceAccessFilter on index.
+                    {
+                      type: 'textfield',
+                      key: 'grant',
+                      label: 'Grant',
+                      input: true,
+                      defaultPermission: 'read',
+                    },
+                    { type: 'button', key: 'submit', label: 'Submit', input: true },
+                  ],
+                },
+                (err, form) => {
+                  if (err) {
+                    return done(err);
+                  }
+                  refTargetResource = form;
+                  done();
+                },
+              );
+            },
+          );
+        });
+      });
+    });
+
+    before('Creates referenced submissions owned by different users', (done) => {
+      createSub(
+        refTargetReadOwn._id,
+        { secret: SECRET_RO_U1 },
+        template.users.user1,
+        (err, sub) => {
+          if (err) {
+            return done(err);
+          }
+          refUser1 = sub;
+          createSub(
+            refTargetReadOwn._id,
+            { secret: SECRET_RO_U1B },
+            template.users.user1,
+            (err, sub) => {
+              if (err) {
+                return done(err);
+              }
+              refUser1b = sub;
+              createSub(
+                refTargetReadOwn._id,
+                { secret: SECRET_RO_U2 },
+                template.users.user2,
+                (err, sub) => {
+                  if (err) {
+                    return done(err);
+                  }
+                  refUser2 = sub;
+                  createSub(
+                    refTargetReadAll._id,
+                    { secret: SECRET_ALL },
+                    template.users.user1,
+                    (err, sub) => {
+                      if (err) {
+                        return done(err);
+                      }
+                      refAll = sub;
+                      createSub(
+                        otherForm._id,
+                        { secret: SECRET_CROSS },
+                        template.users.user1,
+                        (err, sub) => {
+                          if (err) {
+                            return done(err);
+                          }
+                          otherSub = sub;
+                          // refTargetResource submission: owned by user1, but read-granted
+                          // to user2 via a submission-level resource access entry.
+                          submissionModel()
+                            .create({
+                              ...projectFields(),
+                              form: new mongoose.Types.ObjectId(refTargetResource._id),
+                              owner: new mongoose.Types.ObjectId(template.users.user1._id),
+                              data: { secret: SECRET_RES },
+                              access: [
+                                {
+                                  type: 'read',
+                                  resources: [
+                                    new mongoose.Types.ObjectId(template.users.user2._id),
+                                  ],
+                                },
+                              ],
+                              roles: [],
+                              deleted: null,
+                            })
+                            .then((created) => {
+                              resourceSub = created.toObject();
+                              done();
+                            })
+                            .catch(done);
+                        },
+                      );
+                    },
+                  );
+                },
+              );
+            },
+          );
+        },
+      );
+    });
+
+    before('Creates the parent forms with reference components', (done) => {
+      createForm(parentForm('refParentReadOwn', refTargetReadOwn._id, false), (err, form) => {
+        if (err) {
+          return done(err);
+        }
+        parentReadOwn = form;
+        createForm(parentForm('refParentReadAll', refTargetReadAll._id, false), (err, form) => {
+          if (err) {
+            return done(err);
+          }
+          parentReadAll = form;
+          createForm(parentForm('refParentMultiple', refTargetReadOwn._id, true), (err, form) => {
+            if (err) {
+              return done(err);
+            }
+            parentMultiple = form;
+            createForm(
+              parentForm('refParentResource', refTargetResource._id, false),
+              (err, form) => {
+                if (err) {
+                  return done(err);
+                }
+                parentResource = form;
+                done();
+              },
+            );
+          });
+        });
+      });
+    });
+
+    before('Creates parent submissions referencing the resources', (done) => {
+      // user1 references their own read_own submission.
+      createSub(
+        parentReadOwn._id,
+        { tag: 'ownerUser1', ref: { _id: refUser1._id } },
+        template.users.user1,
+        (err) => {
+          if (err) {
+            return done(err);
+          }
+          // user2 references their own read_own submission.
+          createSub(
+            parentReadOwn._id,
+            { tag: 'ownerUser2', ref: { _id: refUser2._id } },
+            template.users.user2,
+            (err) => {
+              if (err) {
+                return done(err);
+              }
+              // user1 references a read_all submission.
+              createSub(
+                parentReadAll._id,
+                { tag: 'readAll', ref: { _id: refAll._id } },
+                template.users.user1,
+                (err) => {
+                  if (err) {
+                    return done(err);
+                  }
+                  // user1 references two of their own read_own submissions (multiple).
+                  createSub(
+                    parentMultiple._id,
+                    { tag: 'multiple', ref: [{ _id: refUser1._id }, { _id: refUser1b._id }] },
+                    template.users.user1,
+                    done,
+                  );
+                },
+              );
+            },
+          );
+        },
+      );
+    });
+
+    before('Forges parent submissions with references the owner could not create', (done) => {
+      // A reference into another form (cross-form isolation), owned by admin.
+      insertParent(
+        parentReadOwn._id,
+        { _id: new mongoose.Types.ObjectId(otherSub._id) },
+        template.users.admin,
+        'crossForm',
+      )
+        // user2 owns this parent but its reference points at user1's read_own submission.
+        .then(() =>
+          insertParent(
+            parentReadOwn._id,
+            { _id: new mongoose.Types.ObjectId(refUser1._id) },
+            template.users.user2,
+            'spoofedToUser1',
+          ),
+        )
+        // user2 owns this parent; its reference points at a submission user2 can read only
+        // via submission resource access (not as owner).
+        .then(() =>
+          insertParent(
+            parentResource._id,
+            { _id: new mongoose.Types.ObjectId(resourceSub._id) },
+            template.users.user2,
+            'resourceAccess',
+          ),
+        )
+        // user1 owns this parent; its multiple reference mixes an entry user1 owns
+        // (refUser1) with one user1 does not own (refUser2) — partial-access case.
+        .then(() =>
+          insertParent(
+            parentMultiple._id,
+            [
+              { _id: new mongoose.Types.ObjectId(refUser1._id) },
+              { _id: new mongoose.Types.ObjectId(refUser2._id) },
+            ],
+            template.users.user1,
+            'multiplePartial',
+          ),
+        )
+        .then(() => done())
+        .catch(done);
+    });
+
+    it('does not hydrate a reference that resolves to a submission in another form', (done) => {
+      indexSubs(parentReadOwn._id, template.users.admin, (err, list) => {
+        if (err) {
+          return done(err);
+        }
+        const crossForm = findByTag(list, 'crossForm');
+        assert.ok(crossForm, 'admin should see the forged cross-form parent submission');
+        assert.equal(
+          refHydrated(crossForm),
+          false,
+          'a reference into another form must not hydrate',
+        );
+        assertBareRef(
+          _.get(crossForm, 'data.ref'),
+          otherSub._id,
+          'cross-form reference must remain a bare {_id} shell, not be dropped',
+        );
+        assert.equal(
+          hydratedSecrets(list).includes(SECRET_CROSS),
+          false,
+          'cross-form secret must never be exposed through the reference',
+        );
+        done();
+      });
+    });
+
+    it('hydrates only references the indexing user owns on a read_own resource', (done) => {
+      indexSubs(parentReadOwn._id, template.users.user2, (err, list) => {
+        if (err) {
+          return done(err);
+        }
+        const own = findByTag(list, 'ownerUser2');
+        const others = findByTag(list, 'ownerUser1');
+
+        assert.ok(own, 'user2 should see the parent referencing their own record');
+        assert.equal(_.get(own, 'data.ref._id'), refUser2._id, 'reference _id is preserved');
+        assert.equal(
+          _.get(own, 'data.ref.data.secret'),
+          SECRET_RO_U2,
+          'user2 must see the hydrated data for the reference they own',
+        );
+
+        assert.ok(others, 'user2 should still see the parent owned by user1 (parent is read_all)');
+        assert.equal(
+          refHydrated(others),
+          false,
+          "user1's read_own reference must not hydrate for user2",
+        );
+        assertBareRef(
+          _.get(others, 'data.ref'),
+          refUser1._id,
+          "user1's unreadable reference must remain a bare {_id} shell for user2",
+        );
+        assert.equal(
+          hydratedSecrets(list).includes(SECRET_RO_U1),
+          false,
+          "user2 must not see user1's read_own reference data",
+        );
+        done();
+      });
+    });
+
+    it('does not hydrate a forged reference to a read_own submission owned by someone else', (done) => {
+      // The parent is owned by user2, but its reference points at user1's submission.
+      // Owning the parent must not grant access to the referenced submission.
+      indexSubs(parentReadOwn._id, template.users.user2, (err, list) => {
+        if (err) {
+          return done(err);
+        }
+        const spoofed = findByTag(list, 'spoofedToUser1');
+        assert.ok(spoofed, 'user2 should see their own (forged) parent submission');
+        assert.equal(_.get(spoofed, 'owner'), template.users.user2._id, 'parent is owned by user2');
+        assert.equal(
+          refHydrated(spoofed),
+          false,
+          'a forged reference to a submission owned by another user must not hydrate',
+        );
+        assertBareRef(
+          _.get(spoofed, 'data.ref'),
+          refUser1._id,
+          'forged reference must remain a bare {_id} shell, not be dropped',
+        );
+        assert.equal(
+          hydratedSecrets(list).includes(SECRET_RO_U1),
+          false,
+          'forging a reference must not leak the target submission data',
+        );
+        done();
+      });
+    });
+
+    it('hydrates a read_all reference for any reader regardless of owner', (done) => {
+      // Guards against an owner filter being applied when the caller actually has
+      // read_all on the referenced form.
+      indexSubs(parentReadAll._id, template.users.user2, (err, list) => {
+        if (err) {
+          return done(err);
+        }
+        const parent = findByTag(list, 'readAll');
+        assert.ok(parent, 'user2 should see the parent submission');
+        assert.equal(_.get(parent, 'data.ref._id'), refAll._id, 'reference _id is preserved');
+        assert.equal(
+          _.get(parent, 'data.ref.data.secret'),
+          SECRET_ALL,
+          'read_all reference data must hydrate even though user2 is not the owner',
+        );
+        done();
+      });
+    });
+
+    it('hydrates every entry of a multiple reference the user can read', (done) => {
+      indexSubs(parentMultiple._id, template.users.user1, (err, list) => {
+        if (err) {
+          return done(err);
+        }
+        const parent = findByTag(list, 'multiple');
+        assert.ok(parent, 'multiple reference parent should be present');
+        assert.ok(Array.isArray(parent.data.ref), 'multiple reference should hydrate to an array');
+        const secrets = parent.data.ref.map((r) => _.get(r, 'data.secret')).sort();
+        assert.deepEqual(
+          secrets,
+          [SECRET_RO_U1, SECRET_RO_U1B].sort(),
+          'both owned entries of the multiple reference must hydrate',
+        );
+        done();
+      });
+    });
+
+    it('does not hydrate a reference the user can only read via submission resource access', (done) => {
+      // Positive control: user2 genuinely has read access to resourceSub through submission
+      // resource access, so it is returned on a direct index of the referenced form.
+      indexSubs(refTargetResource._id, template.users.user2, (err, directList) => {
+        if (err) {
+          return done(err);
+        }
+        assert.ok(
+          directList.some((s) => s._id === resourceSub._id.toString()),
+          'precondition: user2 can read resourceSub directly via resource access',
+        );
+
+        // Through a reference, the $lookup restricts to submissions the caller owns, so a
+        // submission reachable only via resource access is not hydrated. Submission
+        // resource access intentionally does not extend through references.
+        indexSubs(parentResource._id, template.users.user2, (err, list) => {
+          if (err) {
+            return done(err);
+          }
+          const parent = findByTag(list, 'resourceAccess');
+          assert.ok(parent, 'user2 should see their own (forged) parent submission');
+          assert.equal(
+            refHydrated(parent),
+            false,
+            'a resource-access-only reference is not hydrated through the $lookup',
+          );
+          assertBareRef(
+            _.get(parent, 'data.ref'),
+            resourceSub._id,
+            'resource-access-only reference must remain a bare {_id} shell, not be dropped',
+          );
+          assert.equal(
+            hydratedSecrets(list).includes(SECRET_RES),
+            false,
+            'resource-access reference data must not be exposed through the reference',
+          );
+          done();
+        });
+      });
+    });
+
+    after('Removes forms and submissions seeded into the shared project', async () => {
+      const formio = hook.alter('formio', app.formio);
+      const formIds = [
+        refTargetReadOwn,
+        refTargetReadAll,
+        refTargetResource,
+        otherForm,
+        parentReadOwn,
+        parentReadAll,
+        parentMultiple,
+        parentResource,
+      ]
+        .filter(Boolean)
+        .map((form) => new mongoose.Types.ObjectId(form._id));
+      if (!formIds.length) {
+        return;
+      }
+      await formio.resources.submission.model.deleteMany({ form: { $in: formIds } });
+      await formio.resources.form.model.deleteMany({ _id: { $in: formIds } });
     });
   });
 };

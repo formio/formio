@@ -187,11 +187,13 @@ class BulkSubmission {
     // payload, since allowing it would let someone reassign a submission
     // to a different form via bulk upsert.
     for (let i = 0; i < payload.length; i++) {
-      if (!payload[i].data || typeof payload[i].data !== 'object') {
+      const item = payload[i];
+      if (!item.data || typeof item.data !== 'object') {
         res.status(400).json({ error: `Item at index ${i} must contain a 'data' object.` });
         return null;
       }
-      delete payload[i].form;
+      delete item.form;
+      delete item.created;
     }
 
     if (
@@ -219,7 +221,6 @@ class BulkSubmission {
         data: item.data,
         metadata: item.metadata,
         deleted: null,
-        created: now,
         modified: now,
       };
       this.hook.alter('enrichBulkSubmissionDoc', req, doc);
@@ -645,7 +646,7 @@ class BulkSubmission {
           updateOne: {
             filter: {
               _id: doc._id,
-              form: doc.form
+              form: doc.form,
             },
             update,
             upsert: true,
