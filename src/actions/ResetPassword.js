@@ -13,7 +13,7 @@ const MAX_PASSWORD_LENGTH = process.env.MAX_PASSWORD_LENGTH || 200;
 module.exports = (router) => {
   const Action = router.formio.Action;
   const hook = require('../util/hook')(router.formio);
-  const emailer = require('../util/email')(router.formio);
+  const emailer = require('../util/email')(router);
   const debug = require('debug')('formio:action:passrest');
   const ecode = router.formio.util.errorCodes;
   const logOutput = router.formio.log || debug;
@@ -382,7 +382,7 @@ module.exports = (router) => {
       if (
         handler === 'after' &&
         method === 'form' &&
-        req.query.hasOwnProperty('live') &&
+        Object.hasOwn(req.query, 'live') &&
         parseInt(req.query.live, 10) === 1 &&
         res.hasOwnProperty('resource') &&
         res.resource.hasOwnProperty('item') &&

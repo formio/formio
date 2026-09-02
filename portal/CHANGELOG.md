@@ -1,5 +1,95 @@
 # oss-portal
 
+## 0.1.6
+
+### Patch Changes
+
+- Updated dependencies [539fef1]
+- Updated dependencies [681539d]
+- Updated dependencies [cc30e15]
+- Updated dependencies [1c2bf19]
+- Updated dependencies [14b3fd4]
+  - @formio/js@5.5.2
+  - @formio/react@6.2.1
+
+## 0.1.6-api99.2
+
+### Patch Changes
+
+- @formio/js@5.5.2-api99.2
+- @formio/react@6.2.1
+
+## 0.1.6-api99.1
+
+### Patch Changes
+
+- @formio/js@5.5.2-api99.1
+- @formio/react@6.2.1
+
+## 0.1.6-api99.0
+
+### Patch Changes
+
+- Updated dependencies [539fef1]
+- Updated dependencies [681539d]
+- Updated dependencies [cc30e15]
+- Updated dependencies [1c2bf19]
+- Updated dependencies [14b3fd4]
+  - @formio/js@5.5.2-api99.0
+  - @formio/react@6.2.1
+
+## 0.1.5
+
+### Patch Changes
+
+- 9920be9: FIO-11314: update webpack-copy-plugin versions
+- Updated dependencies [8eb6855]
+- Updated dependencies [1d9fcee]
+- Updated dependencies [5d51d06]
+- Updated dependencies [6298b64]
+- Updated dependencies [3f8bcc1]
+- Updated dependencies [793d0d8]
+- Updated dependencies [2a0676a]
+- Updated dependencies [543b082]
+- Updated dependencies [5fa2592]
+- Updated dependencies [587b8b4]
+- Updated dependencies [dc60a11]
+- Updated dependencies [b20c6e2]
+- Updated dependencies [5ec8478]
+- Updated dependencies [eccfae0]
+  - @formio/js@5.5.1
+  - @formio/react@6.2.1
+
+## 0.1.5-api99.1
+
+### Patch Changes
+
+- Updated dependencies [587b8b4]
+  - @formio/js@5.5.1-api99.1
+  - @formio/react@6.2.1
+
+## 0.1.5-api99.0
+
+### Patch Changes
+
+- 9920be9: FIO-11314: update webpack-copy-plugin versions
+- Updated dependencies [8eb6855]
+- Updated dependencies [1d9fcee]
+- Updated dependencies [5d51d06]
+- Updated dependencies [6298b64]
+- Updated dependencies [3f8bcc1]
+- Updated dependencies [793d0d8]
+- Updated dependencies [82583ef]
+- Updated dependencies [2a0676a]
+- Updated dependencies [543b082]
+- Updated dependencies [5fa2592]
+- Updated dependencies [dc60a11]
+- Updated dependencies [b20c6e2]
+- Updated dependencies [5ec8478]
+- Updated dependencies [eccfae0]
+  - @formio/js@5.5.1-api99.0
+  - @formio/react@6.2.1
+
 ## 0.1.4
 
 ### Patch Changes

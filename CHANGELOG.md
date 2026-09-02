@@ -1,5 +1,177 @@
 # formio
 
+## 4.9.0
+
+### Minor Changes
+
+- 7bdbc9c: FIO-11496: nextgen email rendering pipeline
+- ea6abdb: FIO-11496: opt-in nextgen validation engine behind the NEXTGEN_VALIDATOR flag
+
+### Patch Changes
+
+- 26535f0: FIO-12094: legacy JSON Logic operators and `Formio` in the custom-JS evaluation context
+- 4704662: FIO-12009: preserve Created timestamp on bulk upsert
+- Updated dependencies [539fef1]
+- Updated dependencies [9b1318d]
+- Updated dependencies [aedcdcc]
+- Updated dependencies [681539d]
+- Updated dependencies [26535f0]
+- Updated dependencies [cc30e15]
+- Updated dependencies [1c2bf19]
+- Updated dependencies [7e57f98]
+- Updated dependencies [7bdbc9c]
+- Updated dependencies [ea6abdb]
+- Updated dependencies [58586f9]
+- Updated dependencies [4775494]
+- Updated dependencies [3769c97]
+- Updated dependencies [446fc6f]
+- Updated dependencies [b983b0d]
+- Updated dependencies [2cb75c4]
+- Updated dependencies [14b3fd4]
+  - @formio/js@5.5.2
+  - @formio/nextgen@1.1.0
+  - @formio/core@2.8.2
+  - @formio/vm@2.3.0
+  - @formio/feature-flags@1.4.0
+
+## 4.9.0-api99.2
+
+### Patch Changes
+
+- @formio/js@5.5.2-api99.2
+
+## 4.9.0-api99.1
+
+### Patch Changes
+
+- Updated dependencies [2cb75c4]
+  - @formio/nextgen@1.1.0-api99.1
+  - @formio/core@2.8.2-api99.1
+  - @formio/js@5.5.2-api99.1
+
+## 4.9.0-api99.0
+
+### Minor Changes
+
+- 7bdbc9c: FIO-11496: nextgen email rendering pipeline
+- ea6abdb: FIO-11496: opt-in nextgen validation engine behind the NEXTGEN_VALIDATOR flag
+
+### Patch Changes
+
+- 26535f0: FIO-12094: legacy JSON Logic operators and `Formio` in the custom-JS evaluation context
+- 4704662: FIO-12009: preserve Created timestamp on bulk upsert
+- Updated dependencies [539fef1]
+- Updated dependencies [9b1318d]
+- Updated dependencies [aedcdcc]
+- Updated dependencies [681539d]
+- Updated dependencies [26535f0]
+- Updated dependencies [cc30e15]
+- Updated dependencies [1c2bf19]
+- Updated dependencies [7e57f98]
+- Updated dependencies [7bdbc9c]
+- Updated dependencies [ea6abdb]
+- Updated dependencies [58586f9]
+- Updated dependencies [4775494]
+- Updated dependencies [3769c97]
+- Updated dependencies [446fc6f]
+- Updated dependencies [b983b0d]
+- Updated dependencies [14b3fd4]
+  - @formio/js@5.5.2-api99.0
+  - @formio/nextgen@1.1.0-api99.0
+  - @formio/core@2.8.2-api99.0
+  - @formio/vm@2.3.0-api99.0
+  - @formio/feature-flags@1.4.0-api99.0
+
+## 4.8.1
+
+### Patch Changes
+
+- b3f8989: Bump body-parser to 2.3.0 (formio, formio-server) and 1.20.6 (pdf-server, resourcejs)
+- a5ded4d: Added app.set('query parser', 'simple'); to formio and formio-server
+- 46de2a5: FIO-12093: fixed an issue where some submission values were stored with the wrong type
+- c4882d2: FIO-11596: fix token handler middleware to not refresh temp tokens
+- a637d9a: FIO-11756: redact secrets from db update debug logs
+- 2f6dd61: Upgrades nodemailer from v8 to v9 and makes required changes
+- 98d100c: FIO-12058: use equality-match $lookup + post-filter for reference hydration so DocumentDB/Cosmos accept submission index queries
+- dedfb87: FIO-11566: enforce access control in $lookup pipeline
+- 67ba8f5: Fix an issue with ObjectId serialization with embedded Select component references
+- Updated dependencies [8eb6855]
+- Updated dependencies [b3f8989]
+- Updated dependencies [1d9fcee]
+- Updated dependencies [5d51d06]
+- Updated dependencies [20ed423]
+- Updated dependencies [6298b64]
+- Updated dependencies [3f8bcc1]
+- Updated dependencies [793d0d8]
+- Updated dependencies [2a0676a]
+- Updated dependencies [543b082]
+- Updated dependencies [c4882d2]
+- Updated dependencies [5fa2592]
+- Updated dependencies [587b8b4]
+- Updated dependencies [dc60a11]
+- Updated dependencies [b20c6e2]
+- Updated dependencies [5ec8478]
+- Updated dependencies [eccfae0]
+  - @formio/js@5.5.1
+  - resourcejs@2.6.2
+  - @formio/core@2.8.1
+
+## 4.8.1-api99.4
+
+### Patch Changes
+
+- 98d100c: FIO-12058: use equality-match $lookup + post-filter for reference hydration so DocumentDB/Cosmos accept submission index queries
+
+## 4.8.1-api99.3
+
+### Patch Changes
+
+- Updated dependencies [587b8b4]
+  - @formio/js@5.5.1-api99.1
+
+## 4.8.1-api99.2
+
+### Patch Changes
+
+- 46de2a5: FIO-12093: fixed an issue where some submission values were stored with the wrong type
+
+## 4.8.1-api99.1
+
+### Patch Changes
+
+- 2f6dd61: Upgrades nodemailer from v8 to v9 and makes required changes
+
+## 4.8.1-api99.0
+
+### Patch Changes
+
+- b3f8989: Bump body-parser to 2.3.0 (formio, formio-server) and 1.20.6 (pdf-server, resourcejs)
+- a5ded4d: Added app.set('query parser', 'simple'); to formio and formio-server
+- c4882d2: FIO-11596: fix token handler middleware to not refresh temp tokens
+- a637d9a: FIO-11756: redact secrets from db update debug logs
+- dedfb87: FIO-11566: enforce access control in $lookup pipeline
+- 67ba8f5: Fix an issue with ObjectId serialization with embedded Select component references
+- Updated dependencies [8eb6855]
+- Updated dependencies [b3f8989]
+- Updated dependencies [1d9fcee]
+- Updated dependencies [5d51d06]
+- Updated dependencies [20ed423]
+- Updated dependencies [6298b64]
+- Updated dependencies [3f8bcc1]
+- Updated dependencies [793d0d8]
+- Updated dependencies [82583ef]
+- Updated dependencies [2a0676a]
+- Updated dependencies [543b082]
+- Updated dependencies [c4882d2]
+- Updated dependencies [5fa2592]
+- Updated dependencies [dc60a11]
+- Updated dependencies [b20c6e2]
+- Updated dependencies [5ec8478]
+- Updated dependencies [eccfae0]
+  - @formio/js@5.5.1-api99.0
+  - resourcejs@2.6.2-api99.0
+  - @formio/core@2.8.1-api99.0
+
 ## 4.8.0
 
 ### Minor Changes

@@ -28,15 +28,18 @@ module.exports = (router) => {
     }
 
     const isConditionallyHidden = () => {
+      const matches = (hiddenPath) =>
+        hiddenPath === path ||
+        _.startsWith(path, `${hiddenPath}.`) ||
+        _.startsWith(path, `${hiddenPath}[`) ||
+        _.startsWith(fullPath, `${hiddenPath}.`);
+      if (Array.isArray(req.nextgenHidden)) {
+        return _.some(req.nextgenHidden, matches);
+      }
       const submission = req.body;
       return _.some(
         submission?.scope?.conditionals || [],
-        (condComp) =>
-          condComp.conditionallyHidden &&
-          (condComp.path === path ||
-            _.startsWith(path, `${condComp.path}.`) ||
-            _.startsWith(path, `${condComp.path}[`) ||
-            _.startsWith(fullPath, `${condComp.path}.`)),
+        (condComp) => condComp.conditionallyHidden && matches(condComp.path),
       );
     };
     // GOTCHA(G-FOS03)
@@ -107,9 +110,14 @@ module.exports = (router) => {
           if (!req.resources) {
             req.resources = {};
           }
-          req.resources[childRes.resource.item._id.toString()] = childRes.resource.item;
-          // Set child submission to { _id } to save only the reference
-          _.set(data, component.key, { _id: childRes.resource.item._id });
+          const childId = childRes.resource.item._id;
+          req.resources[childId.toString()] = childRes.resource.item;
+          // Set child submission to { _id } to save only the reference.
+          // Coerce to ObjectId: sub-responses can stringify ids, and bare `{_id}` shells
+          // must join via equality-match `$lookup` (FIO-12058 / FIO-12093).
+          _.set(data, component.key, {
+            _id: router.formio.util.ObjectId(childId),
+          });
         }
       }
       next();

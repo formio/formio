@@ -8,6 +8,20 @@ var app = null;
 var template = require('./fixtures/template')();
 var hook = null;
 
+var IS_NEXTGEN = require('./util').IS_NEXTGEN;
+if (IS_NEXTGEN) {
+  var nock = require('nock');
+  before(function () {
+    nock.disableNetConnect();
+    nock.enableNetConnect(function (host) {
+      return /127\.0\.0\.1|localhost/.test(host);
+    });
+  });
+  after(function () {
+    nock.enableNetConnect();
+  });
+}
+
 describe('Initialization', function () {
   it('Initialize the test server', function (done) {
     var hooks = require('./hooks');
@@ -73,6 +87,9 @@ describe('Initialization', function () {
     require('./submission-access')(app, template, hook);
     require('./submission')(app, template, hook);
     require('./export/CSVExporter/CSVExporter')(app, template, hook);
+    require('./export/nextgen/NextgenCsvRenderer')(app, template, hook);
+    require('./export/nextgen/NextgenCSVExporter')(app, template, hook);
+    require('./export/nextgen/resolveExporter')(app, template, hook);
     require('./unit')(app, template, hook);
     require('./validator')(app, template, hook);
   });

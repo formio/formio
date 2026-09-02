@@ -364,32 +364,6 @@ module.exports = {
       },
     },
     {
-      input: true,
-      tableView: true,
-      label: 'Resource',
-      key: 'resource2',
-      placeholder: '',
-      resource: '5692b920d1028f01000407e7',
-      project: '5692b91fd1028f01000407e3',
-      defaultValue: '',
-      template: '<span>{{ item.data }}</span>',
-      selectFields: '',
-      searchFields: '',
-      multiple: false,
-      protected: false,
-      persistent: true,
-      validate: {
-        required: false,
-      },
-      defaultPermission: '',
-      type: 'resource',
-      conditional: {
-        show: null,
-        when: null,
-        eq: '',
-      },
-    },
-    {
       conditional: {
         eq: '',
         when: null,
@@ -572,7 +546,6 @@ module.exports = {
     dateTime2: '2016-08-23T21:48:10.225Z',
     currency2: '2,000',
     hidden2: 'Im hidden!',
-    resource2: {},
     file2: [
       {
         storage: 's3',
