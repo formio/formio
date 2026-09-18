@@ -2,21 +2,26 @@
 
 let async = require('async');
 let _ = require('lodash');
-let debug = {
-  getFormsWithUniqueComponents: require('debug')(
-    'formio:update:3.0.5-getFormsWithUniqueComponents',
-  ),
-  getFormsWithUniqueComponentsInLayoutComponents: require('debug')(
-    'formio:update:3.0.5-getFormsWithUniqueComponentsInLayoutComponents',
-  ),
-  getFormsWithPotentialUniqueComponentsInLayoutComponents: require('debug')(
-    'formio:update:3.0.5-getFormsWithPotentialUniqueComponentsInLayoutComponents',
-  ),
-  getAffectedSubmissions: require('debug')('formio:update:3.0.5-getAffectedSubmissions'),
-  buildUniqueComponentList: require('debug')('formio:update:3.0.5-buildUniqueComponentList'),
-  fixSubmissionUniques: require('debug')('formio:update:3.0.5-fixSubmissionUniques'),
-  mergeForms: require('debug')('formio:update:3.0.5-mergeForms'),
-};
+const { logger } = require('../../util/logger');
+const getFormsWithUniqueComponentsLogger = logger.child({
+  module: 'formio:update:3.0.5-getFormsWithUniqueComponents',
+});
+const getFormsWithUniqueComponentsInLayoutComponentsLogger = logger.child({
+  module: 'formio:update:3.0.5-getFormsWithUniqueComponentsInLayoutComponents',
+});
+const getFormsWithPotentialUniqueComponentsInLayoutComponentsLogger = logger.child({
+  module: 'formio:update:3.0.5-getFormsWithPotentialUniqueComponentsInLayoutComponents',
+});
+const getAffectedSubmissionsLogger = logger.child({
+  module: 'formio:update:3.0.5-getAffectedSubmissions',
+});
+const buildUniqueComponentListLogger = logger.child({
+  module: 'formio:update:3.0.5-buildUniqueComponentList',
+});
+const fixSubmissionUniquesLogger = logger.child({
+  module: 'formio:update:3.0.5-fixSubmissionUniques',
+});
+const mergeFormsLogger = logger.child({ module: 'formio:update:3.0.5-mergeForms' });
 
 /**
  * Update 3.0.5
@@ -60,7 +65,10 @@ module.exports = function (db, config, tools, done) {
           if (item) {
             // Coerce all unique string fields to be lowercase.
             if (typeof item === 'string') {
-              debug.fixSubmissionUniques(submission._id.toString());
+              fixSubmissionUniquesLogger.debug(
+                { submissionId: submission._id.toString() },
+                'Coerced string field to lowercase',
+              );
               update['data.' + path] = item.toString().toLowerCase();
             }
             // Coerce all unique string fields in an array to be lowercase.
@@ -76,13 +84,16 @@ module.exports = function (db, config, tools, done) {
         });
 
         if (Object.keys(update).length === 0) {
-          debug.fixSubmissionUniques(
-            submission.form + ': No updates! -> ' + submission._id.toString(),
+          fixSubmissionUniquesLogger.debug(
+            { formId: submission.form, submissionId: submission._id.toString() },
+            'No updates needed for submission',
           );
           return cb();
         } else {
-          debug.fixSubmissionUniques(submission.form + ': Updates! -> ');
-          debug.fixSubmissionUniques(update);
+          fixSubmissionUniquesLogger.debug(
+            { form: submission.form, update },
+            'Updates applied to submission',
+          );
         }
 
         submissionCollection.updateOne(
@@ -127,7 +138,7 @@ module.exports = function (db, config, tools, done) {
               _.get(component, 'unique') === true &&
               blackListedComponents.indexOf(_.get(component, 'type')) === -1
             ) {
-              debug.buildUniqueComponentList(form._id.toString() + ' -> ' + path);
+              buildUniqueComponentListLogger.debug(form._id.toString() + ' -> ' + path);
               uniques[form._id.toString()] = uniques[form._id.toString()] || {};
               uniques[form._id.toString()][component.key] = path;
             }
@@ -161,7 +172,7 @@ module.exports = function (db, config, tools, done) {
         }
 
         console.log(forms[0]);
-        debug.getFormsWithUniqueComponents(forms.length);
+        getFormsWithUniqueComponentsLogger.debug(forms.length);
         return next(null, forms);
       });
   };
@@ -222,7 +233,7 @@ module.exports = function (db, config, tools, done) {
           return next(err);
         }
 
-        debug.getFormsWithUniqueComponentsInLayoutComponents(forms.length);
+        getFormsWithUniqueComponentsInLayoutComponentsLogger.debug(forms.length);
         return next(null, forms);
       });
   };
@@ -320,8 +331,10 @@ module.exports = function (db, config, tools, done) {
           }
         });
 
-        debug.getFormsWithPotentialUniqueComponentsInLayoutComponents(filtered);
-        debug.getFormsWithPotentialUniqueComponentsInLayoutComponents(filtered.length);
+        getFormsWithPotentialUniqueComponentsInLayoutComponentsLogger.debug(
+          filtered,
+          filtered.length,
+        );
         return next(null, filtered);
       })
       .catch((err) => next(err));
@@ -340,7 +353,7 @@ module.exports = function (db, config, tools, done) {
       })
       .toArray()
       .then((submissions) => {
-        debug.getAffectedSubmissions(submissions.length);
+        getAffectedSubmissionsLogger.debug(submissions.length);
         return next(null, submissions);
       })
       .catch((err) => next(err));
@@ -353,10 +366,15 @@ module.exports = function (db, config, tools, done) {
    * @param next
    */
   let mergeForms = function (newForms, next) {
-    debug.mergeForms('Old: ' + forms.length);
-    debug.mergeForms('New: ' + newForms.length);
+    mergeFormsLogger.debug(
+      {
+        oldCount: forms.length,
+        newCount: newForms.length,
+        totalCount: forms.length + newForms.length,
+      },
+      'Forms merged',
+    );
     forms = forms.concat(newForms);
-    debug.mergeForms('Total: ' + forms.length);
 
     next();
   };

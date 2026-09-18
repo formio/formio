@@ -1,7 +1,6 @@
 'use strict';
 
 const util = require('../util/util');
-const debug = require('debug')('formio:middleware:deleteActionHandler');
 
 /**
  * The deleteActionHandler middleware.
@@ -33,7 +32,7 @@ module.exports = (router) => {
       .action(actionId, null, req)
       .then(() => res.sendStatus(200))
       .catch((err) => {
-        debug(err);
+        req.log.error({ module: 'formio:middleware:deleteActionHandler', err });
         return next(err);
       });
   };

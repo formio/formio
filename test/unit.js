@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const assert = require('assert');
 const fs = require('fs');
 const docker = process.env.DOCKER;
+const { logger } = require('../src/util/logger');
 const { sanitizeMongoConnectionString, redactConfig } = require('../src/db/util');
 
 module.exports = function (app, template, hook) {
@@ -44,12 +45,18 @@ module.exports = function (app, template, hook) {
   });
 
   describe('Email Template Rendering', function () {
-    if (docker) {
-      return;
-    }
+    before(function () {
+      if (docker) {
+        this.skip();
+      }
+    });
 
-    var formio = hook.alter('formio', app.formio);
-    var email = require('../src/util/email')({ formio });
+    var formio, email;
+    before(function () {
+      formio = hook.alter('formio', app.formio);
+      email = require('../src/util/email')({ formio });
+    });
+
     var sendMessage = function (to, from, message, content, cb, attachFiles = false) {
       var dirName = 'fixtures/email/' + message + '/';
       var submission = require('./' + dirName + 'submission.json');
@@ -74,6 +81,7 @@ module.exports = function (app, template, hook) {
             fullName: 'Joe Smith',
           },
         },
+        log: logger,
       };
       var messageText = fs.readFileSync(__dirname + '/' + dirName + 'message.html').toString();
       var message = {
@@ -552,7 +560,10 @@ module.exports = function (app, template, hook) {
       };
       util.ensureIds(data);
       assert.ok(data.form._id instanceof ObjectId, 'reference shell _id should be an ObjectId');
-      assert.ok(data.select[0]._id instanceof ObjectId, 'multiple reference shell _id should be an ObjectId');
+      assert.ok(
+        data.select[0]._id instanceof ObjectId,
+        'multiple reference shell _id should be an ObjectId',
+      );
       assert.equal(Object.keys(data.form).join(','), '_id');
     });
 

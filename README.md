@@ -97,6 +97,76 @@ To start server with auto restart capability for development simply run this com
 npm run start:dev
 ```
 
+## Logging
+
+Form.io uses structured logging built on [Pino](https://getpino.io), living in `src/util/logger`. It provides an application logger and an HTTP request logger.
+
+### Log levels
+
+The log level is set with the `LOG_LEVEL` environment variable (defaults to `info`). Supported values are the standard [Pino levels](https://getpino.io/#/docs/api?id=levels).
+
+### Usage
+
+Import the logger components:
+
+```javascript
+// Within this package:
+const { logger, httpLogger } = require('./src/util/logger');
+// From a downstream package (e.g. formio-server):
+const { logger, httpLogger } = require('formio/src/util/logger');
+```
+
+### HTTP request logging
+
+The `httpLogger` middleware traces incoming requests and attaches a request-scoped logger as `req.log`:
+
+```javascript
+app.use(httpLogger);
+```
+
+Mount it before any other middleware but **after** `app.set('query parser', ...)` — Express 4 fixes the query parser on the first `app.use()`. If you mount the `formio` router into your own Express app without `httpLogger`, the router attaches the request logger itself, so `req.log` is always available to handlers.
+
+Request and response records are redacted before they are written: the `x-token`, `x-admin-key`, `x-jwt-token`, `x-remote-token`, `x-file-token`, `authorization` and `cookie` request headers, the re-issued token response headers, and the `token` / `x-jwt-token` / `x-remote-token` query parameters (in `req.query` and in the URL). Errors are serialized as `{ type, message, stack, code }` only. Redaction cannot see a value you interpolate into a message string — log identifiers, not records.
+
+### Module (child) loggers
+
+Create child loggers to tag entries with a module name; each inherits the parent configuration:
+
+```javascript
+const startupLogger = logger.child({ module: 'formio:startup' });
+
+startupLogger.info('Initializing Form.io server...');
+startupLogger.error(errObject, 'Error description');
+```
+
+### Output format
+
+Structured output is behind the `STRUCTURED_LOGGING` feature flag and is **off by default**. Until it is switched on, the server reproduces the pre-migration `debug` stream: text lines on **stderr**, filtered by namespace.
+
+Enable it with the flag's environment variable:
+
+```
+FORMIO_STRUCTURED_LOGGING=true
+```
+
+With the flag **on**, the logger emits structured JSON on **stdout** (or human-friendly [pino-pretty](https://github.com/pinojs/pino-pretty) output when running in an interactive terminal), and the output mode is resolved in this priority order:
+
+1. `FORMIO_LOG_FORMAT` — set to `json` or `legacy` to force a mode explicitly.
+2. `DEBUG` present — when no `FORMIO_LOG_FORMAT` is set but the `DEBUG` environment variable is, legacy mode is selected automatically (zero-config compatibility for existing `DEBUG=formio:*` monitoring).
+3. Otherwise — JSON (or pino-pretty in a TTY).
+
+With the flag **off**, legacy is unconditional — `FORMIO_LOG_FORMAT=json` will not override it. The flag is the single switch that decides whether the structured format can appear at all.
+
+Per-request HTTP access logging (the `httpLogger` "request completed" lines) is new with the structured logger and has no `debug` predecessor, so it is likewise silent while the flag is off. The middleware still runs either way — `req.log` is available to handlers regardless.
+
+In legacy mode each record is replayed through the [`debug`](https://github.com/debug-js/debug) package, using its `module` field as the namespace, with the following emission rules:
+
+- `trace` / `debug` — emitted only when the `module` namespace matches the `DEBUG` pattern (the original `debug` behavior, including wildcards and negation).
+- `info` — always passes through.
+- `warn` / `error` / `fatal` — always emitted, regardless of `DEBUG`, so error visibility is never lost.
+
+Legacy mode is purely an output-transport swap; the logger API (`logger`, `logger.child({ module })`, the level methods, and `httpLogger`) is unchanged.
+
 ## Deploy to Hosted Form.io
 
 If you wish to deploy all of your forms and resources into the Form.io Hosted platform @ https://portal.form.io, you can do this by using the Form.io CLI command line tool.

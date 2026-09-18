@@ -25,6 +25,7 @@ if (typeof console !== 'undefined') {
   console.debug = console.debug || console.log;
 }
 
+globalThis.Event = Event;
 globalThis.Text = class {};
 globalThis.HTMLElement = class {};
 globalThis.HTMLCanvasElement = class {};

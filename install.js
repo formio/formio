@@ -5,8 +5,8 @@ const async = require('async');
 const fs = require('fs-extra');
 const nunjucks = require('nunjucks');
 nunjucks.configure([], { watch: false });
-const util = require('./src/util/util');
-const debug = require('debug')('formio:error');
+const { logger } = require('./src/util/logger');
+const installLogger = logger.child({ module: 'formio:install' });
 
 module.exports = function (formio, items, done) {
   // The project that was created.
@@ -31,7 +31,7 @@ module.exports = function (formio, items, done) {
       message += '\n   Please provide the local file path of the template file.'.yellow;
       message +=
         '\n   Or, just press '.yellow + 'ENTER'.green + ' to use the default template.\n'.yellow;
-      util.log(message);
+      installLogger.info(message);
       inquirer
         .prompt([
           {
@@ -69,7 +69,7 @@ module.exports = function (formio, items, done) {
       }
 
       if (!fs.existsSync(templateFile)) {
-        util.log(templateFile);
+        installLogger.info(templateFile);
         return done('Cannot find the template file!'.red);
       }
 
@@ -77,12 +77,12 @@ module.exports = function (formio, items, done) {
       try {
         template = JSON.parse(fs.readFileSync(templateFile));
       } catch (err) {
-        debug(err);
+        installLogger.error(err);
         return done(err);
       }
 
       // Get the form.io service.
-      util.log('Importing template...'.green);
+      installLogger.info('Importing template');
       const importer = require('./src/templates/import')({ formio: formio });
       importer.template(template, function (err, template) {
         if (err) {
@@ -103,7 +103,7 @@ module.exports = function (formio, items, done) {
       if (!items.user) {
         return done();
       }
-      util.log('Creating root user account...'.green);
+      installLogger.info('Creating root user account');
       inquirer
         .prompt([
           {
@@ -140,14 +140,14 @@ module.exports = function (formio, items, done) {
           },
         ])
         .then(function (result) {
-          util.log('Encrypting password');
+          installLogger.info('Encrypting password');
           formio.encrypt(result.password || process.env.ROOT_PASSWORD, async function (err, hash) {
             if (err) {
               return done(err);
             }
 
             // Create the root user submission.
-            util.log('Creating root user account');
+            installLogger.info('Creating root user account');
             try {
               await formio.resources.submission.model.create({
                 form: project.resources.admin._id,
@@ -169,14 +169,14 @@ module.exports = function (formio, items, done) {
     },
   };
 
-  util.log('Installing...');
+  installLogger.info('Installing...');
   async.series([steps.whatTemplate, steps.importTemplate, steps.createRootUser], function (err) {
     if (err) {
-      util.log(err);
+      installLogger.error(err);
       return done(err);
     }
 
-    util.log('Install successful!'.green);
+    installLogger.info('Install successful!');
     done();
   });
 };

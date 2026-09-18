@@ -12,8 +12,25 @@ const mongoose = require('mongoose');
 const { IS_NEXTGEN, nextgenExpectData } = require('./util');
 
 module.exports = function (app, template, hook) {
-  var Helper = require('./helper')(app);
-  var helper = null;
+  let Helper, helper;
+
+  before(function () {
+    Helper = require('./helper')(app);
+    helper = null;
+  });
+
+  // Pattern B (formio-server/test/tools/INDEPENDENCE.md): `helper` is built by the `before` of
+  // whichever top-level describe runs first, so a *sibling* describe run on its own has no helper
+  // at all. The guard keeps whole-file ordering byte-identical: in file order `Form Submissions`
+  // still creates the project and every later call is a no-op.
+  function ensureDefaultProject(done) {
+    if (helper) {
+      return done();
+    }
+    var owner = app.hasProjects || docker ? template.formio.owner : template.users.admin;
+    helper = new Helper(owner);
+    helper.project().user('user', 'user1').execute(done);
+  }
 
   function updateFormAndGetSubmissions(form, done) {
     helper.updateForm(form, (err) => {
@@ -37,11 +54,7 @@ module.exports = function (app, template, hook) {
     ]);
 
   describe('Form Submissions', function () {
-    it('Sets up a default project', function (done) {
-      var owner = app.hasProjects || docker ? template.formio.owner : template.users.admin;
-      helper = new Helper(owner);
-      helper.project().user('user', 'user1').execute(done);
-    });
+    before('Sets up a default project', ensureDefaultProject);
 
     describe('Unnested Submissions', function () {
       it('Saves values for each single value component type1', function (done) {
@@ -70,14 +83,20 @@ module.exports = function (app, template, hook) {
               return done(err);
             }
 
-            signatureSubmission1 = helper.getLastSubmission();
-            assert.deepEqual(nextgenExpectData(test.submission), signatureSubmission1.data);
+            var submission = helper.getLastSubmission();
+            assert.deepEqual(nextgenExpectData(test.submission), submission.data);
             done();
           });
       });
 
-      var signatureSubmission1 = null;
-      it('Saves submission with a null signature.', function (done) {
+      // Pattern E (formio-server/test/tools/INDEPENDENCE.md): the two signature fixtures below are
+      // each built by one test and read by the tests after it, so on its own a consumer has
+      // nothing to update. The builders are idempotent, so whole-file ordering is unchanged.
+      var nullSignatureSubmission = null;
+      function ensureNullSignatureSubmission(cb) {
+        if (nullSignatureSubmission) {
+          return cb(null, nullSignatureSubmission);
+        }
         var test = _.cloneDeep(require('./fixtures/forms/singlecomponents2.js'));
         test.submission.signature2 = null;
         helper
@@ -85,94 +104,147 @@ module.exports = function (app, template, hook) {
           .submission(test.submission)
           .execute(function (err) {
             if (err) {
-              return done(err);
+              return cb(err);
             }
-
-            signatureSubmission1 = helper.getLastSubmission();
-            // Should coerse the value to an empty string.
-            test.submission.signature2 = '';
-            assert.deepEqual(nextgenExpectData(test.submission), signatureSubmission1.data);
-            done();
+            nullSignatureSubmission = helper.getLastSubmission();
+            cb(null, nullSignatureSubmission);
           });
-      });
+      }
 
-      it('Updates the submission with a null signature', function (done) {
+      it('Saves submission with a null signature.', function (done) {
         var test = _.cloneDeep(require('./fixtures/forms/singlecomponents2.js'));
-        var updateSub = _.cloneDeep(signatureSubmission1);
-        updateSub.data.signature2 = null;
-        helper.updateSubmission(updateSub, function (err, updated) {
+        ensureNullSignatureSubmission(function (err, submission) {
+          if (err) {
+            return done(err);
+          }
+
           // Should coerse the value to an empty string.
           test.submission.signature2 = '';
-          assert.deepEqual(nextgenExpectData(test.submission), updated.data);
+          assert.deepEqual(nextgenExpectData(test.submission), submission.data);
           done();
         });
       });
 
+      it('Updates the submission with a null signature', function (done) {
+        var test = _.cloneDeep(require('./fixtures/forms/singlecomponents2.js'));
+        ensureNullSignatureSubmission(function (err, submission) {
+          if (err) {
+            return done(err);
+          }
+
+          var updateSub = _.cloneDeep(submission);
+          updateSub.data.signature2 = null;
+          helper.updateSubmission(updateSub, function (err, updated) {
+            // Should coerse the value to an empty string.
+            test.submission.signature2 = '';
+            assert.deepEqual(nextgenExpectData(test.submission), updated.data);
+            done();
+          });
+        });
+      });
+
       var signatureSubmission = null;
-      it('Saves values with required signature', function (done) {
+      function ensureRequiredSignatureSubmission(cb) {
+        if (signatureSubmission) {
+          return cb(null, signatureSubmission);
+        }
         var test = _.cloneDeep(require('./fixtures/forms/singlecomponents3.js'));
         helper
           .form('test', test.components)
           .submission(test.submission)
           .execute(function (err) {
             if (err) {
-              return done(err);
+              return cb(err);
             }
-
             signatureSubmission = helper.getLastSubmission();
-            assert.deepEqual(nextgenExpectData(test.submission), signatureSubmission.data);
-            done();
+            cb(null, signatureSubmission);
           });
+      }
+
+      it('Saves values with required signature', function (done) {
+        var test = _.cloneDeep(require('./fixtures/forms/singlecomponents3.js'));
+        ensureRequiredSignatureSubmission(function (err, submission) {
+          if (err) {
+            return done(err);
+          }
+
+          assert.deepEqual(nextgenExpectData(test.submission), submission.data);
+          done();
+        });
       });
 
       it('Updating signatures does not wipe out the signature.', function (done) {
         var test = _.cloneDeep(require('./fixtures/forms/singlecomponents3.js'));
-        var updateSub = _.cloneDeep(signatureSubmission);
-        helper.updateSubmission(updateSub, function (err, updated) {
-          assert.deepEqual(nextgenExpectData(test.submission), updated.data);
-          done();
+        ensureRequiredSignatureSubmission(function (err, submission) {
+          if (err) {
+            return done(err);
+          }
+
+          var updateSub = _.cloneDeep(submission);
+          helper.updateSubmission(updateSub, function (err, updated) {
+            assert.deepEqual(nextgenExpectData(test.submission), updated.data);
+            done();
+          });
         });
       });
 
       it('Saving signatures with Bad string does not wipe out the signature.', function (done) {
         var test = _.cloneDeep(require('./fixtures/forms/singlecomponents3.js'));
-        var updateSub = _.cloneDeep(signatureSubmission);
-        updateSub.data.signature2 = 'YES';
-        helper.updateSubmission(updateSub, function (err, updated) {
-          // Ensure that it does not erase the signature.
-          assert.deepEqual(nextgenExpectData(test.submission), updated.data);
-          done();
+        ensureRequiredSignatureSubmission(function (err, submission) {
+          if (err) {
+            return done(err);
+          }
+
+          var updateSub = _.cloneDeep(submission);
+          updateSub.data.signature2 = 'YES';
+          helper.updateSubmission(updateSub, function (err, updated) {
+            // Ensure that it does not erase the signature.
+            assert.deepEqual(nextgenExpectData(test.submission), updated.data);
+            done();
+          });
         });
       });
 
       it('Saving signatures with Any other string does not wipe out the signature.', function (done) {
         var test = _.cloneDeep(require('./fixtures/forms/singlecomponents3.js'));
-        var updateSub = _.cloneDeep(signatureSubmission);
-        updateSub.data.signature2 = 'sdfsfsdfsdf';
-        helper.updateSubmission(updateSub, function (err, updated) {
-          // Ensure that it does not erase the signature.
-          assert.deepEqual(nextgenExpectData(test.submission), updated.data);
-          done();
+        ensureRequiredSignatureSubmission(function (err, submission) {
+          if (err) {
+            return done(err);
+          }
+
+          var updateSub = _.cloneDeep(submission);
+          updateSub.data.signature2 = 'sdfsfsdfsdf';
+          helper.updateSubmission(updateSub, function (err, updated) {
+            // Ensure that it does not erase the signature.
+            assert.deepEqual(nextgenExpectData(test.submission), updated.data);
+            done();
+          });
         });
       });
 
       it('Updating signatures with empty string invalidates.', function (done) {
-        var updateSub = _.cloneDeep(signatureSubmission);
-        updateSub.data.signature2 = '';
-        helper.updateSubmission(
-          updateSub,
-          helper.owner,
-          [/application\/json/, 400],
-          function (err, updated) {
-            // It should fail validation.
-            assert.equal(updated.name, 'ValidationError');
-            assert.equal(updated.details.length, 1);
-            assert.equal(updated.details[0].message, 'Signature is required');
-            assert.equal(updated.details[0].path, 'signature2');
-            assert.equal(updated.details[0].context.validator, 'required');
-            done();
-          },
-        );
+        ensureRequiredSignatureSubmission(function (err, submission) {
+          if (err) {
+            return done(err);
+          }
+
+          var updateSub = _.cloneDeep(submission);
+          updateSub.data.signature2 = '';
+          helper.updateSubmission(
+            updateSub,
+            helper.owner,
+            [/application\/json/, 400],
+            function (err, updated) {
+              // It should fail validation.
+              assert.equal(updated.name, 'ValidationError');
+              assert.equal(updated.details.length, 1);
+              assert.equal(updated.details[0].message, 'Signature is required');
+              assert.equal(updated.details[0].path, 'signature2');
+              assert.equal(updated.details[0].context.validator, 'required');
+              done();
+            },
+          );
+        });
       });
 
       it('Gives an error with an empty signature.', function (done) {
@@ -3072,26 +3144,41 @@ module.exports = function (app, template, hook) {
             type: 'textfield',
           },
         ];
+        // Submit the value once before duplicating it, rather than colliding with whatever an
+        // earlier sibling describe happened to leave on the shared `test` form. The value is used
+        // nowhere else, so the first submission always succeeds and the 400 below is really a
+        // uniqueness rejection of the record this test just created.
         var values = {
-          textField: 'My Value',
+          textField: 'My Unique Value',
         };
 
         helper
           .form('test', components)
           .submission(values)
-          .expect(400)
+          .expect(201)
           .execute(function (err) {
             if (err) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
-            assert.equal(helper.lastResponse.statusCode, 400);
-            assert.equal(helper.lastResponse.body.name, 'ValidationError');
-            assert.equal(helper.lastResponse.body.details.length, 1);
-            assert.equal(helper.lastResponse.body.details[0].message, 'Text Field must be unique');
-            assert.deepEqual(helper.lastResponse.body.details[0].path, ['textField']);
-            done();
+            helper
+              .submission('test', values)
+              .expect(400)
+              .execute(function (err) {
+                if (err) {
+                  return done(err);
+                }
+
+                assert.equal(helper.lastResponse.statusCode, 400);
+                assert.equal(helper.lastResponse.body.name, 'ValidationError');
+                assert.equal(helper.lastResponse.body.details.length, 1);
+                assert.equal(
+                  helper.lastResponse.body.details[0].message,
+                  'Text Field must be unique',
+                );
+                assert.deepEqual(helper.lastResponse.body.details[0].path, ['textField']);
+                done();
+              });
           });
       });
 
@@ -3241,7 +3328,13 @@ module.exports = function (app, template, hook) {
         },
       ];
 
-      it('Unique Arrays should allow unique submissions', function (done) {
+      // Pattern E: the order-insensitivity check below duplicates the `['Foo', 'Bar']` value the
+      // first test submits, so it needs that record built when it runs on its own.
+      var uniqueArraySubmission = null;
+      function ensureUniqueArraySubmissions(cb) {
+        if (uniqueArraySubmission) {
+          return cb(null, uniqueArraySubmission);
+        }
         helper
           .form('test', components)
           .submission({
@@ -3252,37 +3345,55 @@ module.exports = function (app, template, hook) {
           })
           .execute(function (err) {
             if (err) {
-              return done(err);
+              return cb(err);
             }
-
-            var submission = helper.getLastSubmission();
-            assert(submission.hasOwnProperty('data'));
-            assert.deepEqual(submission.data, {
-              textField: ['Bar', 'Baz'],
-            });
-            done();
+            uniqueArraySubmission = helper.getLastSubmission();
+            cb(null, uniqueArraySubmission);
           });
+      }
+
+      it('Unique Arrays should allow unique submissions', function (done) {
+        ensureUniqueArraySubmissions(function (err, submission) {
+          if (err) {
+            return done(err);
+          }
+
+          assert(submission.hasOwnProperty('data'));
+          assert.deepEqual(submission.data, {
+            textField: ['Bar', 'Baz'],
+          });
+          done();
+        });
       });
 
       it('Unique Arrays check contents not order', function (done) {
-        helper
-          .form('test', components)
-          .submission({
-            textField: ['Bar', 'Foo'],
-          })
-          .expect(400)
-          .execute(function (err) {
-            if (err) {
-              return done(err);
-            }
+        ensureUniqueArraySubmissions(function (err) {
+          if (err) {
+            return done(err);
+          }
 
-            assert.equal(helper.lastResponse.statusCode, 400);
-            assert.equal(helper.lastResponse.body.name, 'ValidationError');
-            assert.equal(helper.lastResponse.body.details.length, 1);
-            assert.equal(helper.lastResponse.body.details[0].message, 'Text Field must be unique');
-            assert.deepEqual(helper.lastResponse.body.details[0].path, ['textField']);
-            done();
-          });
+          helper
+            .form('test', components)
+            .submission({
+              textField: ['Bar', 'Foo'],
+            })
+            .expect(400)
+            .execute(function (err) {
+              if (err) {
+                return done(err);
+              }
+
+              assert.equal(helper.lastResponse.statusCode, 400);
+              assert.equal(helper.lastResponse.body.name, 'ValidationError');
+              assert.equal(helper.lastResponse.body.details.length, 1);
+              assert.equal(
+                helper.lastResponse.body.details[0].message,
+                'Text Field must be unique',
+              );
+              assert.deepEqual(helper.lastResponse.body.details[0].path, ['textField']);
+              done();
+            });
+        });
       });
     });
 
@@ -3378,176 +3489,230 @@ module.exports = function (app, template, hook) {
     describe('Address Fields', function () {
       var test = require('./fixtures/forms/for213.js');
 
-      it('A single unique address will submit without issues', function (done) {
+      // Pattern E: the duplicate check needs the address the first test submits.
+      var addressSubmission = null;
+      function ensureAddressSubmission(cb) {
+        if (addressSubmission) {
+          return cb(null, addressSubmission);
+        }
         helper
           .form('for213', test.components)
           .submission(test.submission)
           .execute(function (err) {
             if (err) {
-              return done(err);
+              return cb(err);
             }
-
-            var submission = helper.getLastSubmission();
-            assert.deepEqual(submission.data, test.submission);
-            done();
+            addressSubmission = helper.getLastSubmission();
+            cb(null, addressSubmission);
           });
+      }
+
+      it('A single unique address will submit without issues', function (done) {
+        ensureAddressSubmission(function (err, submission) {
+          if (err) {
+            return done(err);
+          }
+
+          assert.deepEqual(submission.data, test.submission);
+          done();
+        });
       });
 
       it('A duplicate unique address will throw validation issues', function (done) {
-        helper
-          .form('for213', test.components)
-          .submission(test.submission)
-          .expect(400)
-          .execute(function (err) {
-            if (err) {
-              return done(err);
-            }
+        ensureAddressSubmission(function (err) {
+          if (err) {
+            return done(err);
+          }
 
-            assert.equal(helper.lastResponse.statusCode, 400);
-            assert.equal(helper.lastResponse.body.name, 'ValidationError');
-            assert.equal(helper.lastResponse.body.details.length, 1);
-            assert.equal(helper.lastResponse.body.details[0].message, 'address must be unique');
-            assert.deepEqual(helper.lastResponse.body.details[0].path, ['for213']);
-            done();
-          });
+          helper
+            .form('for213', test.components)
+            .submission(test.submission)
+            .expect(400)
+            .execute(function (err) {
+              if (err) {
+                return done(err);
+              }
+
+              assert.equal(helper.lastResponse.statusCode, 400);
+              assert.equal(helper.lastResponse.body.name, 'ValidationError');
+              assert.equal(helper.lastResponse.body.details.length, 1);
+              assert.equal(helper.lastResponse.body.details[0].message, 'address must be unique');
+              assert.deepEqual(helper.lastResponse.body.details[0].path, ['for213']);
+              done();
+            });
+        });
       });
     });
 
     describe('Max Words Validation', () => {
-      it('Should throw an error if the maximum words has been exceeded', function (done) {
-        helper
-          .form('maxwords', [
-            {
-              tags: [],
-              type: 'textarea',
-              conditional: {
-                eq: '',
-                when: null,
-                show: '',
-              },
-              validate: {
-                customPrivate: false,
-                custom: '',
-                pattern: '',
-                maxLength: '',
-                minLength: '',
-                maxWords: 30,
-                minWords: 5,
-                required: false,
-              },
-              persistent: true,
-              unique: true,
-              protected: false,
-              defaultValue: '',
-              multiple: false,
-              suffix: '',
-              prefix: '',
-              placeholder: '',
-              key: 'test',
-              label: 'test',
-              inputMask: '',
-              inputType: 'text',
-              tableView: true,
-              input: true,
-            },
-            {
-              isNew: false,
-              input: true,
-              label: 'Submit',
-              tableView: false,
-              key: 'submit',
-              size: 'md',
-              leftIcon: '',
-              rightIcon: '',
-              block: false,
-              action: 'submit',
-              disableOnInvalid: false,
-              theme: 'primary',
-              type: 'button',
-            },
-          ])
-          .submission({
-            data: {
-              test: chance.sentence({ words: 31 }),
-            },
-          })
-          .expect(400)
-          .execute(function (err) {
-            if (err) {
-              return done(err);
-            }
+      const maxWordsComponents = [
+        {
+          tags: [],
+          type: 'textarea',
+          conditional: {
+            eq: '',
+            when: null,
+            show: '',
+          },
+          validate: {
+            customPrivate: false,
+            custom: '',
+            pattern: '',
+            maxLength: '',
+            minLength: '',
+            maxWords: 30,
+            minWords: 5,
+            required: false,
+          },
+          persistent: true,
+          unique: true,
+          protected: false,
+          defaultValue: '',
+          multiple: false,
+          suffix: '',
+          prefix: '',
+          placeholder: '',
+          key: 'test',
+          label: 'test',
+          inputMask: '',
+          inputType: 'text',
+          tableView: true,
+          input: true,
+        },
+        {
+          isNew: false,
+          input: true,
+          label: 'Submit',
+          tableView: false,
+          key: 'submit',
+          size: 'md',
+          leftIcon: '',
+          rightIcon: '',
+          block: false,
+          action: 'submit',
+          disableOnInvalid: false,
+          theme: 'primary',
+          type: 'button',
+        },
+      ];
 
-            var submission = helper.getLastSubmission();
-            assert.equal(helper.lastResponse.status, 400);
-            assert.equal(submission.name, 'ValidationError');
-            assert.equal(submission.details[0].context.validator, 'maxWords');
-            assert.equal(submission.details[0].message, 'test must have no more than 30 words.');
-            done();
-          });
+      // Pattern E: the `maxwords` form used to be created inline by the first test, leaving the
+      // three tests after it with nothing to submit against when run on their own.
+      const ensureMaxWordsForm = (cb) => {
+        if (helper.template.forms.maxwords) {
+          return cb();
+        }
+        helper.form('maxwords', maxWordsComponents).execute(cb);
+      };
+
+      it('Should throw an error if the maximum words has been exceeded', function (done) {
+        ensureMaxWordsForm((err) => {
+          if (err) {
+            return done(err);
+          }
+
+          helper
+            .submission('maxwords', {
+              data: {
+                test: chance.sentence({ words: 31 }),
+              },
+            })
+            .expect(400)
+            .execute(function (err) {
+              if (err) {
+                return done(err);
+              }
+
+              var submission = helper.getLastSubmission();
+              assert.equal(helper.lastResponse.status, 400);
+              assert.equal(submission.name, 'ValidationError');
+              assert.equal(submission.details[0].context.validator, 'maxWords');
+              assert.equal(submission.details[0].message, 'test must have no more than 30 words.');
+              done();
+            });
+        });
       });
 
       it('Should allow up to the maximum words', (done) => {
         const sentence = chance.sentence({ words: 30 });
-        helper
-          .submission('maxwords', {
-            data: {
-              test: sentence,
-            },
-          })
-          .execute(function (err) {
-            if (err) {
-              return done(err);
-            }
+        ensureMaxWordsForm((err) => {
+          if (err) {
+            return done(err);
+          }
 
-            var submission = helper.getLastSubmission();
-            assert.equal(helper.lastResponse.status, 201);
-            assert(!!submission._id, 'A submission was not created');
-            assert.equal(submission.data.test, sentence);
-            done();
-          });
+          helper
+            .submission('maxwords', {
+              data: {
+                test: sentence,
+              },
+            })
+            .execute(function (err) {
+              if (err) {
+                return done(err);
+              }
+
+              var submission = helper.getLastSubmission();
+              assert.equal(helper.lastResponse.status, 201);
+              assert(!!submission._id, 'A submission was not created');
+              assert.equal(submission.data.test, sentence);
+              done();
+            });
+        });
       });
 
       it('Should throw an error when minimum words has not been met.', (done) => {
-        helper
-          .submission('maxwords', {
-            data: {
-              test: chance.sentence({ words: 3 }),
-            },
-          })
-          .expect(400)
-          .execute(function (err) {
-            if (err) {
-              return done(err);
-            }
+        ensureMaxWordsForm((err) => {
+          if (err) {
+            return done(err);
+          }
 
-            var submission = helper.getLastSubmission();
-            assert.equal(helper.lastResponse.status, 400);
-            assert.equal(submission.name, 'ValidationError');
-            assert.equal(submission.details[0].context.validator, 'minWords');
-            assert.equal(submission.details[0].message, 'test must have at least 5 words.');
-            done();
-          });
+          helper
+            .submission('maxwords', {
+              data: {
+                test: chance.sentence({ words: 3 }),
+              },
+            })
+            .expect(400)
+            .execute(function (err) {
+              if (err) {
+                return done(err);
+              }
+
+              var submission = helper.getLastSubmission();
+              assert.equal(helper.lastResponse.status, 400);
+              assert.equal(submission.name, 'ValidationError');
+              assert.equal(submission.details[0].context.validator, 'minWords');
+              assert.equal(submission.details[0].message, 'test must have at least 5 words.');
+              done();
+            });
+        });
       });
 
       it('Should allow at the minimum words', (done) => {
         const sentence = chance.sentence({ words: 5 });
-        helper
-          .submission('maxwords', {
-            data: {
-              test: sentence,
-            },
-          })
-          .execute(function (err) {
-            if (err) {
-              return done(err);
-            }
+        ensureMaxWordsForm((err) => {
+          if (err) {
+            return done(err);
+          }
 
-            var submission = helper.getLastSubmission();
-            assert.equal(helper.lastResponse.status, 201);
-            assert(!!submission._id, 'A submission was not created');
-            assert.equal(submission.data.test, sentence);
-            done();
-          });
+          helper
+            .submission('maxwords', {
+              data: {
+                test: sentence,
+              },
+            })
+            .execute(function (err) {
+              if (err) {
+                return done(err);
+              }
+
+              var submission = helper.getLastSubmission();
+              assert.equal(helper.lastResponse.status, 201);
+              assert(!!submission._id, 'A submission was not created');
+              assert.equal(submission.data.test, sentence);
+              done();
+            });
+        });
       });
     });
 
@@ -3815,7 +3980,13 @@ module.exports = function (app, template, hook) {
               });
           });
 
-          it('Should allow saving select resource by reference', (done) => {
+          // Pattern E: the `myFruit` form and its first submission are built by the first test
+          // below and read by the three after it, which on their own have neither.
+          let myFruitSubmission = null;
+          const ensureMyFruitSubmission = (cb) => {
+            if (myFruitSubmission) {
+              return cb(null, myFruitSubmission);
+            }
             const submission = helper.template.submissions['fruits'][0];
             helper
               .form(
@@ -3853,6 +4024,62 @@ module.exports = function (app, template, hook) {
               })
               .execute((err) => {
                 if (err) {
+                  return cb(err);
+                }
+                myFruitSubmission = helper.lastSubmission;
+                cb(null, myFruitSubmission);
+              });
+          };
+
+          // Both reference-loading tests below assert the same thing about the same submission —
+          // that a `read_all` user gets the reference back as a bare `_id`, not the whole record.
+          const assertReferenceIsFilteredForUser1 = (submissionId, done) => {
+            request(app)
+              .get(
+                hook.alter(
+                  'url',
+                  '/form/' + helper.template.forms['myFruit']._id + '/submission/' + submissionId,
+                  helper.template,
+                ),
+              )
+              .set('x-jwt-token', helper.template.users.user1.token)
+              .send()
+              // .expect(200)
+              .end(function (err, res) {
+                if (err) {
+                  return done(err);
+                }
+                assert(res.body.data.fruit.hasOwnProperty('_id'), 'Must contain the _id.');
+                assert.equal(1, Object.keys(res.body.data.fruit).length);
+                done();
+              });
+          };
+
+          it('Should allow saving select resource by reference', (done) => {
+            const submission = helper.template.submissions['fruits'][0];
+            ensureMyFruitSubmission((err, created) => {
+              if (err) {
+                return done(err);
+              }
+              helper.getSubmission('myFruit', created._id, (err, fromsub) => {
+                if (err) {
+                  return done(err);
+                }
+                assert.equal(submission._id, fromsub.data.fruit._id);
+                assert.equal(submission.data.name, fromsub.data.fruit.data.name);
+                done();
+              });
+            });
+          });
+
+          it('Should allow saving select resource with whole object by reference', (done) => {
+            const submission = helper.template.submissions['fruits'][0];
+            ensureMyFruitSubmission((err) => {
+              if (err) {
+                return done(err);
+              }
+              helper.submission('myFruit', { fruit: submission }).execute((err) => {
+                if (err) {
                   return done(err);
                 }
                 helper.getSubmission('myFruit', helper.lastSubmission._id, (err, fromsub) => {
@@ -3864,73 +4091,25 @@ module.exports = function (app, template, hook) {
                   done();
                 });
               });
-          });
-
-          it('Should allow saving select resource with whole object by reference', (done) => {
-            const submission = helper.template.submissions['fruits'][0];
-            helper.submission('myFruit', { fruit: submission }).execute((err) => {
-              if (err) {
-                return done(err);
-              }
-              helper.getSubmission('myFruit', helper.lastSubmission._id, (err, fromsub) => {
-                if (err) {
-                  return done(err);
-                }
-                assert.equal(submission._id, fromsub.data.fruit._id);
-                assert.equal(submission.data.name, fromsub.data.fruit.data.name);
-                done();
-              });
             });
           });
 
           it('Should check permissions when loading from reference', (done) => {
-            request(app)
-              .get(
-                hook.alter(
-                  'url',
-                  '/form/' +
-                    helper.template.forms['myFruit']._id +
-                    '/submission/' +
-                    helper.lastSubmission._id,
-                  helper.template,
-                ),
-              )
-              .set('x-jwt-token', helper.template.users.user1.token)
-              .send()
-              // .expect(200)
-              .end(function (err, res) {
-                if (err) {
-                  return done(err);
-                }
-                assert(res.body.data.fruit.hasOwnProperty('_id'), 'Must contain the _id.');
-                assert.equal(1, Object.keys(res.body.data.fruit).length);
-                done();
-              });
+            ensureMyFruitSubmission((err, created) => {
+              if (err) {
+                return done(err);
+              }
+              assertReferenceIsFilteredForUser1(created._id, done);
+            });
           });
 
           it('Should not allow submissions with items that are not in the resource', (done) => {
-            request(app)
-              .get(
-                hook.alter(
-                  'url',
-                  '/form/' +
-                    helper.template.forms['myFruit']._id +
-                    '/submission/' +
-                    helper.lastSubmission._id,
-                  helper.template,
-                ),
-              )
-              .set('x-jwt-token', helper.template.users.user1.token)
-              .send()
-              // .expect(200)
-              .end(function (err, res) {
-                if (err) {
-                  return done(err);
-                }
-                assert(res.body.data.fruit.hasOwnProperty('_id'), 'Must contain the _id.');
-                assert.equal(1, Object.keys(res.body.data.fruit).length);
-                done();
-              });
+            ensureMyFruitSubmission((err, created) => {
+              if (err) {
+                return done(err);
+              }
+              assertReferenceIsFilteredForUser1(created._id, done);
+            });
           });
         });
       });
@@ -4256,8 +4435,15 @@ module.exports = function (app, template, hook) {
           });
       });
 
-      it('Should modify the target resource and the form by adding a required field', (done) => {
+      // Pattern E: the validation test below only fails because of the required `color` field the
+      // test above it adds, so it has to be able to add that field itself. The guard keys on the
+      // component actually being absent, so the mutation is never re-applied to a form that has it.
+      const ensureRequiredColorField = (cb) => {
         const target = helper.template.forms['fruits'];
+        if (target.components.some((component) => component.key === 'color')) {
+          return cb();
+        }
+
         target.components.push({
           input: true,
           tableView: true,
@@ -4290,39 +4476,44 @@ module.exports = function (app, template, hook) {
         });
         helper.updateForm(target, (err) => {
           if (err) {
-            return done(err);
+            return cb(err);
           }
           const form = helper.template.forms['fruitTable'];
           assert(form.components[0]);
           assert(form.components[0].fetch);
           assert(form.components[0].fetch.components);
           form.components[0].fetch.components.push({ path: 'color', key: 'color' });
-          helper.updateForm(form, (err) => {
-            if (err) {
-              return done(err);
-            }
-            done();
-          });
+          helper.updateForm(form, (err) => cb(err));
         });
+      };
+
+      it('Should modify the target resource and the form by adding a required field', (done) => {
+        ensureRequiredColorField(done);
       });
 
       it('Should throw an error when the new field is not provided', (done) => {
-        helper
-          .submission('fruitTable', {
-            dataTable: [{ name: 'Apple' }, { name: 'Orange' }],
-          })
-          .expect(400)
-          .execute((err) => {
-            if (err) {
-              return done(err);
-            }
-            assert.equal(helper.lastResponse.statusCode, 400);
-            assert.equal(helper.lastResponse.body.name, 'ValidationError');
-            assert.equal(helper.lastResponse.body.details.length, 2);
-            assert.equal(helper.lastResponse.body.details[0].message, 'Color is required');
-            assert.deepEqual(helper.lastResponse.body.details[0].path, ['dataTable', 0, 'color']);
-            done();
-          });
+        ensureRequiredColorField((err) => {
+          if (err) {
+            return done(err);
+          }
+
+          helper
+            .submission('fruitTable', {
+              dataTable: [{ name: 'Apple' }, { name: 'Orange' }],
+            })
+            .expect(400)
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+              assert.equal(helper.lastResponse.statusCode, 400);
+              assert.equal(helper.lastResponse.body.name, 'ValidationError');
+              assert.equal(helper.lastResponse.body.details.length, 2);
+              assert.equal(helper.lastResponse.body.details[0].message, 'Color is required');
+              assert.deepEqual(helper.lastResponse.body.details[0].path, ['dataTable', 0, 'color']);
+              done();
+            });
+        });
       });
     });
 
@@ -4604,7 +4795,9 @@ module.exports = function (app, template, hook) {
 
     describe('Submission patching', () => {
       var submission = {};
-      it('Creates a form and submission for testing', function (done) {
+      // Setup, not an assertion: every test in this describe consumes the form and
+      // submission it creates, so it has to be a hook or they cannot run on their own.
+      before('Create a form and submission for testing', function (done) {
         var components = [
           {
             type: 'textfield',
@@ -4751,161 +4944,115 @@ module.exports = function (app, template, hook) {
           });
       });
 
-      let selectWithResourceSubmission = {};
-      it('Create a form with resource and submission for testing', function (done) {
-        const components = [
-          {
-            type: 'textfield',
-            label: 'Text Field',
-            key: 'text',
-            type: 'textfield',
-            input: true,
+      // Pattern E: the two PATCH tests below each read the submission the "Create a form with
+      // resource ..." test before them leaves in `helper.lastSubmission`. The two forms differ only
+      // in the select value they are submitted with, so one builder covers both.
+      const selectWithResourceComponents = [
+        {
+          type: 'textfield',
+          label: 'Text Field',
+          key: 'text',
+          type: 'textfield',
+          input: true,
+        },
+        {
+          label: 'Select',
+          widget: 'choicesjs',
+          tableView: true,
+          dataSrc: 'resource',
+          data: {
+            resource: '5692b920d1028f01000407e7',
           },
-          {
-            label: 'Select',
-            widget: 'choicesjs',
-            tableView: true,
-            dataSrc: 'resource',
-            data: {
-              resource: '5692b920d1028f01000407e7',
+          key: 'select',
+          type: 'select',
+          input: true,
+          submissionAccess: [
+            {
+              type: 'read',
+              roles: [],
             },
-            key: 'select',
-            type: 'select',
-            input: true,
-            submissionAccess: [
-              {
-                type: 'read',
-                roles: [],
-              },
-            ],
-          },
-        ];
+          ],
+        },
+      ];
 
-        const values = {
-          text: 'Test',
-          select: {
-            _id: '64afea722fd6bd056a081cc4',
-          },
-        };
-
+      const selectWithResourceSubmissions = {};
+      const ensureSelectWithResourceSubmission = (formName, select, cb) => {
+        if (selectWithResourceSubmissions[formName]) {
+          return cb(null, selectWithResourceSubmissions[formName]);
+        }
         helper
-          .form('patchform', components)
-          .submission(values)
+          .form(formName, selectWithResourceComponents)
+          .submission({ text: 'Test', select })
           .expect(201)
           .execute(function (err) {
             if (err) {
-              return done(err);
+              return cb(err);
             }
 
-            selectWithResourceSubmission = helper.getLastSubmission();
+            selectWithResourceSubmissions[formName] = helper.getLastSubmission();
+            cb(null, selectWithResourceSubmissions[formName]);
+          });
+      };
+
+      const patchTextField = (formName, submissionId, done) => {
+        request(app)
+          .patch(
+            hook.alter(
+              'url',
+              '/form/' + helper.template.forms[formName]._id + '/submission/' + submissionId,
+              helper.template,
+            ),
+          )
+          .set('x-jwt-token', helper.owner.token)
+          .send([
+            {
+              op: 'replace',
+              path: '/data/text',
+              value: 'Patched',
+            },
+          ])
+          .expect(200)
+          .end(function (err, res) {
+            if (err) {
+              return done(err);
+            }
+            assert.equal(res.body.data.text, 'Patched');
             done();
           });
+      };
+
+      it('Create a form with resource and submission for testing', function (done) {
+        ensureSelectWithResourceSubmission(
+          'patchform',
+          { _id: '64afea722fd6bd056a081cc4' },
+          (err) => done(err),
+        );
       });
 
       it('Allows updating a submission with submission access using PATCH', function (done) {
-        request(app)
-          .patch(
-            hook.alter(
-              'url',
-              '/form/' +
-                helper.template.forms['patchform']._id +
-                '/submission/' +
-                helper.lastSubmission._id,
-              helper.template,
-            ),
-          )
-          .set('x-jwt-token', helper.owner.token)
-          .send([
-            {
-              op: 'replace',
-              path: '/data/text',
-              value: 'Patched',
-            },
-          ])
-          .expect(200)
-          .end(function (err, res) {
+        ensureSelectWithResourceSubmission(
+          'patchform',
+          { _id: '64afea722fd6bd056a081cc4' },
+          (err, created) => {
             if (err) {
               return done(err);
             }
-            assert.equal(res.body.data.text, 'Patched');
-            done();
-          });
+            patchTextField('patchform', created._id, done);
+          },
+        );
       });
 
       it('Create a form with resource and submission with empty select for testing', function (done) {
-        const components = [
-          {
-            type: 'textfield',
-            label: 'Text Field',
-            key: 'text',
-            type: 'textfield',
-            input: true,
-          },
-          {
-            label: 'Select',
-            widget: 'choicesjs',
-            tableView: true,
-            dataSrc: 'resource',
-            data: {
-              resource: '5692b920d1028f01000407e7',
-            },
-            key: 'select',
-            type: 'select',
-            input: true,
-            submissionAccess: [
-              {
-                type: 'read',
-                roles: [],
-              },
-            ],
-          },
-        ];
-
-        const values = {
-          text: 'Test',
-          select: {},
-        };
-
-        helper
-          .form('pathWithEmptySelect', components)
-          .submission(values)
-          .expect(201)
-          .execute(function (err) {
-            if (err) {
-              return done(err);
-            }
-            done();
-          });
+        ensureSelectWithResourceSubmission('pathWithEmptySelect', {}, (err) => done(err));
       });
 
       it('Allows updating a empty select submission with submission access using PATCH', function (done) {
-        request(app)
-          .patch(
-            hook.alter(
-              'url',
-              '/form/' +
-                helper.template.forms['pathWithEmptySelect']._id +
-                '/submission/' +
-                helper.lastSubmission._id,
-              helper.template,
-            ),
-          )
-          .set('x-jwt-token', helper.owner.token)
-          .send([
-            {
-              op: 'replace',
-              path: '/data/text',
-              value: 'Patched',
-            },
-          ])
-          .expect(200)
-          .end(function (err, res) {
-            if (err) {
-              return done(err);
-            }
-            assert.equal(res.body.data.text, 'Patched');
-            done();
-          });
+        ensureSelectWithResourceSubmission('pathWithEmptySelect', {}, (err, created) => {
+          if (err) {
+            return done(err);
+          }
+          patchTextField('pathWithEmptySelect', created._id, done);
+        });
       });
 
       it('Allows updating select metadata in nested form submissions', (done) => {
@@ -5915,22 +6062,32 @@ module.exports = function (app, template, hook) {
     });
   });
 
+  // The four `Bulk *` suites below are siblings of `Form Submissions` and of each other, yet they
+  // share its `helper` and two of its forms. Pattern B: idempotent builders each suite calls from
+  // its own `before`, so any one of them can run alone. `upsertForm` is idempotent by itself; the
+  // guard is what keeps whole-file runs from making a second round trip.
+  const bulkCreateFormName = 'bulkEndpointTest';
+  const bulkUpsertFormName = 'bulkEndpointTest-upsert';
+
+  function ensureBulkCreateForm(done) {
+    if (helper.template.forms[bulkCreateFormName]) {
+      return done();
+    }
+    helper.upsertForm(require('./fixtures/forms/bulkCreateForm.js').form, (err) => done(err));
+  }
+
+  function ensureBulkUpsertForm(done) {
+    if (helper.template.forms[bulkUpsertFormName]) {
+      return done();
+    }
+    helper.upsertForm(require('./fixtures/forms/bulkUpsertForm.js').form, (err) => done(err));
+  }
+
   describe('Bulk submissions, create endpoint', function () {
-    let bulkFixture, formDef;
+    before('Sets up a default project', ensureDefaultProject);
 
-    before(function () {
-      bulkFixture = require('./fixtures/forms/bulkCreateForm.js');
-      formDef = bulkFixture.form;
-    });
-
-    it('Creates a test form for bulk submission create tests', function (done) {
-      helper.upsertForm(formDef, function (err) {
-        if (err) {
-          return done(err);
-        }
-        done();
-      });
-    });
+    // Setup: the bulk-create tests below all submit against this form.
+    before('Create a test form for bulk submission create tests', ensureBulkCreateForm);
 
     it('Returns 400 for empty payload {}', function (done) {
       const form = helper.template.forms['bulkEndpointTest'];
@@ -6079,23 +6236,43 @@ module.exports = function (app, template, hook) {
     });
 
     it('Returns partial failure for duplicate with existing DB record', function (done) {
-      const form = helper.template.forms['bulkEndpointTest'];
-      const submissions = [
-        { data: { textField1: 'new', requiredTextField2: 'def', uniqueTextField3: 'dupe-db' } },
-        { data: { textField1: 'ok', requiredTextField2: 'ghi', uniqueTextField3: 'unique-batch' } },
-      ];
+      // Seed the pre-existing row this test needs rather than inherit the one the previous test
+      // happens to leave behind: `dupe-db` and `unique-db` belong to this test alone, so the 207
+      // below is genuinely caused by the record it just created.
+      const form = helper.template.forms[bulkCreateFormName];
+      helper
+        .submission(bulkCreateFormName, {
+          textField1: 'seed',
+          requiredTextField2: 'abc',
+          uniqueTextField3: 'dupe-db',
+        })
+        .expect(201)
+        .execute(function (err) {
+          if (err) {
+            return done(err);
+          }
 
-      helper.bulkCreateUpsertSubmissions(
-        form,
-        submissions,
-        null,
-        [/application\/json/, 207],
-        false,
-        function (err, res) {
-          assert.equal(helper.getLastBulkSubmission().insertedCount, 1);
-          done(err, res);
-        },
-      );
+          const submissions = [
+            {
+              data: { textField1: 'new', requiredTextField2: 'def', uniqueTextField3: 'dupe-db' },
+            },
+            {
+              data: { textField1: 'ok', requiredTextField2: 'ghi', uniqueTextField3: 'unique-db' },
+            },
+          ];
+
+          helper.bulkCreateUpsertSubmissions(
+            form,
+            submissions,
+            null,
+            [/application\/json/, 207],
+            false,
+            function (err, res) {
+              assert.equal(helper.getLastBulkSubmission().insertedCount, 1);
+              done(err, res);
+            },
+          );
+        });
     });
 
     it('Returns partial failure for invalid BSON/schema ', function (done) {
@@ -6226,29 +6403,12 @@ module.exports = function (app, template, hook) {
   });
 
   describe('Bulk Submissions, upsert endpoint', function () {
-    let existSubmissionId,
-      bulkFixture,
-      upsertFormName,
-      formDef,
-      insertedSubmissionId,
-      insertedCreated;
+    const upsertFormName = bulkUpsertFormName;
 
-    before(function () {
-      bulkFixture = require('./fixtures/forms/bulkUpsertForm.js');
-      upsertFormName = 'bulkEndpointTest-upsert';
-      formDef = bulkFixture.form;
-      foreignFormDef = bulkFixture.foreignForm;
-      existSubmissionId = bulkFixture.existingSubmissionId;
-    });
+    before('Sets up a default project', ensureDefaultProject);
 
-    it('Creates a test form for bulk submission upsert tests', function (done) {
-      helper.upsertForm(formDef, function (err) {
-        if (err) {
-          return done(err);
-        }
-        done();
-      });
-    });
+    // Setup: the bulk-upsert tests below all submit against this form.
+    before('Create a test form for bulk submission upsert tests', ensureBulkUpsertForm);
 
     it('Returns 400 for empty payload {}', function (done) {
       const form = helper.template.forms[upsertFormName];
@@ -6402,34 +6562,50 @@ module.exports = function (app, template, hook) {
     });
 
     it('Returns partial failure for duplicate with existing DB record', function (done) {
+      // Seed the pre-existing row this test needs rather than inherit the one the previous test
+      // happens to leave behind: `upsert-dupe-existing` belongs to this test alone, so the 207
+      // below is genuinely caused by the record it just created.
       const form = helper.template.forms[upsertFormName];
-      const payload = [
-        {
-          data: {
-            textField1: 'new',
-            requiredTextField2: 'def',
-            uniqueTextField3: 'upsert-dupe-batch-1',
-          },
-        },
-        {
-          data: {
-            textField1: 'ok',
-            requiredTextField2: 'ghi',
-            uniqueTextField3: 'upsert-unique-db',
-          },
-        },
-      ];
-      helper.bulkCreateUpsertSubmissions(
-        form,
-        payload,
-        null,
-        [/application\/json/, 207],
-        true,
-        function (err, res) {
-          assert.equal(helper.getLastBulkSubmission().upsertedCount, 1);
-          done(err, res);
-        },
-      );
+      helper
+        .submission(upsertFormName, {
+          textField1: 'seed',
+          requiredTextField2: 'abc',
+          uniqueTextField3: 'upsert-dupe-existing',
+        })
+        .expect(201)
+        .execute(function (err) {
+          if (err) {
+            return done(err);
+          }
+
+          const payload = [
+            {
+              data: {
+                textField1: 'new',
+                requiredTextField2: 'def',
+                uniqueTextField3: 'upsert-dupe-existing',
+              },
+            },
+            {
+              data: {
+                textField1: 'ok',
+                requiredTextField2: 'ghi',
+                uniqueTextField3: 'upsert-unique-db',
+              },
+            },
+          ];
+          helper.bulkCreateUpsertSubmissions(
+            form,
+            payload,
+            null,
+            [/application\/json/, 207],
+            true,
+            function (err, res) {
+              assert.equal(helper.getLastBulkSubmission().upsertedCount, 1);
+              done(err, res);
+            },
+          );
+        });
     });
 
     it('Returns partial failure for invalid BSON/schema', function (done) {
@@ -6586,217 +6762,255 @@ module.exports = function (app, template, hook) {
       );
     });
 
-    it('Creates a single submission for upsert testing', function (done) {
-      const initial = {
-        textField1: 'original',
-        requiredTextField2: 'required',
-        uniqueTextField3: 'upsert-uniq-orig',
-      };
+    // Pattern E: the last four tests of this suite each consume a submission an earlier one
+    // created. Both builders are idempotent and guarded, so in file order the original creator
+    // still makes the record and every later call is a no-op.
+    let insertedSubmission = null;
+    const ensureInsertedSubmission = (cb) => {
+      if (insertedSubmission) {
+        return cb(null, insertedSubmission);
+      }
       helper
-        .submission(upsertFormName, initial)
+        .submission(upsertFormName, {
+          textField1: 'original',
+          requiredTextField2: 'required',
+          uniqueTextField3: 'upsert-uniq-orig',
+        })
         .expect(201)
         .execute(function (err) {
           if (err) {
-            return done(err);
+            return cb(err);
           }
-          const sub = helper.getLastSubmission();
-          insertedSubmissionId = sub._id;
-          insertedCreated = sub.created;
-          assert(sub._id, 'Inserted submission should have an _id');
-          assert(sub.created, 'Inserted submission should have a created timestamp');
-          assert.equal(sub.data.textField1, 'original');
-          done();
+          insertedSubmission = helper.getLastSubmission();
+          cb(null, insertedSubmission);
         });
-    });
+    };
 
-    it('Bulk upsert operation with an existing id updates the record if it exists in the database', function (done) {
-      const upsertForm = helper.template.forms[upsertFormName];
-      const updated = {
-        textField1: 'updated',
-        requiredTextField2: 'required',
-        uniqueTextField3: 'upsert-uniq-orig',
-      };
-      const updatedPayload = [
-        {
-          _id: insertedSubmissionId,
-          data: updated,
-        },
-      ];
-
-      helper.bulkCreateUpsertSubmissions(
-        upsertForm,
-        updatedPayload,
-        null,
-        [/application\/json/, 206],
-        true,
-        function (err, res) {
-          assert.equal(
-            helper.getLastBulkSubmission().upsertedCount +
-              helper.getLastBulkSubmission().modifiedCount,
-            1,
-          );
-          // Verify submission was updated
-          helper.getSubmission(upsertFormName, insertedSubmissionId, function (err, sub) {
-            if (err) {
-              return done(err);
-            }
-            const actual = sub.data;
-
-            assert.equal(actual.textField1, updated.textField1);
-            assert.equal(actual.requiredTextField2, updated.requiredTextField2);
-            assert.equal(actual.uniqueTextField3, updated.uniqueTextField3);
-            // Updating an existing submission via bulk upsert must preserve the original
-            // Created timestamp must not be replaced with the Modified timestamp
-            assert.equal(
-              new Date(sub.created).getTime(),
-              new Date(insertedCreated).getTime(),
-              'Created timestamp must be preserved on bulk upsert update',
-            );
-            assert(
-              new Date(sub.modified).getTime() > new Date(sub.created).getTime(),
-              'Modified timestamp should advance past the preserved Created timestamp on update',
-            );
-            done();
-          });
-        },
-      );
-    });
-
-    it('Bulk upserts with a new id creates a new record', function (done) {
-      const newId = new mongoose.Types.ObjectId();
-      const upsertForm = helper.template.forms[upsertFormName];
-      const newSub = {
-        textField1: 'newrecord',
-        requiredTextField2: 'required',
-        uniqueTextField3: 'upsert-uniq-new',
-      };
-
-      const payload = [
-        {
-          _id: newId,
-          data: newSub,
-        },
-      ];
-
-      helper.bulkCreateUpsertSubmissions(
-        upsertForm,
-        payload,
-        null,
-        [/application\/json/, 200],
-        true,
-        function (err, res) {
-          assert.equal(helper.getLastBulkSubmission().upsertedCount, 1);
-
-          // Verify submission was created
-          helper.getSubmission(upsertFormName, newId.toString(), function (err, sub) {
-            if (err) {
-              return done(err);
-            }
-            assert(sub, 'New upserted submission should exist');
-            assert.equal(sub.data.textField1, 'newrecord');
-            // A record inserted via bulk upsert must have both timestamps stamped.
-            assert(sub.created, 'Upsert-inserted submission should have a created timestamp');
-            assert(sub.modified, 'Upsert-inserted submission should have a modified timestamp');
-            existSubmissionId = sub._id;
-            done();
-          });
-        },
-      );
-    });
-
-    it('Bulk upserts response check', function (done) {
-      const upsertForm = helper.template.forms[upsertFormName];
-
-      const newSubNoId = {
-        data: {
-          textField1: 'newrecord',
-          requiredTextField2: 'required',
-          uniqueTextField3: 'upsert-uniq-new-rec-no-id',
-        },
-      };
-
-      const newSubWithId1 = {
-        _id: new mongoose.Types.ObjectId().toString(),
-        data: {
-          textField1: 'newrecord',
-          requiredTextField2: 'required',
-          uniqueTextField3: 'upsert-uniq-new-rec-id-1',
-        },
-      };
-
-      const newSubWithId2 = {
-        _id: new mongoose.Types.ObjectId().toString(),
-        data: {
-          textField1: 'newrecord',
-          requiredTextField2: 'required',
-          uniqueTextField3: 'upsert-uniq-new-rec-id-2',
-        },
-      };
-
-      const existSub = {
-        _id: existSubmissionId,
-        data: {
-          textField1: 'newrecord',
-          requiredTextField2: 'required',
-          uniqueTextField3: 'upsert-uniq-exist-rec',
-        },
-      };
-
-      const payload = [newSubWithId1, newSubNoId, existSub, newSubWithId2];
-
-      helper.bulkCreateUpsertSubmissions(
-        upsertForm,
-        payload,
-        null,
-        [/application\/json/, 200],
-        true,
-        function (err, res) {
-          assert.equal(res.modifiedCount, 1);
-          assert.equal(res.modified[0].submission._id, existSub._id);
-          assert.deepEqual(res.modified[0].original.data, existSub.data);
-
-          assert.equal(res.upsertedCount, 3);
-          assert.equal(res.upserted.length, 3);
-          const respNewSubNoId = res.upserted.find(
-            (item) => item.original.data.uniqueTextField3 === newSubNoId.data.uniqueTextField3,
-          );
-          const respNewSubWithId1 = res.upserted.find(
-            (item) => item.submission._id === newSubWithId1._id,
-          );
-          const respNewSubWithId2 = res.upserted.find(
-            (item) => item.submission._id === newSubWithId2._id,
-          );
-          assert.deepEqual(respNewSubNoId.original.data, newSubNoId.data);
-          assert.equal(respNewSubWithId1.submission._id, newSubWithId1._id);
-          assert.deepEqual(respNewSubWithId1.original.data, newSubWithId1.data);
-          assert.equal(respNewSubWithId2.submission._id, newSubWithId2._id);
-          assert.deepEqual(respNewSubWithId2.original.data, newSubWithId2.data);
-          done();
-        },
-      );
-    });
-  });
-
-  describe('Bulk Submissions bcross-form attack tests', function () {
-    let foreignFormDef, foreignFormSubmissionId;
-    const upsertFormName = 'bulkEndpointTest-upsert';
-    const forgedCreated = '1999-01-01T00:00:00.000Z';
-
-    before(function () {
-      const bulkFixture = require('./fixtures/forms/bulkUpsertForm.js');
-      foreignFormDef = bulkFixture.foreignForm;
-    });
-
-    it('Creates a test form for bcross-form attack tests', function (done) {
-      helper.upsertForm(foreignFormDef, function (err) {
+    it('Creates a single submission for upsert testing', function (done) {
+      ensureInsertedSubmission(function (err, sub) {
         if (err) {
           return done(err);
         }
+        assert(sub._id, 'Inserted submission should have an _id');
+        assert(sub.created, 'Inserted submission should have a created timestamp');
+        assert.equal(sub.data.textField1, 'original');
         done();
       });
     });
 
-    it('Creates a submission in the foreign form for cross-form attack tests', function (done) {
+    it('Bulk upsert operation with an existing id updates the record if it exists in the database', function (done) {
+      ensureInsertedSubmission(function (err, inserted) {
+        if (err) {
+          return done(err);
+        }
+
+        const upsertForm = helper.template.forms[upsertFormName];
+        const updated = {
+          textField1: 'updated',
+          requiredTextField2: 'required',
+          uniqueTextField3: 'upsert-uniq-orig',
+        };
+        const updatedPayload = [
+          {
+            _id: inserted._id,
+            data: updated,
+          },
+        ];
+
+        helper.bulkCreateUpsertSubmissions(
+          upsertForm,
+          updatedPayload,
+          null,
+          [/application\/json/, 206],
+          true,
+          function (err, res) {
+            assert.equal(
+              helper.getLastBulkSubmission().upsertedCount +
+                helper.getLastBulkSubmission().modifiedCount,
+              1,
+            );
+            // Verify submission was updated
+            helper.getSubmission(upsertFormName, inserted._id, function (err, sub) {
+              if (err) {
+                return done(err);
+              }
+              const actual = sub.data;
+
+              assert.equal(actual.textField1, updated.textField1);
+              assert.equal(actual.requiredTextField2, updated.requiredTextField2);
+              assert.equal(actual.uniqueTextField3, updated.uniqueTextField3);
+              // Updating an existing submission via bulk upsert must preserve the original
+              // Created timestamp must not be replaced with the Modified timestamp
+              assert.equal(
+                new Date(sub.created).getTime(),
+                new Date(inserted.created).getTime(),
+                'Created timestamp must be preserved on bulk upsert update',
+              );
+              assert(
+                new Date(sub.modified).getTime() > new Date(sub.created).getTime(),
+                'Modified timestamp should advance past the preserved Created timestamp on update',
+              );
+              done();
+            });
+          },
+        );
+      });
+    });
+
+    // The bulk result is captured alongside the submission because the creating test asserts on
+    // it: caching only the record would leave that assertion reading a later call's result.
+    let newIdUpsert = null;
+    const ensureNewIdUpsert = (cb) => {
+      if (newIdUpsert) {
+        return cb(null, newIdUpsert);
+      }
+      const newId = new mongoose.Types.ObjectId();
+      helper.bulkCreateUpsertSubmissions(
+        helper.template.forms[upsertFormName],
+        [
+          {
+            _id: newId,
+            data: {
+              textField1: 'newrecord',
+              requiredTextField2: 'required',
+              uniqueTextField3: 'upsert-uniq-new',
+            },
+          },
+        ],
+        null,
+        [/application\/json/, 200],
+        true,
+        function (err) {
+          if (err) {
+            return cb(err);
+          }
+          const bulkResult = helper.getLastBulkSubmission();
+          helper.getSubmission(upsertFormName, newId.toString(), function (err, sub) {
+            if (err) {
+              return cb(err);
+            }
+            newIdUpsert = { bulkResult, submission: sub };
+            cb(null, newIdUpsert);
+          });
+        },
+      );
+    };
+
+    it('Bulk upserts with a new id creates a new record', function (done) {
+      ensureNewIdUpsert(function (err, result) {
+        if (err) {
+          return done(err);
+        }
+        assert.equal(result.bulkResult.upsertedCount, 1);
+
+        const sub = result.submission;
+        assert(sub, 'New upserted submission should exist');
+        assert.equal(sub.data.textField1, 'newrecord');
+        // A record inserted via bulk upsert must have both timestamps stamped.
+        assert(sub.created, 'Upsert-inserted submission should have a created timestamp');
+        assert(sub.modified, 'Upsert-inserted submission should have a modified timestamp');
+        done();
+      });
+    });
+
+    it('Bulk upserts response check', function (done) {
+      ensureNewIdUpsert(function (err, existing) {
+        if (err) {
+          return done(err);
+        }
+
+        const upsertForm = helper.template.forms[upsertFormName];
+
+        const newSubNoId = {
+          data: {
+            textField1: 'newrecord',
+            requiredTextField2: 'required',
+            uniqueTextField3: 'upsert-uniq-new-rec-no-id',
+          },
+        };
+
+        const newSubWithId1 = {
+          _id: new mongoose.Types.ObjectId().toString(),
+          data: {
+            textField1: 'newrecord',
+            requiredTextField2: 'required',
+            uniqueTextField3: 'upsert-uniq-new-rec-id-1',
+          },
+        };
+
+        const newSubWithId2 = {
+          _id: new mongoose.Types.ObjectId().toString(),
+          data: {
+            textField1: 'newrecord',
+            requiredTextField2: 'required',
+            uniqueTextField3: 'upsert-uniq-new-rec-id-2',
+          },
+        };
+
+        const existSub = {
+          _id: existing.submission._id,
+          data: {
+            textField1: 'newrecord',
+            requiredTextField2: 'required',
+            uniqueTextField3: 'upsert-uniq-exist-rec',
+          },
+        };
+
+        const payload = [newSubWithId1, newSubNoId, existSub, newSubWithId2];
+
+        helper.bulkCreateUpsertSubmissions(
+          upsertForm,
+          payload,
+          null,
+          [/application\/json/, 200],
+          true,
+          function (err, res) {
+            assert.equal(res.modifiedCount, 1);
+            assert.equal(res.modified[0].submission._id, existSub._id);
+            assert.deepEqual(res.modified[0].original.data, existSub.data);
+
+            assert.equal(res.upsertedCount, 3);
+            assert.equal(res.upserted.length, 3);
+            const respNewSubNoId = res.upserted.find(
+              (item) => item.original.data.uniqueTextField3 === newSubNoId.data.uniqueTextField3,
+            );
+            const respNewSubWithId1 = res.upserted.find(
+              (item) => item.submission._id === newSubWithId1._id,
+            );
+            const respNewSubWithId2 = res.upserted.find(
+              (item) => item.submission._id === newSubWithId2._id,
+            );
+            assert.deepEqual(respNewSubNoId.original.data, newSubNoId.data);
+            assert.equal(respNewSubWithId1.submission._id, newSubWithId1._id);
+            assert.deepEqual(respNewSubWithId1.original.data, newSubWithId1.data);
+            assert.equal(respNewSubWithId2.submission._id, newSubWithId2._id);
+            assert.deepEqual(respNewSubWithId2.original.data, newSubWithId2.data);
+            done();
+          },
+        );
+      });
+    });
+  });
+
+  describe('Bulk Submissions bcross-form attack tests', function () {
+    let foreignFormSubmissionId;
+    const upsertFormName = bulkUpsertFormName;
+    const forgedCreated = '1999-01-01T00:00:00.000Z';
+
+    before('Sets up a default project', ensureDefaultProject);
+
+    // The attacks below cross between the two forms the sibling suites build, so this suite has to
+    // build them too when it runs on its own.
+    before('Create a test form for bulk submission create tests', ensureBulkCreateForm);
+    before('Create a test form for bulk submission upsert tests', ensureBulkUpsertForm);
+
+    before('Creates a test form for bcross-form attack tests', function (done) {
+      helper.upsertForm(require('./fixtures/forms/bulkUpsertForm.js').foreignForm, (err) =>
+        done(err),
+      );
+    });
+
+    before('Creates a submission in the foreign form for cross-form attack tests', function (done) {
       helper
         .submission('foreignForm-upsert', {
           textField1: 'foreign-original',
@@ -7209,6 +7423,8 @@ module.exports = function (app, template, hook) {
         .set('x-jwt-token', token)
         .set('x-delete-confirm', helper.template.forms[formName]._id);
 
+    before('Sets up a default project', ensureDefaultProject);
+
     before(async function () {
       await new Promise((resolve, reject) => {
         helper
@@ -7336,13 +7552,18 @@ module.exports = function (app, template, hook) {
   });
 
   describe('Nested Submissions', function () {
-    it('Sets up a default project', function (done) {
+    before('Sets up a default project', function (done) {
       var owner = app.hasProjects || docker ? template.formio.owner : template.users.admin;
       helper = new Helper(owner);
       helper.project().execute(done);
     });
 
-    it('Create the Child forms', (done) => {
+    // Pattern A: four blocks in this suite (here, `Create the Parent form`, and the two wizard
+    // builders further down) assert nothing — they only build the forms the tests submit against,
+    // so as tests they are skipped when one of those runs on its own. As hooks they all run at
+    // suite entry, which moves the two wizard builders ahead of tests they used to follow; those
+    // tests never touch `childWizard`/`parentWizard`, so the earlier creation is inert.
+    before('Create the Child forms', (done) => {
       helper
         .form('childA', [
           {
@@ -7392,7 +7613,7 @@ module.exports = function (app, template, hook) {
         .execute(done);
     });
 
-    it('Create the Parent form', (done) => {
+    before('Create the Parent form', (done) => {
       helper
         .form('parent', [
           {
@@ -7447,7 +7668,13 @@ module.exports = function (app, template, hook) {
         .execute(done);
     });
 
-    it('Should let you create a complete submission', (done) => {
+    // Pattern E: the update test below reads the submission this one leaves in
+    // `helper.lastSubmission`, so it needs its own copy when it runs alone.
+    let completeSubmission = null;
+    const ensureCompleteSubmission = (cb) => {
+      if (completeSubmission) {
+        return cb(null, completeSubmission);
+      }
       helper
         .submission('parent', {
           showA: true,
@@ -7474,58 +7701,73 @@ module.exports = function (app, template, hook) {
         })
         .execute((err) => {
           if (err) {
-            return done(err);
+            return cb(err);
           }
-
-          const submission = helper.lastSubmission;
-          assert.equal(submission.data.showA, true);
-          assert.equal(submission.data.showB, true);
-          assert.equal(submission.data.showC, true);
-          assert(submission.data.childA.hasOwnProperty('_id'), 'The childA form was not submitted');
-          assert(submission.data.childB.hasOwnProperty('_id'), 'The childB form was not submitted');
-          assert(submission.data.childC.hasOwnProperty('_id'), 'The childC form was not submitted');
-          assert.deepEqual(submission.data.childA.data, {
-            a: 'One',
-            b: 'Two',
-          });
-          assert.deepEqual(submission.data.childB.data, {
-            c: 'Three',
-            d: 'Four',
-          });
-          assert.deepEqual(submission.data.childC.data, {
-            e: 'Five',
-            f: 'Six',
-          });
-          done();
+          completeSubmission = helper.lastSubmission;
+          cb(null, completeSubmission);
         });
-    });
+    };
 
-    it('Should allow you to update a submission with sub-submissions.', (done) => {
-      const existing = _.cloneDeep(helper.lastSubmission);
-      existing.data.childA.data.a = 'Seven';
-      existing.data.childB.data.c = 'Eight';
-      existing.data.childC.data.e = 'Nine';
-      helper.updateSubmission(existing, (err) => {
+    it('Should let you create a complete submission', (done) => {
+      ensureCompleteSubmission((err, submission) => {
         if (err) {
           return done(err);
         }
-        const submission = helper.lastSubmission;
+
+        assert.equal(submission.data.showA, true);
+        assert.equal(submission.data.showB, true);
+        assert.equal(submission.data.showC, true);
         assert(submission.data.childA.hasOwnProperty('_id'), 'The childA form was not submitted');
         assert(submission.data.childB.hasOwnProperty('_id'), 'The childB form was not submitted');
         assert(submission.data.childC.hasOwnProperty('_id'), 'The childC form was not submitted');
         assert.deepEqual(submission.data.childA.data, {
-          a: 'Seven',
+          a: 'One',
           b: 'Two',
         });
         assert.deepEqual(submission.data.childB.data, {
-          c: 'Eight',
+          c: 'Three',
           d: 'Four',
         });
         assert.deepEqual(submission.data.childC.data, {
-          e: 'Nine',
+          e: 'Five',
           f: 'Six',
         });
         done();
+      });
+    });
+
+    it('Should allow you to update a submission with sub-submissions.', (done) => {
+      ensureCompleteSubmission((err, created) => {
+        if (err) {
+          return done(err);
+        }
+
+        const existing = _.cloneDeep(created);
+        existing.data.childA.data.a = 'Seven';
+        existing.data.childB.data.c = 'Eight';
+        existing.data.childC.data.e = 'Nine';
+        helper.updateSubmission(existing, (err) => {
+          if (err) {
+            return done(err);
+          }
+          const submission = helper.lastSubmission;
+          assert(submission.data.childA.hasOwnProperty('_id'), 'The childA form was not submitted');
+          assert(submission.data.childB.hasOwnProperty('_id'), 'The childB form was not submitted');
+          assert(submission.data.childC.hasOwnProperty('_id'), 'The childC form was not submitted');
+          assert.deepEqual(submission.data.childA.data, {
+            a: 'Seven',
+            b: 'Two',
+          });
+          assert.deepEqual(submission.data.childB.data, {
+            c: 'Eight',
+            d: 'Four',
+          });
+          assert.deepEqual(submission.data.childC.data, {
+            e: 'Nine',
+            f: 'Six',
+          });
+          done();
+        });
       });
     });
 
@@ -7612,7 +7854,7 @@ module.exports = function (app, template, hook) {
         });
     });
 
-    it('Create child Wizard', (done) => {
+    before('Create child Wizard', (done) => {
       helper
         .form('childWizard', [
           {
@@ -7632,7 +7874,7 @@ module.exports = function (app, template, hook) {
         .execute(done);
     });
 
-    it('Create parent Wizard', (done) => {
+    before('Create parent Wizard', (done) => {
       helper
         .form('parentWizard', {
           title: 'Parent Wizard',
@@ -7870,6 +8112,8 @@ module.exports = function (app, template, hook) {
   });
 
   describe('Submissions without Default Values', (done) => {
+    before('Sets up a default project', ensureDefaultProject);
+
     before((done) => {
       // Create a resource to keep records.
       helper
@@ -8151,8 +8395,14 @@ module.exports = function (app, template, hook) {
         .execute(done);
     });
 
-    let nestedSubmission = null;
-    it('Should allow you to submit data into a conditionally visible form if another nested form is conditionally hidden', (done) => {
+    // Pattern E: two chains run through this suite — one on `parentForm2`, one on `parentForm1` —
+    // and each test used to read the submission its predecessor left behind. The builders are
+    // idempotent, so in file order the original creator still submits and later calls are no-ops.
+    let form2Submission = null;
+    const ensureForm2Submission = (cb) => {
+      if (form2Submission) {
+        return cb(null, form2Submission);
+      }
       helper
         .submission('parentForm2', {
           radio: 'b',
@@ -8165,53 +8415,19 @@ module.exports = function (app, template, hook) {
         })
         .execute((err) => {
           if (err) {
-            return done(err);
+            return cb(err);
           }
 
-          nestedSubmission = helper.lastSubmission;
-          assert.equal(nestedSubmission.data.radio, 'b');
-          assert.equal(nestedSubmission.data.form2.data.textFieldForm3, 'Hello');
-          done();
+          form2Submission = helper.lastSubmission;
+          cb(null, form2Submission);
         });
-    });
+    };
 
-    it('Should allow you to update data into a conditionally visible form if another nested form is conditionally hidden', (done) => {
-      nestedSubmission.data.form2.data.textFieldForm3 = 'Hello Update';
-      helper.submission('parentForm2', nestedSubmission).execute((err) => {
-        if (err) {
-          return done(err);
-        }
-
-        nestedSubmission = helper.lastSubmission;
-        assert.equal(nestedSubmission.data.radio, 'b');
-        assert.equal(nestedSubmission.data.form2.data.textFieldForm3, 'Hello Update');
-        done();
-      });
-    });
-
-    it('Should let you create a submission without errors', (done) => {
-      helper
-        .submission('parentForm1', {
-          radio: 'b',
-          submit: true,
-        })
-        .execute((err) => {
-          if (err) {
-            return done(err);
-          }
-
-          nestedSubmission = helper.lastSubmission;
-          assert.deepEqual(
-            nestedSubmission.data,
-            IS_NEXTGEN
-              ? { radio: 'b', submit: true, form: { data: {} } }
-              : { radio: 'b', submit: true },
-          );
-          done();
-        });
-    });
-
-    it('Should allow you to submit data to the nested form.', (done) => {
+    let form1Submission = null;
+    const ensureForm1Submission = (cb) => {
+      if (form1Submission) {
+        return cb(null, form1Submission);
+      }
       helper
         .submission('parentForm1', {
           radio: 'a',
@@ -8229,39 +8445,124 @@ module.exports = function (app, template, hook) {
         })
         .execute((err) => {
           if (err) {
-            return done(err);
+            return cb(err);
           }
 
-          nestedSubmission = helper.lastSubmission;
-          assert.equal(nestedSubmission.data.radio, 'a');
-          assert.equal(nestedSubmission.data.form.data.textFieldForm2, 'Foo');
-          assert.equal(nestedSubmission.data.form.data.form.data.textFieldForm1, 'Bar');
-          done();
+          form1Submission = helper.lastSubmission;
+          cb(null, form1Submission);
         });
-    });
+    };
 
-    it('Should allow you to update data to the nested form.', (done) => {
-      nestedSubmission.data.form.data.textFieldForm2 = 'Foo 1';
-      nestedSubmission.data.form.data.form.data.textFieldForm1 = 'Bar 1';
-      helper.submission('parentForm1', nestedSubmission).execute((err) => {
+    let form1Updated = null;
+    const ensureForm1Updated = (cb) => {
+      if (form1Updated) {
+        return cb(null, form1Updated);
+      }
+      ensureForm1Submission((err, created) => {
+        if (err) {
+          return cb(err);
+        }
+
+        const update = _.cloneDeep(created);
+        update.data.form.data.textFieldForm2 = 'Foo 1';
+        update.data.form.data.form.data.textFieldForm1 = 'Bar 1';
+        helper.submission('parentForm1', update).execute((err) => {
+          if (err) {
+            return cb(err);
+          }
+
+          form1Updated = helper.lastSubmission;
+          cb(null, form1Updated);
+        });
+      });
+    };
+
+    it('Should allow you to submit data into a conditionally visible form if another nested form is conditionally hidden', (done) => {
+      ensureForm2Submission((err, submission) => {
         if (err) {
           return done(err);
         }
 
-        nestedSubmission = helper.lastSubmission;
+        assert.equal(submission.data.radio, 'b');
+        assert.equal(submission.data.form2.data.textFieldForm3, 'Hello');
         done();
       });
     });
 
-    it('Should have updated the data of the nested forms.', (done) => {
-      helper.getSubmission('parentForm1', nestedSubmission._id, function (err, submission) {
+    it('Should allow you to update data into a conditionally visible form if another nested form is conditionally hidden', (done) => {
+      ensureForm2Submission((err, created) => {
         if (err) {
-          done(err);
+          return done(err);
         }
+
+        const update = _.cloneDeep(created);
+        update.data.form2.data.textFieldForm3 = 'Hello Update';
+        helper.submission('parentForm2', update).execute((err) => {
+          if (err) {
+            return done(err);
+          }
+
+          const submission = helper.lastSubmission;
+          assert.equal(submission.data.radio, 'b');
+          assert.equal(submission.data.form2.data.textFieldForm3, 'Hello Update');
+          done();
+        });
+      });
+    });
+
+    it('Should let you create a submission without errors', (done) => {
+      helper
+        .submission('parentForm1', {
+          radio: 'b',
+          submit: true,
+        })
+        .execute((err) => {
+          if (err) {
+            return done(err);
+          }
+
+          assert.deepEqual(
+            helper.lastSubmission.data,
+            IS_NEXTGEN
+              ? { radio: 'b', submit: true, form: { data: {} } }
+              : { radio: 'b', submit: true },
+          );
+          done();
+        });
+    });
+
+    it('Should allow you to submit data to the nested form.', (done) => {
+      ensureForm1Submission((err, submission) => {
+        if (err) {
+          return done(err);
+        }
+
         assert.equal(submission.data.radio, 'a');
-        assert.equal(submission.data.form.data.textFieldForm2, 'Foo 1');
-        assert.equal(submission.data.form.data.form.data.textFieldForm1, 'Bar 1');
+        assert.equal(submission.data.form.data.textFieldForm2, 'Foo');
+        assert.equal(submission.data.form.data.form.data.textFieldForm1, 'Bar');
         done();
+      });
+    });
+
+    it('Should allow you to update data to the nested form.', (done) => {
+      ensureForm1Updated((err) => done(err));
+    });
+
+    it('Should have updated the data of the nested forms.', (done) => {
+      ensureForm1Updated((err, updated) => {
+        if (err) {
+          return done(err);
+        }
+
+        helper.getSubmission('parentForm1', updated._id, function (err, submission) {
+          if (err) {
+            return done(err);
+          }
+          assert.equal(submission.data.radio, 'a');
+          assert.equal(submission.data.form.data.textFieldForm2, 'Foo 1');
+          assert.equal(submission.data.form.data.form.data.textFieldForm1, 'Bar 1');
+          done();
+        });
       });
     });
   });
@@ -8469,6 +8770,52 @@ module.exports = function (app, template, hook) {
         .execute(done);
     });
 
+    before('Create the parent form with a hidden fieldset test', (done) => {
+      helper
+        .form('parentFormFieldsetTest', [
+          {
+            label: 'Text Field parent',
+            applyMaskOn: 'change',
+            tableView: true,
+            validateWhenHidden: false,
+            key: 'textFieldParent',
+            type: 'textfield',
+            input: true,
+          },
+          {
+            legend: 'Field Set',
+            label: 'Field Set',
+            hidden: true,
+            tableView: false,
+            key: 'fieldSet',
+            type: 'fieldset',
+            input: false,
+            components: [
+              {
+                label: 'Form',
+                tableView: true,
+                form: helper.template.forms.childFormTest._id,
+                useOriginalRevision: false,
+                reference: true,
+                clearOnHide: true,
+                key: 'form',
+                type: 'form',
+                input: true,
+              },
+            ],
+          },
+          {
+            label: 'Submit',
+            tableView: false,
+            key: 'submit',
+            type: 'button',
+            input: true,
+            saveOnEnter: false,
+          },
+        ])
+        .execute(done);
+    });
+
     it('Should allow you to submit data for the form with hidden nested form with enabled clearOnHide and required field', (done) => {
       helper
         .submission('parentFormTest', {
@@ -8494,12 +8841,106 @@ module.exports = function (app, template, hook) {
         });
     });
 
+    before('Create the parent form with a conditionally hidden fieldset test', (done) => {
+      helper
+        .form('parentFormCondFieldsetTest', [
+          {
+            label: 'Hide it',
+            tableView: false,
+            validateWhenHidden: false,
+            key: 'hideIt',
+            type: 'checkbox',
+            input: true,
+            defaultValue: false,
+          },
+          {
+            legend: 'Field Set',
+            label: 'Field Set',
+            hidden: false,
+            clearOnHide: false,
+            tableView: false,
+            key: 'fieldSet',
+            type: 'fieldset',
+            input: false,
+            conditional: {
+              show: false,
+              conjunction: 'all',
+              conditions: [{ component: 'hideIt', operator: 'isEqual', value: true }],
+            },
+            components: [
+              {
+                label: 'Form',
+                tableView: true,
+                form: helper.template.forms.childFormTest._id,
+                useOriginalRevision: false,
+                reference: true,
+                clearOnHide: true,
+                key: 'form',
+                type: 'form',
+                input: true,
+              },
+            ],
+          },
+          {
+            label: 'Submit',
+            tableView: false,
+            key: 'submit',
+            type: 'button',
+            input: true,
+            saveOnEnter: false,
+          },
+        ])
+        .execute(done);
+    });
+
+    it('FIO-9879: Should not create a child submission for a nested form inside a hidden fieldset', (done) => {
+      helper
+        .submission('parentFormFieldsetTest', {
+          textFieldParent: '',
+          submit: true,
+          form: { data: { textField2Child: '' }, metadata: {} },
+        })
+        .execute((err) => {
+          if (err) {
+            return done(err);
+          }
+
+          const subm = helper.lastSubmission;
+          assert.ok(
+            !subm.data.form._id,
+            'a nested form hidden by its fieldset parent must not be saved as a separate submission',
+          );
+          helper.deleteSubmission(subm, undefined, undefined, done);
+        });
+    });
+
+    it('FIO-9879: Should not create a child submission for a nested form inside a conditionally hidden fieldset', (done) => {
+      helper
+        .submission('parentFormCondFieldsetTest', {
+          hideIt: true,
+          submit: true,
+          form: { data: { textField2Child: '' }, metadata: {} },
+        })
+        .execute((err) => {
+          if (err) {
+            return done(err);
+          }
+
+          const subm = helper.lastSubmission;
+          assert.ok(
+            !(subm.data.form && subm.data.form._id),
+            'a nested form hidden by a conditional on its fieldset parent must not be saved as a separate submission',
+          );
+          helper.deleteSubmission(subm, undefined, undefined, done);
+        });
+    });
+
     describe('Submission IDOR Protection', () => {
       let idorForm = null;
       let submissionA = null;
       let submissionB = null;
 
-      it('Should create a form for submission IDOR tests', (done) => {
+      before('Should create a form for submission IDOR tests', (done) => {
         request(app)
           .post(hook.alter('url', '/form', template))
           .set('x-jwt-token', template.users.admin.token)
@@ -8550,179 +8991,219 @@ module.exports = function (app, template, hook) {
           });
       });
 
-      it('Should create Submission A', (done) => {
+      // Pattern E: the four attack tests below all target submissions A and B, which the two
+      // tests above them create. Each builder is idempotent, so in file order the creating test
+      // still makes its submission and every later call is a no-op.
+      const createIdorSubmission = (name, cb) => {
         request(app)
           .post(hook.alter('url', `/form/${idorForm._id}/submission`, template))
           .set('x-jwt-token', template.users.admin.token)
           .send({
             data: {
-              name: 'Submission A',
+              name,
             },
           })
           .expect('Content-Type', /json/)
           .expect(201)
           .end((err, res) => {
             if (err) {
-              return done(err);
+              return cb(err);
             }
 
-            submissionA = res.body;
             template.users.admin.token = res.headers['x-jwt-token'];
-            done();
+            cb(null, res.body);
           });
+      };
+
+      const ensureSubmissionA = (cb) => {
+        if (submissionA) {
+          return cb(null, submissionA);
+        }
+        createIdorSubmission('Submission A', (err, submission) => {
+          if (err) {
+            return cb(err);
+          }
+          submissionA = submission;
+          cb(null, submissionA);
+        });
+      };
+
+      const ensureSubmissionB = (cb) => {
+        if (submissionB) {
+          return cb(null, submissionB);
+        }
+        createIdorSubmission('Submission B', (err, submission) => {
+          if (err) {
+            return cb(err);
+          }
+          submissionB = submission;
+          cb(null, submissionB);
+        });
+      };
+
+      it('Should create Submission A', (done) => {
+        ensureSubmissionA((err) => done(err));
       });
 
       it('Should create Submission B', (done) => {
-        request(app)
-          .post(hook.alter('url', `/form/${idorForm._id}/submission`, template))
-          .set('x-jwt-token', template.users.admin.token)
-          .send({
-            data: {
-              name: 'Submission B',
-            },
-          })
-          .expect('Content-Type', /json/)
-          .expect(201)
-          .end((err, res) => {
-            if (err) {
-              return done(err);
-            }
-
-            submissionB = res.body;
-            template.users.admin.token = res.headers['x-jwt-token'];
-            done();
-          });
+        ensureSubmissionB((err) => done(err));
       });
 
       it('Should not allow POST /form/:formId/submission with a spoofed _id to overwrite an existing submission', (done) => {
-        request(app)
-          .post(hook.alter('url', `/form/${idorForm._id}/submission`, template))
-          .set('x-jwt-token', template.users.admin.token)
-          .send({
-            data: {
-              name: 'Spoofed Submission',
-            },
-            _id: submissionB._id,
-          })
-          .end((err, res) => {
-            if (err) {
-              return done(err);
-            }
+        ensureSubmissionB((err, target) => {
+          if (err) {
+            return done(err);
+          }
 
-            if (res.statusCode === 201) {
-              assert.notEqual(res.body._id, submissionB._id);
-            }
-            if (res.headers['x-jwt-token']) {
-              template.users.admin.token = res.headers['x-jwt-token'];
-            }
+          request(app)
+            .post(hook.alter('url', `/form/${idorForm._id}/submission`, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send({
+              data: {
+                name: 'Spoofed Submission',
+              },
+              _id: target._id,
+            })
+            .end((err, res) => {
+              if (err) {
+                return done(err);
+              }
 
-            // Verify Submission B was NOT modified.
-            request(app)
-              .get(
-                hook.alter('url', `/form/${idorForm._id}/submission/${submissionB._id}`, template),
-              )
-              .set('x-jwt-token', template.users.admin.token)
-              .expect('Content-Type', /json/)
-              .expect(200)
-              .end((err, res) => {
-                if (err) {
-                  return done(err);
-                }
-
-                assert.equal(res.body._id, submissionB._id);
-                assert.equal(res.body.data.name, 'Submission B');
+              if (res.statusCode === 201) {
+                assert.notEqual(res.body._id, target._id);
+              }
+              if (res.headers['x-jwt-token']) {
                 template.users.admin.token = res.headers['x-jwt-token'];
-                done();
-              });
-          });
+              }
+
+              // Verify Submission B was NOT modified.
+              request(app)
+                .get(hook.alter('url', `/form/${idorForm._id}/submission/${target._id}`, template))
+                .set('x-jwt-token', template.users.admin.token)
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end((err, res) => {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  assert.equal(res.body._id, target._id);
+                  assert.equal(res.body.data.name, 'Submission B');
+                  template.users.admin.token = res.headers['x-jwt-token'];
+                  done();
+                });
+            });
+        });
       });
 
       it('Should not allow PUT /form/:formId/submission/:subId with a spoofed _id to target a different submission', (done) => {
-        request(app)
-          .put(hook.alter('url', `/form/${idorForm._id}/submission/${submissionA._id}`, template))
-          .set('x-jwt-token', template.users.admin.token)
-          .send({
-            data: {
-              name: 'IDOR Hijack Attempt',
-            },
-            _id: submissionB._id,
-          })
-          .end((err, res) => {
+        ensureSubmissionA((err, subA) => {
+          if (err) {
+            return done(err);
+          }
+
+          ensureSubmissionB((err, subB) => {
             if (err) {
               return done(err);
             }
 
-            if (res.statusCode === 200) {
-              assert.equal(res.body._id, submissionA._id);
-            }
-            if (res.headers['x-jwt-token']) {
-              template.users.admin.token = res.headers['x-jwt-token'];
-            }
-
-            // Verify Submission B was NOT modified.
             request(app)
-              .get(
-                hook.alter('url', `/form/${idorForm._id}/submission/${submissionB._id}`, template),
-              )
+              .put(hook.alter('url', `/form/${idorForm._id}/submission/${subA._id}`, template))
               .set('x-jwt-token', template.users.admin.token)
-              .expect('Content-Type', /json/)
-              .expect(200)
+              .send({
+                data: {
+                  name: 'IDOR Hijack Attempt',
+                },
+                _id: subB._id,
+              })
               .end((err, res) => {
                 if (err) {
                   return done(err);
                 }
 
-                assert.equal(res.body._id, submissionB._id);
-                assert.equal(res.body.data.name, 'Submission B');
-                template.users.admin.token = res.headers['x-jwt-token'];
-                done();
+                if (res.statusCode === 200) {
+                  assert.equal(res.body._id, subA._id);
+                }
+                if (res.headers['x-jwt-token']) {
+                  template.users.admin.token = res.headers['x-jwt-token'];
+                }
+
+                // Verify Submission B was NOT modified.
+                request(app)
+                  .get(hook.alter('url', `/form/${idorForm._id}/submission/${subB._id}`, template))
+                  .set('x-jwt-token', template.users.admin.token)
+                  .expect('Content-Type', /json/)
+                  .expect(200)
+                  .end((err, res) => {
+                    if (err) {
+                      return done(err);
+                    }
+
+                    assert.equal(res.body._id, subB._id);
+                    assert.equal(res.body.data.name, 'Submission B');
+                    template.users.admin.token = res.headers['x-jwt-token'];
+                    done();
+                  });
               });
           });
+        });
       });
 
       it('Should not allow PUT /form/:formId/submission/:subId with a spoofed form to target a different form', (done) => {
-        request(app)
-          .put(hook.alter('url', `/form/${idorForm._id}/submission/${submissionA._id}`, template))
-          .set('x-jwt-token', template.users.admin.token)
-          .send({
-            data: {
-              name: 'Form Hijack Attempt',
-            },
-            form: template.forms.adminRegister._id,
-          })
-          .end((err, res) => {
-            if (err) {
-              return done(err);
-            }
+        ensureSubmissionA((err, subA) => {
+          if (err) {
+            return done(err);
+          }
 
-            if (res.statusCode === 200) {
-              assert.equal(res.body._id, submissionA._id);
-              assert.equal(res.body.form, idorForm._id);
-            }
-            if (res.headers['x-jwt-token']) {
-              template.users.admin.token = res.headers['x-jwt-token'];
-            }
-            done();
-          });
+          request(app)
+            .put(hook.alter('url', `/form/${idorForm._id}/submission/${subA._id}`, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send({
+              data: {
+                name: 'Form Hijack Attempt',
+              },
+              form: template.forms.adminRegister._id,
+            })
+            .end((err, res) => {
+              if (err) {
+                return done(err);
+              }
+
+              if (res.statusCode === 200) {
+                assert.equal(res.body._id, subA._id);
+                assert.equal(res.body.form, idorForm._id);
+              }
+              if (res.headers['x-jwt-token']) {
+                template.users.admin.token = res.headers['x-jwt-token'];
+              }
+              done();
+            });
+        });
       });
 
       it('Should not allow PATCH on /form/:formId/submission/:subId', (done) => {
-        request(app)
-          .patch(hook.alter('url', `/form/${idorForm._id}/submission/${submissionA._id}`, template))
-          .set('x-jwt-token', template.users.admin.token)
-          .send({
-            data: {
-              name: 'Patched Name',
-            },
-          })
-          .end((err, res) => {
-            if (err) {
-              return done(err);
-            }
+        ensureSubmissionA((err, subA) => {
+          if (err) {
+            return done(err);
+          }
 
-            assert(res.statusCode >= 400, `Expected error status but got ${res.statusCode}`);
-            done();
-          });
+          request(app)
+            .patch(hook.alter('url', `/form/${idorForm._id}/submission/${subA._id}`, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send({
+              data: {
+                name: 'Patched Name',
+              },
+            })
+            .end((err, res) => {
+              if (err) {
+                return done(err);
+              }
+
+              assert(res.statusCode >= 400, `Expected error status but got ${res.statusCode}`);
+              done();
+            });
+        });
       });
     });
   });

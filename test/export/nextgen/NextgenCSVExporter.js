@@ -5,6 +5,33 @@ module.exports = function (app, template, hook) {
   const NextgenCSVExporter = require('../../../src/export/exporters/NextgenCSVExporter');
 
   describe('NextgenCSVExporter', () => {
+    // Fails to render exactly the submission carrying the BOOM value, so a test can
+    // drive the exporter's per-row failure path.
+    class ExplodingExporter extends NextgenCSVExporter {
+      stringifyCell(value) {
+        if (value === 'BOOM') {
+          throw new Error('render boom');
+        }
+        return super.stringifyCell(value);
+      }
+    }
+
+    // Stands in for the pino logger pino-http attaches as req.log, recording every
+    // level call so a test can assert the exporter logged through it.
+    const recordingLogger = (records) => {
+      const record =
+        (level) =>
+        (...args) =>
+          records.push({ level, args });
+      return {
+        debug: record('debug'),
+        info: record('info'),
+        warn: record('warn'),
+        error: record('error'),
+        child: () => recordingLogger(records),
+      };
+    };
+
     it('streams a CSV header row and one row per submission', async () => {
       const form = {
         components: [
@@ -43,7 +70,7 @@ module.exports = function (app, template, hook) {
         },
         end() {},
       };
-      const req = { query: {}, headers: {} };
+      const req = { query: {}, headers: {}, log: recordingLogger([]) };
 
       const exporter = new NextgenCSVExporter(form, req, res);
       await exporter.init();
@@ -90,7 +117,7 @@ module.exports = function (app, template, hook) {
         },
         end() {},
       };
-      const req = { query: { view: 'formatted' }, headers: {} };
+      const req = { query: { view: 'formatted' }, headers: {}, log: recordingLogger([]) };
 
       const exporter = new NextgenCSVExporter(form, req, res);
       await exporter.init();
@@ -116,15 +143,6 @@ module.exports = function (app, template, hook) {
         { _id: 'id3', created: 'c3', modified: 'm3', data: { name: 'Carol' } },
       ];
 
-      class ExplodingExporter extends NextgenCSVExporter {
-        stringifyCell(value) {
-          if (value === 'BOOM') {
-            throw new Error('render boom');
-          }
-          return super.stringifyCell(value);
-        }
-      }
-
       const chunks = [];
       const res = {
         setHeader() {},
@@ -133,7 +151,7 @@ module.exports = function (app, template, hook) {
         },
         end() {},
       };
-      const req = { query: {}, headers: {} };
+      const req = { query: {}, headers: {}, log: recordingLogger([]) };
 
       const exporter = new ExplodingExporter(form, req, res);
       await exporter.init();
@@ -158,6 +176,42 @@ module.exports = function (app, template, hook) {
       );
     });
 
+    // FIO-7988: this exporter arrived after the debug -> pino migration, so the
+    // swallowed render failure still logged through the debug package.
+    it('logs a failed row through req.log', async () => {
+      const form = {
+        components: [{ type: 'textfield', key: 'name', input: true, label: 'Name' }],
+      };
+      const submissions = [{ _id: 'id2', created: 'c2', modified: 'm2', data: { name: 'BOOM' } }];
+
+      const res = {
+        setHeader() {},
+        write() {},
+        end() {},
+      };
+      const logs = [];
+      const req = { query: {}, headers: {}, log: recordingLogger(logs) };
+
+      const exporter = new ExplodingExporter(form, req, res);
+      await exporter.init();
+      await new Promise((resolve) => {
+        res.end = resolve;
+        exporter.stream(Readable.from(submissions));
+        setTimeout(resolve, 2000);
+      });
+
+      const logged = logs.filter((entry) =>
+        entry.args.some(
+          (arg) => typeof arg === 'string' && arg.includes('failed to render submission'),
+        ),
+      );
+      assert.equal(
+        logged.length,
+        1,
+        `expected one req.log line about the failed row, got: ${JSON.stringify(logs)}`,
+      );
+    });
+
     it('preserves row order and ends the response when fed the production through-module stream', async () => {
       const form = {
         components: [{ type: 'textfield', key: 'name', input: true, label: 'Name' }],
@@ -177,7 +231,7 @@ module.exports = function (app, template, hook) {
         },
         end() {},
       };
-      const req = { query: {}, headers: {} };
+      const req = { query: {}, headers: {}, log: recordingLogger([]) };
 
       const exporter = new NextgenCSVExporter(form, req, res);
       await exporter.init();

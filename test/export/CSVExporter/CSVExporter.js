@@ -7,8 +7,6 @@ module.exports = function (app, template, hook) {
   const assert = require('assert');
   const moment = require('moment-timezone');
   const request = require('../../formio-supertest');
-  const Helper = require('../../helper')(app);
-  let helper = null;
   const test = require('../../fixtures/forms/datetime-format.js');
   const testFile = require('../../fixtures/forms/fileComponent.js');
   const testTags = require('../../fixtures/forms/tagsWithDelimiter.js');
@@ -21,6 +19,8 @@ module.exports = function (app, template, hook) {
   const testTimeDate = require('../../fixtures/forms/timeDateComponent.js');
   const formToTestCSV = require('../../fixtures/forms/formToTestCSV.js');
   const formWithMultSelect = require('../../fixtures/forms/formWithMultSelect.js');
+  let Helper;
+  let helper = null;
   function getComponentValue(exportedText, compKey, submissionIndex) {
     const rows = exportedText.split('\n');
     const headerRow = rows[0];
@@ -40,6 +40,10 @@ module.exports = function (app, template, hook) {
     // });
     return compValue;
   }
+
+  before(function () {
+    Helper = require('../../helper')(app);
+  });
 
   describeClassicOnly('CSVExporter', () => {
     it('Sets up a default project', (done) => {
@@ -600,13 +604,83 @@ module.exports = function (app, template, hook) {
   });
 
   describeClassicOnly('Nested form CSV export', () => {
-    it('Sets up a default project', (done) => {
-      let owner = app.hasProjects || docker ? template.formio.owner : template.users.admin;
-      helper = new Helper(owner);
-      helper.project().user('user', 'user1').execute(done);
-    });
-
     let childForm, parentForm;
+
+    // `helper` is module scope and every test in the describe above reassigns it, so these
+    // guards key on identity rather than existence: if another describe has taken `helper`
+    // over, the project and the forms built against it are gone and have to be rebuilt.
+    // INDEPENDENCE.md pattern E.
+    let projectHelper = null;
+    let formsHelper = null;
+
+    // Both handles start as null, so `helper === projectHelper` on its own is true before
+    // anything has been built — hence the first clause rather than a bare identity check.
+    const projectIsOurs = () => projectHelper !== null && helper === projectHelper;
+
+    const ensureProject = (done) => {
+      if (projectIsOurs()) {
+        return done();
+      }
+
+      const owner = app.hasProjects || docker ? template.formio.owner : template.users.admin;
+      helper = new Helper(owner);
+      projectHelper = helper;
+      helper.project().user('user', 'user1').execute(done);
+    };
+
+    const ensureForms = (done) => {
+      ensureProject((err) => {
+        if (err) {
+          return done(err);
+        }
+        if (formsHelper === helper) {
+          return done();
+        }
+
+        helper
+          .form('in', [
+            {
+              type: 'textfield',
+              key: 'name',
+              input: true,
+            },
+            {
+              type: 'number',
+              key: 'age',
+              input: true,
+            },
+          ])
+          .execute((err) => {
+            if (err) {
+              return done(err);
+            }
+            childForm = helper.template.forms.in;
+            helper
+              .form('out', [
+                {
+                  tableView: true,
+                  form: childForm._id,
+                  useOriginalRevision: false,
+                  key: 'form',
+                  type: 'form',
+                  input: true,
+                },
+              ])
+              .execute((err) => {
+                if (err) {
+                  return done(err);
+                }
+                parentForm = helper.template.forms.out;
+                formsHelper = helper;
+                done();
+              });
+          });
+      });
+    };
+
+    it('Sets up a default project', (done) => {
+      ensureProject(done);
+    });
     const submission = {
       data: {
         form: {
@@ -620,61 +694,31 @@ module.exports = function (app, template, hook) {
     };
 
     it('Build the forms', (done) => {
-      helper
-        .form('in', [
-          {
-            type: 'textfield',
-            key: 'name',
-            input: true,
-          },
-          {
-            type: 'number',
-            key: 'age',
-            input: true,
-          },
-        ])
-        .execute((err) => {
-          if (err) {
-            return done(err);
-          }
-          childForm = helper.template.forms.in;
-          helper
-            .form('out', [
-              {
-                tableView: true,
-                form: childForm._id,
-                useOriginalRevision: false,
-                key: 'form',
-                type: 'form',
-                input: true,
-              },
-            ])
-            .execute((err) => {
-              if (err) {
-                return done(err);
-              }
-              parentForm = helper.template.forms.out;
-              done();
-            });
-        });
+      ensureForms(done);
     });
 
     it(`Test nested form data`, (done) => {
-      helper.submission(submission).execute((err) => {
+      ensureForms((err) => {
         if (err) {
           return done(err);
         }
-        helper.getExport(parentForm, 'csv', (error, result) => {
-          if (error) {
-            done(error);
+
+        helper.submission(submission).execute((err) => {
+          if (err) {
+            return done(err);
           }
+          helper.getExport(parentForm, 'csv', (error, result) => {
+            if (error) {
+              done(error);
+            }
 
-          const age = getComponentValue(result.text, 'form.age', 0);
-          const name = getComponentValue(result.text, 'form.name', 0);
+            const age = getComponentValue(result.text, 'form.age', 0);
+            const name = getComponentValue(result.text, 'form.name', 0);
 
-          assert.equal(age, '"23"');
-          assert.equal(name, '"Mary Jane"');
-          done();
+            assert.equal(age, '"23"');
+            assert.equal(name, '"Mary Jane"');
+            done();
+          });
         });
       });
     });

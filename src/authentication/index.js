@@ -12,9 +12,6 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const util = require('../util/util');
 const _ = require('lodash');
-const debug = {
-  authenticate: require('debug')('formio:authentication:authenticate'),
-};
 
 module.exports = (router) => {
   const audit = router.formio.audit || (() => {});
@@ -85,7 +82,7 @@ module.exports = (router) => {
           return true;
         }
       } catch (ignoreErr) {
-        debug.authenticate('Bad token allow string.');
+        req.log.error({ module: 'formio:authentication:authenticate' }, 'Bad token allow string.');
       }
 
       return false;
@@ -211,6 +208,7 @@ module.exports = (router) => {
    *   The callback function to call after authentication.
    */
   const evaluateUser = (req, user, password, passField, username, next) => {
+    const log = req.log.child({ module: 'formio:authentication:authenticate' });
     if (!user) {
       return next('User or password was incorrect');
     }
@@ -274,10 +272,10 @@ module.exports = (router) => {
         hook.alter('user', user, (err, _user) => {
           if (err) {
             // Attempt to fail safely and not update the user reference.
-            debug.authenticate(err);
+            log.error(err);
           } else {
             // Update the user with the hook results.
-            debug.authenticate(user);
+            log.debug({ userId: user._id, formId: user.form }, 'User altered by hook');
             user = _user;
           }
 

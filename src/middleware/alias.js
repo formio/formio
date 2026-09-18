@@ -1,6 +1,5 @@
 'use strict';
 const url = require('url');
-const debug = require('debug')('formio:alias');
 
 /**
  * Provides URL alias capabilities.
@@ -81,7 +80,7 @@ module.exports = function (router) {
       req.url = `${baseUrl}/form/${form._id}${additional}`;
       return next();
     } catch (err) {
-      debug(`Error: ${err}`);
+      req.log.error({ module: 'formio:alias', err });
       return res.status(400).send('Invalid alias');
     }
   };

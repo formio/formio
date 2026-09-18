@@ -2,6 +2,7 @@
 
 const _ = require('lodash');
 const util = require('../util/util');
+const metrics = require('../util/metrics');
 const Validator = require('../resources/Validator');
 const setDefaultProperties = require('../actions/properties/setDefaultProperties');
 
@@ -10,6 +11,10 @@ module.exports = (router) => {
   const fActions = require('../actions/fields')(router);
   const pActions = require('../actions/properties')(router);
   const handlers = {};
+
+  // The only attribute every reported measurement carries. Deliberately nothing derived from the
+  // form or the project: those would mint a time series per form.
+  const metricAttributes = (req) => ({ 'http.request.method': req.method });
 
   // Iterate through the possible handlers.
   [
@@ -49,6 +54,15 @@ module.exports = (router) => {
         throw new Error('Form not found.');
       }
       req.currentForm = hook.alter('currentForm', form, req.body);
+      // A tree walk, in the same order as the ones `loadSubForms` and `executeFieldHandlers`
+      // already do per request — which is why it goes through `hook.report`: unregistered, the
+      // walk never runs.
+      hook.report('observe', () => {
+        const componentCount = Object.keys(
+          util.flattenComponents(req.currentForm.components, true),
+        ).length;
+        return [metrics.FORM_COMPONENTS, componentCount, metricAttributes(req)];
+      });
       await router.formio.cache.loadSubForms(req.currentForm, req);
     }
 
@@ -304,7 +318,7 @@ module.exports = (router) => {
       util.eachValue(
         req.currentForm.components,
         submissionData,
-        ({ component, data, handler, action, path, fullPath }) => {
+        ({ component, data, handler, action, path, fullPath, parentHidden }) => {
           if (component) {
             const componentPath = util.valuePath(path, component.key);
             const componentFullPath = util.valuePath(fullPath, component.key);
@@ -332,6 +346,7 @@ module.exports = (router) => {
                 validation,
                 path: componentPath,
                 fullPath: componentFullPath,
+                parentHidden,
                 req,
                 res,
               },
@@ -364,6 +379,12 @@ module.exports = (router) => {
           res,
         },
       );
+
+      hook.report('observe', () => [
+        metrics.SUBMISSION_FIELD_HANDLERS,
+        promises.length,
+        { ...metricAttributes(req), validated: validation },
+      ]);
 
       await Promise.all(promises);
     }
@@ -414,19 +435,24 @@ module.exports = (router) => {
         });
       });
     }
+    // Every lifecycle stage is offered to `hook.instrument`, which hands back the stage unchanged
+    // unless a consumer registered an implementation. Offered per request rather than once here:
+    // `router.formio.middleware` is built at index.js:34, before `router.init(hooks)` assigns
+    // `router.formio.hooks`, so at this point nothing can be registered yet. GOTCHA(G-FOS07)
+
     // Add before handlers.
     const before = `before${method.method}`;
     handlers[before] = async (req, res, next) => {
       req.handlerName = before;
       try {
-        await loadCurrentForm(req);
-        await initializeSubmission(req);
-        await initializeActions(req, res);
-        await executeFieldHandlers(false, req, res);
-        await validateSubmission(req, res);
-        await executeFieldHandlers(true, req, res);
+        await hook.instrument('loadCurrentForm', loadCurrentForm)(req);
+        await hook.instrument('initializeSubmission', initializeSubmission)(req);
+        await hook.instrument('initializeActions', initializeActions)(req, res);
+        await hook.instrument('executeFieldHandlers', executeFieldHandlers)(false, req, res);
+        await hook.instrument('validateSubmission', validateSubmission)(req, res);
+        await hook.instrument('executeFieldHandlers', executeFieldHandlers)(true, req, res);
         await alterSubmission(req, res);
-        await executeActions('before', req, res);
+        await hook.instrument('executeActions', executeActions)('before', req, res);
         return next();
       } catch (error) {
         if (!res.headersSent) {
@@ -439,13 +465,22 @@ module.exports = (router) => {
     handlers[after] = async (req, res, next) => {
       req.handlerName = after;
       try {
-        await executeFieldHandlers(true, req, res);
-        await executeActions('after', req, res);
+        await hook.instrument('executeFieldHandlers', executeFieldHandlers)(true, req, res);
+        await hook.instrument('executeActions', executeActions)('after', req, res);
         await alterSubmission(req, res);
         await ensureResponse(req, res);
         return next();
       } catch (error) {
         return next(error);
+      } finally {
+        // resourcejs has written the document before it calls this handler, so the count means
+        // persisted, not attempted. It is taken in a `finally` because a blocking after-action that
+        // throws — a webhook answering 500 — must not take the count of an already-saved submission
+        // with it.
+        const submissionWasCreated = method.name === 'create' && !!_.get(res, 'resource.item._id');
+        if (submissionWasCreated) {
+          hook.report('count', () => [metrics.SUBMISSION_CREATED, 1, metricAttributes(req)]);
+        }
       }
     };
   });

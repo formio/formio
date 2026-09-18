@@ -13,6 +13,9 @@ const Q = require('q');
 const cors = require('cors');
 const test = process.env.TEST_SUITE;
 const noInstall = process.env.NO_INSTALL;
+const { httpLogger, logger } = require('./src/util/logger');
+const { stripSecretsFromQuery } = require('./src/util/logger/redaction');
+const installLogger = logger.child({ module: 'formio:install' });
 const { sanitize, has } = require('express-mongo-sanitize');
 
 module.exports = function (options) {
@@ -42,8 +45,11 @@ module.exports = function (options) {
 
   // Use the express application.
   const app = options.app || express();
-
+  // Express 4 freezes the query parser into the router on the first app.use(), so this has
+  // to come before any middleware is mounted.
   app.set('query parser', 'simple');
+  // GOTCHA(G-FOS06)
+  app.use(httpLogger);
 
   // Use the given config.
   const config = options.config || require('config');
@@ -86,9 +92,11 @@ module.exports = function (options) {
   app.use((req, res, next) => {
     // Sanitize req.query to prevent MongoDB operator injection.
     if (req.query && has(req.query, true)) {
-      const before = JSON.stringify(req.query);
+      const before = JSON.stringify(stripSecretsFromQuery(req.query));
       req.query = sanitize(req.query, { allowDots: true });
-      app.formio.log(`MongoDB operator injection blocked in req.query: ${before}`, req);
+      req.log
+        .child({ module: 'formio:sanitize' })
+        .warn(`MongoDB operator injection blocked in req.query: ${before}`);
     }
     return next();
   });
@@ -128,6 +136,7 @@ module.exports = function (options) {
       // Install.
       require('./install')(formio, install, function (err) {
         if (err) {
+          installLogger.error(err);
           if (err !== 'Installation canceled.') {
             return util.log(err.message);
           }

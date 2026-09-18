@@ -1,6 +1,5 @@
 'use strict';
 
-const debug = require('debug')('formio:middleware:bootstrapNewRoleAccess');
 const async = require('async');
 const _ = require('lodash');
 
@@ -17,6 +16,7 @@ const _ = require('lodash');
  */
 module.exports = function (router) {
   return async function bootstrapNewRoleAccess(req, res, next) {
+    const log = req.log.child({ module: 'formio:middleware:bootstrapNewRoleAccess' });
     const hook = require('../util/hook')(router.formio);
 
     // Only bootstrap existing form access on Role creation.
@@ -75,7 +75,7 @@ module.exports = function (router) {
           done,
         );
       } catch (err) {
-        debug(err);
+        log.error(err);
         return done(err);
       }
     };
@@ -88,7 +88,7 @@ module.exports = function (router) {
 
     async.series(bound, function (err) {
       if (err) {
-        debug(err);
+        log.error(err);
         return next(err);
       }
 

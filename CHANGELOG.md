@@ -1,5 +1,101 @@
 # formio
 
+## 4.10.0
+
+### Minor Changes
+
+- af6285a: FIO-11879: add the `instrument` / `count` / `observe` instrumentation hook seam (`hook.instrument`, `hook.has`, `hook.report`) that a consumer implements to collect telemetry. This package ships no OpenTelemetry dependency and no telemetry of its own.
+- f6b1925: FIO-7988: Replace debug with pino/pino-http structured logging. The shared logger now lives in the formio package (src/util/logger) rather than a separate @formio/logger package. Structured output is gated behind the new `STRUCTURED_LOGGING` feature flag (`FORMIO_STRUCTURED_LOGGING=true`) and is off by default, so until the flag is switched on the server keeps emitting the previous `debug`-style stderr stream and the new per-request HTTP access logs stay silent. With the flag on, `FORMIO_LOG_FORMAT=json|legacy` (or a present `DEBUG`) selects the output format. Log call sites that dumped a whole credential or personal record (SendGrid API key, bcrypt password hash, LDAP directory entries, SAML user records, deployment licence key, payment transaction data) now log an identifier instead, guarded by a scan in `apps/formio/test/logSafety.test.js`. Request- and response-scoped records censor auth material — the `x-token` project API key, the `x-admin-key` server admin key, `x-jwt-token`, `x-remote-token`, `x-file-token`, `authorization` and `cookie` headers, the re-issued `x-jwt-token` / `x-remote-token` / `x-m2m-token` / `x-file-token` response headers, and the API key or JWT when passed as `?token=` / `?x-jwt-token=` / `?x-remote-token=` (in both `req.query` and the request URL, percent-encoded names included). Errors are serialized as `{ type, message, stack, code }` only, so an HTTP client error no longer carries its request's Authorization header into the record. The `formio` router attaches `req.log` itself when mounted without `httpLogger`, so npm consumers embedding the router keep working. In legacy mode the fields a call site adds are printed as a JSON tail after the message, matching what the old `debug(object)` calls printed. Both servers now call `app.set('query parser', 'simple')` before mounting any middleware; Express 4 freezes the parser on the first `app.use()`, so with the logger mounted first the setting was silently ignored and the extended `qs` parser stayed in effect.
+
+### Patch Changes
+
+- d2d2291: FIO-11232: Remove redundant util/utils from the InstanceShim custom default value context
+- 56eba04: FIO-12233: fix input mask validation in the nextgen render isolate
+- 85016ff: CVE-2026-41907: Replace uuid with Node crypto.randomUUID for HTTP request ids
+- e3851de: FIO-9879: Fixes an issue where a nested form inside a layout component hidden in the JSON or by a condition was still saved as a separate reference submission, triggering required validation errors
+- 467bfea: bump nanoid to 3.3.12
+- 3d1914e: FIO-8557: implement isolated tests to formio
+- 7b8c81c: FIO-XXXX: Registers the isolate evaluator in the VM spec so it passes standalone
+- Updated dependencies [a61fce2]
+- Updated dependencies [edd6949]
+- Updated dependencies [00a3836]
+- Updated dependencies [00a3836]
+- Updated dependencies [b35ca79]
+- Updated dependencies [f1c7ae2]
+- Updated dependencies [9dad708]
+- Updated dependencies [80591a9]
+- Updated dependencies [00a3836]
+- Updated dependencies [e3851de]
+- Updated dependencies [00a3836]
+- Updated dependencies [bfa10bb]
+- Updated dependencies [881e668]
+- Updated dependencies [70e7dae]
+- Updated dependencies [436c763]
+- Updated dependencies [19617b9]
+- Updated dependencies [f6b1925]
+- Updated dependencies [22325f8]
+- Updated dependencies [d96cc58]
+- Updated dependencies [2d41328]
+  - @formio/nextgen@0.1.0
+  - @formio/core@2.8.3
+  - @formio/js@5.6.0
+  - @formio/feature-flags@1.5.0
+
+## 4.10.0-api910.2
+
+### Patch Changes
+
+- 85016ff: CVE-2026-41907: Replace uuid with Node crypto.randomUUID for HTTP request ids
+
+## 4.10.0-api910.1
+
+### Minor Changes
+
+- af6285a: FIO-11879: add the `instrument` / `count` / `observe` instrumentation hook seam (`hook.instrument`, `hook.has`, `hook.report`) that a consumer implements to collect telemetry. This package ships no OpenTelemetry dependency and no telemetry of its own.
+
+### Patch Changes
+
+- Updated dependencies [22325f8]
+  - @formio/js@5.6.0-api910.1
+
+## 4.10.0-api910.0
+
+### Minor Changes
+
+- f6b1925: FIO-7988: Replace debug with pino/pino-http structured logging. The shared logger now lives in the formio package (src/util/logger) rather than a separate @formio/logger package. Structured output is gated behind the new `STRUCTURED_LOGGING` feature flag (`FORMIO_STRUCTURED_LOGGING=true`) and is off by default, so until the flag is switched on the server keeps emitting the previous `debug`-style stderr stream and the new per-request HTTP access logs stay silent. With the flag on, `FORMIO_LOG_FORMAT=json|legacy` (or a present `DEBUG`) selects the output format. Log call sites that dumped a whole credential or personal record (SendGrid API key, bcrypt password hash, LDAP directory entries, SAML user records, deployment licence key, payment transaction data) now log an identifier instead, guarded by a scan in `apps/formio/test/logSafety.test.js`. Request- and response-scoped records censor auth material — the `x-token` project API key, the `x-admin-key` server admin key, `x-jwt-token`, `x-remote-token`, `x-file-token`, `authorization` and `cookie` headers, the re-issued `x-jwt-token` / `x-remote-token` / `x-m2m-token` / `x-file-token` response headers, and the API key or JWT when passed as `?token=` / `?x-jwt-token=` / `?x-remote-token=` (in both `req.query` and the request URL, percent-encoded names included). Errors are serialized as `{ type, message, stack, code }` only, so an HTTP client error no longer carries its request's Authorization header into the record. The `formio` router attaches `req.log` itself when mounted without `httpLogger`, so npm consumers embedding the router keep working. In legacy mode the fields a call site adds are printed as a JSON tail after the message, matching what the old `debug(object)` calls printed. Both servers now call `app.set('query parser', 'simple')` before mounting any middleware; Express 4 freezes the parser on the first `app.use()`, so with the logger mounted first the setting was silently ignored and the extended `qs` parser stayed in effect.
+
+### Patch Changes
+
+- d2d2291: FIO-11232: Remove redundant util/utils from the InstanceShim custom default value context
+- 56eba04: FIO-12233: fix input mask validation in the nextgen render isolate
+- e3851de: FIO-9879: Fixes an issue where a nested form inside a layout component hidden in the JSON or by a condition was still saved as a separate reference submission, triggering required validation errors
+- 467bfea: bump nanoid to 3.3.12
+- 3d1914e: FIO-8557: implement isolated tests to formio
+- 7b8c81c: FIO-XXXX: Registers the isolate evaluator in the VM spec so it passes standalone
+- Updated dependencies [a61fce2]
+- Updated dependencies [edd6949]
+- Updated dependencies [00a3836]
+- Updated dependencies [00a3836]
+- Updated dependencies [b35ca79]
+- Updated dependencies [f1c7ae2]
+- Updated dependencies [9dad708]
+- Updated dependencies [80591a9]
+- Updated dependencies [00a3836]
+- Updated dependencies [e3851de]
+- Updated dependencies [00a3836]
+- Updated dependencies [bfa10bb]
+- Updated dependencies [881e668]
+- Updated dependencies [70e7dae]
+- Updated dependencies [436c763]
+- Updated dependencies [19617b9]
+- Updated dependencies [f6b1925]
+- Updated dependencies [d96cc58]
+- Updated dependencies [2d41328]
+  - @formio/nextgen@0.1.0-api910.0
+  - @formio/core@2.8.3-api910.0
+  - @formio/js@5.6.0-api910.0
+  - @formio/feature-flags@1.5.0-api910.0
+
 ## 4.9.0
 
 ### Minor Changes

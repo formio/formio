@@ -3,12 +3,10 @@ const _ = require('lodash');
 const { ObjectId } = require('mongodb');
 const FormioCore = require('@formio/core');
 const fetch = require('@formio/node-fetch-http-proxy');
-const debug = {
-  validator: require('debug')('formio:validator'),
-  error: require('debug')('formio:error'),
-};
 const Utils = require('../util/util');
 const { RootShim } = require('../vm');
+const { logger } = require('../util/logger');
+const validatorLogger = logger.child({ module: 'formio:validator' });
 const loadComponentValueReferences = require('../util/loadComponentValueReferences');
 
 // Promisify cache load form.
@@ -336,9 +334,9 @@ class Validator {
   }
 
   async validateNextgen(submission, next) {
-    debug.validator('Starting validation');
+    validatorLogger.debug('Starting validation');
     if (!submission.data) {
-      debug.validator('No data skipping validation');
+      validatorLogger.debug('No data skipping validation');
       return next();
     }
 
@@ -389,17 +387,17 @@ class Validator {
       Utils.ensureIds(submission.data);
       return next(null, submission.data, this.form.components);
     } catch (err) {
-      debug.error(err.message || err);
+      validatorLogger.error(err.message || err);
       return next(err.message || String(err));
     }
   }
 
   async validateCore(submission, next) {
-    debug.validator('Starting validation');
+    validatorLogger.debug('Starting validation');
 
     // Skip validation if no data is provided.
     if (!submission.data) {
-      debug.validator('No data skipping validation');
+      validatorLogger.debug('No data skipping validation');
       return next();
     }
 
@@ -492,7 +490,7 @@ class Validator {
       submission.data = context.data;
       submission.scope = context.scope;
     } catch (err) {
-      debug.error(err.message || err);
+      validatorLogger.error(err);
       return next(err.message || err);
     }
 

@@ -1,7 +1,7 @@
 'use strict';
 
 const _ = require('lodash');
-const debug = require('debug')('formio:models:form');
+const { logger } = require('../util/logger');
 const { Utils: CoreUtils } = require('@formio/core');
 
 module.exports = (formio) => {
@@ -92,7 +92,7 @@ module.exports = (formio) => {
         const result = await formio.mongoose.model('form').findOne(search).lean().exec();
         return !result;
       } catch (err) {
-        debug(err);
+        logger.error({ module: 'formio:models:form', err });
         return false;
       }
     };

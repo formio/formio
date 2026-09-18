@@ -110,8 +110,6 @@ class InstanceShim {
           server: true,
         },
         value: null,
-        util: FormioCore.Utils,
-        utils: FormioCore.Utils,
       };
       const defaultValue = FormioCore.Evaluator.evaluate(
         this.component.customDefaultValue,

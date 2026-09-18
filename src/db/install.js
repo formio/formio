@@ -1,6 +1,6 @@
 'use strict';
 
-const util = require('../util/util');
+const { logger } = require('../util/logger');
 
 /**
  * Install script.
@@ -9,7 +9,7 @@ const util = require('../util/util');
  * update is expecting.
  */
 module.exports = async function (db, config) {
-  util.log(' > Performing install.');
+  logger.info({ module: 'formio:db' }, ' > Performing install.');
 
   async function createActionsCollection() {
     // Create actions collections exist.
