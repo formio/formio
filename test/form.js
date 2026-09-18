@@ -13,10 +13,15 @@ var docker = process.env.DOCKER;
 var customer = process.env.CUSTOMER;
 
 module.exports = function (app, template, hook) {
-  var formio = hook.alter('formio', app.formio);
-  var Helper = require('./helper')(app);
+  let Helper;
+  let formio;
 
   var ignoreFields = ['config', 'plan'];
+
+  before(function () {
+    Helper = require('./helper')(app);
+    formio = app.formio;
+  });
 
   describe('Forms', function () {
     // Store the temp form for this test suite.
@@ -51,7 +56,103 @@ module.exports = function (app, template, hook) {
       ],
     };
 
+    // The next three describes all build on one shared temp form. Guarded on the form's
+    // identity so whole-file ordering is unchanged: the first caller creates it and every
+    // later call is a no-op. `tempFormResponse` keeps the creation response around so the
+    // test that used to create the form can still assert on it.
+    var tempFormResponse = null;
+    var ensureTempForm = function (done) {
+      if (template.forms.tempForm && template.forms.tempForm._id) {
+        return done();
+      }
+
+      request(app)
+        .post(hook.alter('url', '/form', template))
+        .set('x-jwt-token', template.users.admin.token)
+        .send(tempForm)
+        .expect('Content-Type', /json/)
+        .expect(201)
+        .end(function (err, res) {
+          if (err) {
+            return done(err);
+          }
+
+          tempFormResponse = res.body;
+          template.forms.tempForm = res.body;
+
+          // Store the JWT for future API calls.
+          template.users.admin.token = res.headers['x-jwt-token'];
+
+          done();
+        });
+    };
+
     describe('Permissions - Form Level - Project Owner', function () {
+      before(function (done) {
+        ensureTempForm(done);
+      });
+
+      // 'Should have the correct form title.' asserts on the state two earlier tests leave
+      // behind: the owner rename to 'Updated' and a rename rejected for a non-owner. Guarded
+      // on the title itself, so in file order the original tests still do the work.
+      var ensureTempFormRenamed = function (done) {
+        if (template.forms.tempForm.title === 'Updated') {
+          return done();
+        }
+
+        request(app)
+          .put(hook.alter('url', '/form/' + template.forms.tempForm._id, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({ title: 'Updated' })
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function (err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            template.forms.tempForm = res.body;
+            template.users.admin.token = res.headers['x-jwt-token'];
+
+            request(app)
+              .put(hook.alter('url', '/form/' + template.forms.tempForm._id, template))
+              .set('x-jwt-token', template.users.user1.token)
+              .send({ title: 'SHOULD NOT WORK!!!' })
+              .expect(401)
+              .end(done);
+          });
+      };
+
+      // Same shape as ensureTempFormRenamed, through the form's alias, for
+      // 'Should not have updated the form'.
+      var ensureTempFormRenamedByAlias = function (done) {
+        if (template.forms.tempForm.title === 'Updated2') {
+          return done();
+        }
+
+        request(app)
+          .put(hook.alter('url', '/' + template.forms.tempForm.path, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({ title: 'Updated2' })
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function (err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            template.forms.tempForm = res.body;
+            template.users.admin.token = res.headers['x-jwt-token'];
+
+            request(app)
+              .put(hook.alter('url', '/' + template.forms.tempForm.path, template))
+              .set('x-jwt-token', template.users.user1.token)
+              .send({ title: 'SHOULD NOT WORK!!!' })
+              .expect(401)
+              .end(done);
+          });
+      };
+
       it('A normal user should NOT be able to create a form', function (done) {
         request(app)
           .post(hook.alter('url', '/form', template))
@@ -61,7 +162,7 @@ module.exports = function (app, template, hook) {
           .end(done);
       });
 
-      it('Should not be able to create a form with a reserved name', function (done) {
+      it('Should not be able to create a form with a reserved name (reserved path)', function (done) {
         request(app)
           .post(hook.alter('url', '/form', template))
           .set('x-jwt-token', template.users.admin.token)
@@ -78,7 +179,7 @@ module.exports = function (app, template, hook) {
           .end(done);
       });
 
-      it('Should not be able to create a form with a reserved name', function (done) {
+      it('Should not be able to create a form with a reserved name (subpath of a reserved path)', function (done) {
         request(app)
           .post(hook.alter('url', '/form', template))
           .set('x-jwt-token', template.users.admin.token)
@@ -184,60 +285,47 @@ module.exports = function (app, template, hook) {
       });
 
       it('An administrator should be able to Create a Form', function (done) {
-        request(app)
-          .post(hook.alter('url', '/form', template))
-          .set('x-jwt-token', template.users.admin.token)
-          .send(tempForm)
-          .expect('Content-Type', /json/)
-          .expect(201)
-          .end(function (err, res) {
-            if (err) {
-              return done(err);
-            }
+        ensureTempForm(function (err) {
+          if (err) {
+            return done(err);
+          }
 
-            var response = res.body;
-            assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
-            assert(
-              response.hasOwnProperty('modified'),
-              'The response should contain a `modified` timestamp.',
-            );
-            assert(
-              response.hasOwnProperty('created'),
-              'The response should contain a `created` timestamp.',
-            );
-            assert(
-              response.hasOwnProperty('access'),
-              'The response should contain an the `access`.',
-            );
-            assert.equal(response.title, tempForm.title);
-            assert.equal(response.name, tempForm.name);
-            assert.equal(response.path, tempForm.path);
-            assert.equal(response.type, 'form');
-            assert.notEqual(response.access, []);
-            assert.equal(response.access.length, 1);
-            assert.equal(response.access[0].type, 'read_all');
-            assert.equal(response.access[0].roles.length, 3);
-            assert.notEqual(
-              response.access[0].roles.indexOf(template.roles.anonymous._id.toString()),
-              -1,
-            );
-            assert.notEqual(
-              response.access[0].roles.indexOf(template.roles.authenticated._id.toString()),
-              -1,
-            );
-            assert.notEqual(
-              response.access[0].roles.indexOf(template.roles.administrator._id.toString()),
-              -1,
-            );
-            assert.deepEqual(response.submissionAccess, []);
-            assert.deepEqual(response.components, tempForm.components);
-            template.forms.tempForm = response;
+          var response = tempFormResponse;
+          assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+          assert(
+            response.hasOwnProperty('modified'),
+            'The response should contain a `modified` timestamp.',
+          );
+          assert(
+            response.hasOwnProperty('created'),
+            'The response should contain a `created` timestamp.',
+          );
+          assert(response.hasOwnProperty('access'), 'The response should contain an the `access`.');
+          assert.equal(response.title, tempForm.title);
+          assert.equal(response.name, tempForm.name);
+          assert.equal(response.path, tempForm.path);
+          assert.equal(response.type, 'form');
+          assert.notEqual(response.access, []);
+          assert.equal(response.access.length, 1);
+          assert.equal(response.access[0].type, 'read_all');
+          assert.equal(response.access[0].roles.length, 3);
+          assert.notEqual(
+            response.access[0].roles.indexOf(template.roles.anonymous._id.toString()),
+            -1,
+          );
+          assert.notEqual(
+            response.access[0].roles.indexOf(template.roles.authenticated._id.toString()),
+            -1,
+          );
+          assert.notEqual(
+            response.access[0].roles.indexOf(template.roles.administrator._id.toString()),
+            -1,
+          );
+          assert.deepEqual(response.submissionAccess, []);
+          assert.deepEqual(response.components, tempForm.components);
 
-            // Store the JWT for future API calls.
-            template.users.admin.token = res.headers['x-jwt-token'];
-
-            done();
-          });
+          done();
+        });
       });
 
       it('An administrator should not be able to Create a duplicate Form', function (done) {
@@ -401,25 +489,31 @@ module.exports = function (app, template, hook) {
       });
 
       it('Should have the correct form title.', function (done) {
-        request(app)
-          .get(hook.alter('url', '/form/' + template.forms.tempForm._id, template))
-          .set('x-jwt-token', template.users.admin.token)
-          .expect('Content-Type', /json/)
-          .expect(200)
-          .end(function (err, res) {
-            if (err) {
-              return done(err);
-            }
+        ensureTempFormRenamed(function (err) {
+          if (err) {
+            return done(err);
+          }
 
-            var response = res.body;
-            assert.notEqual(response.title, 'SHOULD NOT WORK!!!');
-            assert.equal(response.title, 'Updated');
+          request(app)
+            .get(hook.alter('url', '/form/' + template.forms.tempForm._id, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .end(function (err, res) {
+              if (err) {
+                return done(err);
+              }
 
-            // Store the JWT for future API calls.
-            template.users.admin.token = res.headers['x-jwt-token'];
+              var response = res.body;
+              assert.notEqual(response.title, 'SHOULD NOT WORK!!!');
+              assert.equal(response.title, 'Updated');
 
-            done();
-          });
+              // Store the JWT for future API calls.
+              template.users.admin.token = res.headers['x-jwt-token'];
+
+              done();
+            });
+        });
       });
 
       it('A Project Owner should be able to Read their Index of Forms', function (done) {
@@ -576,23 +670,29 @@ module.exports = function (app, template, hook) {
       });
 
       it('Should not have updated the form', function (done) {
-        request(app)
-          .get(hook.alter('url', '/' + template.forms.tempForm.path, template))
-          .set('x-jwt-token', template.users.user1.token)
-          .expect('Content-Type', /json/)
-          .expect(200)
-          .end(function (err, res) {
-            if (err) {
-              return done(err);
-            }
+        ensureTempFormRenamedByAlias(function (err) {
+          if (err) {
+            return done(err);
+          }
 
-            assert.equal(res.body.title, 'Updated2');
+          request(app)
+            .get(hook.alter('url', '/' + template.forms.tempForm.path, template))
+            .set('x-jwt-token', template.users.user1.token)
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .end(function (err, res) {
+              if (err) {
+                return done(err);
+              }
 
-            // Store the JWT for future API calls.
-            template.users.user1.token = res.headers['x-jwt-token'];
+              assert.equal(res.body.title, 'Updated2');
 
-            done();
-          });
+              // Store the JWT for future API calls.
+              template.users.user1.token = res.headers['x-jwt-token'];
+
+              done();
+            });
+        });
       });
 
       it('An administrator should not be able to Create a Form without a name', function (done) {
@@ -655,7 +755,7 @@ module.exports = function (app, template, hook) {
           });
       });
 
-      it('An administrator should not be able to set the form id to null when creating a form', function (done) {
+      it('An administrator should not be able to set the form id to the string "null" when creating a form', function (done) {
         const form = _.cloneDeep(tempForm);
 
         form._id = 'null';
@@ -914,6 +1014,62 @@ module.exports = function (app, template, hook) {
     });
 
     describe('Permissions - Form Level - Anonymous User', function () {
+      before(function (done) {
+        ensureTempForm(done);
+      });
+
+      // Each of these three re-applies exactly the PUT the test above it makes, so the tests
+      // that assert on the resulting access state can run on their own. They are idempotent
+      // rather than guarded: re-sending the same access definition lands the same state.
+      var setReadAccessWithoutAnonymous = function (done) {
+        request(app)
+          .put(hook.alter('url', '/form/' + template.forms.tempForm._id, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({
+            ...tempForm,
+            access: [
+              {
+                type: 'read_all',
+                roles: [
+                  template.roles.authenticated._id.toString(),
+                  template.roles.administrator._id.toString(),
+                ],
+              },
+            ],
+          })
+          .expect(200)
+          .end(done);
+      };
+
+      var setFieldMatchAccessFor = function (role, done) {
+        request(app)
+          .put(hook.alter('url', '/form/' + template.forms.tempForm._id, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({
+            ...tempForm,
+            fieldMatchAccess: {
+              read: [
+                {
+                  formFieldPath: 'data.textField',
+                  valueType: 'string',
+                  value: 'test1',
+                  operator: '$eq',
+                  roles: [role._id.toString()],
+                },
+              ],
+            },
+          })
+          .expect(200)
+          .end(function (err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            template.forms.tempForm = res.body;
+            done();
+          });
+      };
+
       it('An Anonymous user should not be able to Create a Form for a User-Created Project', function (done) {
         request(app)
           .post(hook.alter('url', '/form', template))
@@ -949,17 +1105,33 @@ module.exports = function (app, template, hook) {
           .end(done);
       });
 
+      // 200 vs 206 on the form index only says whether the project holds more than one page
+      // of forms, which depends on how many earlier tests happened to create one — so these
+      // two answered 206 in a full run and 200 when run on their own. What they are about is
+      // whether an anonymous user may read the index at all, so assert that and let the
+      // paging status be what it is. Same reasoning as `expectIndexAnswered` below.
+      const expectAnonymousIndex = (res) => {
+        if (template.project) {
+          assert.equal(res.status, 401, 'Expected the index to be denied, got ' + res.status);
+          return;
+        }
+        assert(
+          res.status === 200 || res.status === 206,
+          'Expected the form index to answer with 200 or 206, got ' + res.status,
+        );
+      };
+
       it('An Anonymous user should be able to Read the Index of Forms for a User-Created Project', function (done) {
         request(app)
           .get(hook.alter('url', '/form', template))
-          .expect(template.project ? 401 : 206)
+          .expect(expectAnonymousIndex)
           .end(done);
       });
 
       it('An Anonymous user should be able to Read the Index of Forms for a User-Created Project with the Form filter', function (done) {
         request(app)
           .get(hook.alter('url', '/form?type=form', template))
-          .expect(template.project ? 401 : 206)
+          .expect(expectAnonymousIndex)
           .end(done);
       });
 
@@ -993,120 +1165,102 @@ module.exports = function (app, template, hook) {
       });
 
       it('Delete Anonymous role from Read Form Definition', function (done) {
-        request(app)
-          .put(hook.alter('url', '/form/' + template.forms.tempForm._id, template))
-          .set('x-jwt-token', template.users.admin.token)
-          .send({
-            ...tempForm,
-            access: [
-              {
-                type: 'read_all',
-                roles: [
-                  template.roles.authenticated._id.toString(),
-                  template.roles.administrator._id.toString(),
-                ],
-              },
-            ],
-          })
-          .expect(200)
-          .end(function (err, res) {
-            if (err) {
-              return done(err);
-            }
-            done();
-          });
+        setReadAccessWithoutAnonymous(done);
       });
 
       it('An Anonymous user should not be able to Read a Form for a User-Created Project after deleting Anonymous role from Read Form Definition', function (done) {
-        request(app)
-          .get(hook.alter('url', '/form/' + template.forms.tempForm._id, template))
-          .expect(401)
-          .end(done);
+        setReadAccessWithoutAnonymous(function (err) {
+          if (err) {
+            return done(err);
+          }
+
+          request(app)
+            .get(hook.alter('url', '/form/' + template.forms.tempForm._id, template))
+            .expect(401)
+            .end(done);
+        });
       });
 
       it('Add Field Match Based Access for not Anonymous users', function (done) {
-        request(app)
-          .put(hook.alter('url', '/form/' + template.forms.tempForm._id, template))
-          .set('x-jwt-token', template.users.admin.token)
-          .send({
-            ...tempForm,
-            fieldMatchAccess: {
-              read: [
-                {
-                  formFieldPath: 'data.textField',
-                  valueType: 'string',
-                  value: 'test1',
-                  operator: '$eq',
-                  roles: [template.roles.authenticated._id.toString()],
-                },
-              ],
-            },
-          })
-          .expect(200)
-          .end(function (err, res) {
-            if (err) {
-              return done(err);
-            }
-            done();
-          });
+        setFieldMatchAccessFor(template.roles.authenticated, done);
       });
 
-      it('An Anonymous user should not be able to Read a Form for a User-Created Project after deleting Anonymous role from Read Form Definition', function (done) {
-        request(app)
-          .get(hook.alter('url', '/form/' + template.forms.tempForm._id, template))
-          .expect(401)
-          .end(done);
+      it('An Anonymous user should not be able to Read a Form with Match Based Access for authenticated users', function (done) {
+        setFieldMatchAccessFor(template.roles.authenticated, function (err) {
+          if (err) {
+            return done(err);
+          }
+
+          request(app)
+            .get(hook.alter('url', '/form/' + template.forms.tempForm._id, template))
+            .expect(401)
+            .end(done);
+        });
       });
 
       it('Add Field Match Based Access for Anonymous users', function (done) {
-        request(app)
-          .put(hook.alter('url', '/form/' + template.forms.tempForm._id, template))
-          .set('x-jwt-token', template.users.admin.token)
-          .send({
-            ...tempForm,
-            fieldMatchAccess: {
-              read: [
-                {
-                  formFieldPath: 'data.textField',
-                  valueType: 'string',
-                  value: 'test1',
-                  operator: '$eq',
-                  roles: [template.roles.anonymous._id.toString()],
-                },
-              ],
-            },
-          })
-          .expect(200)
-          .end(function (err, res) {
-            if (err) {
-              return done(err);
-            }
-            var response = res.body;
-            template.forms.tempForm = response;
-            done();
-          });
+        setFieldMatchAccessFor(template.roles.anonymous, done);
       });
 
       it('An Anonymous user should not be able to Read a Form with Match Based Access for Anonymous users', function (done) {
-        request(app)
-          .get(hook.alter('url', '/form/' + template.forms.tempForm._id, template))
-          .expect('Content-Type', /json/)
-          .expect(200)
-          .end(function (err, res) {
-            if (err) {
-              return done(err);
-            }
-            var response = res.body;
-            assert.deepEqual(
-              _.omit(response, ignoreFields),
-              _.omit(template.forms.tempForm, ignoreFields),
-            );
-            done();
-          });
+        setFieldMatchAccessFor(template.roles.anonymous, function (err) {
+          if (err) {
+            return done(err);
+          }
+
+          request(app)
+            .get(hook.alter('url', '/form/' + template.forms.tempForm._id, template))
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .end(function (err, res) {
+              if (err) {
+                return done(err);
+              }
+              var response = res.body;
+              assert.deepEqual(
+                _.omit(response, ignoreFields),
+                _.omit(template.forms.tempForm, ignoreFields),
+              );
+              done();
+            });
+        });
       });
     });
 
     describe('Form Normalization', function () {
+      before(function (done) {
+        ensureTempForm(done);
+      });
+
+      // 'A deleted Form should remain in the database' needs the delete to have happened, so
+      // both it and the test that deletes go through here. Guarded on the deleted id, which
+      // stops matching again as soon as ensureTempForm rebuilds the form.
+      var deletedTempFormId = null;
+      var deleteTempFormResponse = null;
+      var ensureTempFormDeleted = function (done) {
+        if (deletedTempFormId && deletedTempFormId === template.forms.tempForm._id) {
+          return done();
+        }
+
+        request(app)
+          .delete(hook.alter('url', '/form/' + template.forms.tempForm._id, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .expect(200)
+          .end(function (err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            deletedTempFormId = template.forms.tempForm._id;
+            deleteTempFormResponse = res.body;
+
+            // Store the JWT for future API calls.
+            template.users.admin.token = res.headers['x-jwt-token'];
+
+            done();
+          });
+      };
+
       it('Updating a Form with duplicate access permission types will condense the access permissions', function (done) {
         var roleAccess = [
           template.roles.authenticated._id.toString(),
@@ -1484,27 +1638,24 @@ module.exports = function (app, template, hook) {
       });
 
       it('A Project Owner should be able to Delete their Form', function (done) {
-        request(app)
-          .delete(hook.alter('url', '/form/' + template.forms.tempForm._id, template))
-          .set('x-jwt-token', template.users.admin.token)
-          .expect(200)
-          .end(function (err, res) {
-            if (err) {
-              return done(err);
-            }
+        ensureTempFormDeleted(function (err) {
+          if (err) {
+            return done(err);
+          }
 
-            var response = res.body;
-            assert.deepEqual(response, {});
-
-            // Store the JWT for future API calls.
-            template.users.admin.token = res.headers['x-jwt-token'];
-
-            done();
-          });
+          assert.deepEqual(deleteTempFormResponse, {});
+          done();
+        });
       });
 
       if (!docker)
         it('A deleted Form should remain in the database', async function () {
+          await new Promise(function (resolve, reject) {
+            ensureTempFormDeleted(function (err) {
+              return err ? reject(err) : resolve();
+            });
+          });
+
           var formio = hook.alter('formio', app.formio);
           let form = await formio.resources.form.model
             .findOne({ _id: template.forms.tempForm._id })
@@ -1813,121 +1964,150 @@ module.exports = function (app, template, hook) {
       });
     });
 
+    // `Form Components Endpoint` builds this form and `Access Information` asserts that it is
+    // visible, so the builder lives at suite scope. Guarded on identity; the creation response
+    // is kept so the Bootstrap test can still assert on it.
+    var testComponentFormResponse = null;
+    var ensureTestComponentForm = function (done) {
+      if (template.forms.testComponentForm && template.forms.testComponentForm._id) {
+        return done();
+      }
+
+      var testComponentForm = {
+        title: 'Test Component Form',
+        name: 'testComponentForm',
+        path: 'temp/testcomponentform',
+        type: 'form',
+        access: [
+          {
+            type: 'read_all',
+            roles: [template.roles.administrator._id.toString()],
+          },
+        ],
+        submissionAccess: [],
+        components: [
+          {
+            input: true,
+            inputType: 'email',
+            label: 'Email',
+            key: 'email',
+            protected: false,
+            persistent: true,
+            type: 'email',
+          },
+          {
+            input: true,
+            inputType: 'password',
+            label: 'Password',
+            key: 'password',
+            protected: true,
+            persistent: true,
+            type: 'password',
+          },
+          {
+            input: true,
+            inputType: 'number',
+            label: 'Number',
+            key: 'number',
+            protected: false,
+            persistent: false,
+            type: 'number',
+            validate: {
+              step: 23,
+            },
+          },
+        ],
+      };
+      // Create the test form
+      request(app)
+        .post(hook.alter('url', '/form', template))
+        .set('x-jwt-token', template.users.admin.token)
+        .send(testComponentForm)
+        .expect('Content-Type', /json/)
+        .expect(201)
+        .end(function (err, res) {
+          if (err) {
+            return done(err);
+          }
+
+          assert(res.body.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+
+          // Store the JWT for future API calls.
+          template.users.admin.token = res.headers['x-jwt-token'];
+
+          // Update the access rights to only let admins read_all
+          request(app)
+            .put(hook.alter('url', '/form/' + res.body._id, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send({
+              access: [
+                {
+                  type: 'read_all',
+                  roles: [template.roles.administrator._id.toString()],
+                },
+              ],
+            })
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .end(function (err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+              assert(
+                response.hasOwnProperty('modified'),
+                'The response should contain a `modified` timestamp.',
+              );
+              assert(
+                response.hasOwnProperty('created'),
+                'The response should contain a `created` timestamp.',
+              );
+              assert(
+                response.hasOwnProperty('access'),
+                'The response should contain an the `access`.',
+              );
+              assert.equal(response.title, testComponentForm.title);
+              assert.equal(response.name, testComponentForm.name);
+              assert.equal(response.path, testComponentForm.path);
+              assert.equal(response.type, 'form');
+              assert.notEqual(response.access, []);
+              assert.equal(response.access.length, 1);
+              assert.equal(response.access[0].type, 'read_all');
+              assert.equal(response.access[0].roles.length, 1);
+              assert.equal(
+                response.access[0].roles[0],
+                template.roles.administrator._id.toString(),
+              );
+              assert.deepEqual(response.submissionAccess, []);
+              assert.deepEqual(response.components, testComponentForm.components);
+              testComponentFormResponse = response;
+              template.forms.testComponentForm = response;
+              done();
+            });
+        });
+    };
+
     describe('Form Components Endpoint', function () {
+      before(function (done) {
+        ensureTestComponentForm(done);
+      });
+
       it('Bootstrap', function (done) {
-        var testComponentForm = {
-          title: 'Test Component Form',
-          name: 'testComponentForm',
-          path: 'temp/testcomponentform',
-          type: 'form',
-          access: [
-            {
-              type: 'read_all',
-              roles: [template.roles.administrator._id.toString()],
-            },
-          ],
-          submissionAccess: [],
-          components: [
-            {
-              input: true,
-              inputType: 'email',
-              label: 'Email',
-              key: 'email',
-              protected: false,
-              persistent: true,
-              type: 'email',
-            },
-            {
-              input: true,
-              inputType: 'password',
-              label: 'Password',
-              key: 'password',
-              protected: true,
-              persistent: true,
-              type: 'password',
-            },
-            {
-              input: true,
-              inputType: 'number',
-              label: 'Number',
-              key: 'number',
-              protected: false,
-              persistent: false,
-              type: 'number',
-              validate: {
-                step: 23,
-              },
-            },
-          ],
-        };
-        // Create the test form
-        request(app)
-          .post(hook.alter('url', '/form', template))
-          .set('x-jwt-token', template.users.admin.token)
-          .send(testComponentForm)
-          .expect('Content-Type', /json/)
-          .expect(201)
-          .end(function (err, res) {
-            if (err) {
-              return done(err);
-            }
+        ensureTestComponentForm(function (err) {
+          if (err) {
+            return done(err);
+          }
 
-            assert(res.body.hasOwnProperty('_id'), 'The response should contain an `_id`.');
-
-            // Store the JWT for future API calls.
-            template.users.admin.token = res.headers['x-jwt-token'];
-
-            // Update the access rights to only let admins read_all
-            request(app)
-              .put(hook.alter('url', '/form/' + res.body._id, template))
-              .set('x-jwt-token', template.users.admin.token)
-              .send({
-                access: [
-                  {
-                    type: 'read_all',
-                    roles: [template.roles.administrator._id.toString()],
-                  },
-                ],
-              })
-              .expect('Content-Type', /json/)
-              .expect(200)
-              .end(function (err, res) {
-                if (err) {
-                  return done(err);
-                }
-
-                var response = res.body;
-                assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
-                assert(
-                  response.hasOwnProperty('modified'),
-                  'The response should contain a `modified` timestamp.',
-                );
-                assert(
-                  response.hasOwnProperty('created'),
-                  'The response should contain a `created` timestamp.',
-                );
-                assert(
-                  response.hasOwnProperty('access'),
-                  'The response should contain an the `access`.',
-                );
-                assert.equal(response.title, testComponentForm.title);
-                assert.equal(response.name, testComponentForm.name);
-                assert.equal(response.path, testComponentForm.path);
-                assert.equal(response.type, 'form');
-                assert.notEqual(response.access, []);
-                assert.equal(response.access.length, 1);
-                assert.equal(response.access[0].type, 'read_all');
-                assert.equal(response.access[0].roles.length, 1);
-                assert.equal(
-                  response.access[0].roles[0],
-                  template.roles.administrator._id.toString(),
-                );
-                assert.deepEqual(response.submissionAccess, []);
-                assert.deepEqual(response.components, testComponentForm.components);
-                template.forms.testComponentForm = response;
-                done();
-              });
-          });
+          var response = testComponentFormResponse;
+          assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+          assert.equal(response.title, 'Test Component Form');
+          assert.equal(response.access.length, 1);
+          assert.equal(response.access[0].type, 'read_all');
+          assert.equal(response.access[0].roles[0], template.roles.administrator._id.toString());
+          done();
+        });
       });
 
       it("An Anonymous user should not be able to Read their Form's components", function (done) {
@@ -2197,18 +2377,23 @@ module.exports = function (app, template, hook) {
     describe('Form Validation', function () {
       // FA-566
       describe('Negative Min Length', function () {
-        var form = _.cloneDeep(tempForm);
-        form.title = 'validationform';
-        form.name = 'validationform';
-        form.path = 'validationform';
-        form.components[0].validate.minLength = -1;
+        var formDefinition = _.cloneDeep(tempForm);
+        formDefinition.title = 'validationform';
+        formDefinition.name = 'validationform';
+        formDefinition.path = 'validationform';
+        formDefinition.components[0].validate.minLength = -1;
 
-        it('Bootstrap', function (done) {
+        var form = null;
+        var ensureForm = function (done) {
+          if (form && form._id) {
+            return done();
+          }
+
           // Create the test form
           request(app)
             .post(hook.alter('url', '/form', template))
             .set('x-jwt-token', template.users.admin.token)
-            .send(form)
+            .send(formDefinition)
             .expect('Content-Type', /json/)
             .expect(201)
             .end(function (err, res) {
@@ -2216,34 +2401,43 @@ module.exports = function (app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
-              assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
-              assert(
-                response.hasOwnProperty('modified'),
-                'The response should contain a `modified` timestamp.',
-              );
-              assert(
-                response.hasOwnProperty('created'),
-                'The response should contain a `created` timestamp.',
-              );
-              assert(
-                response.hasOwnProperty('access'),
-                'The response should contain an the `access`.',
-              );
-              assert.equal(response.title, form.title);
-              assert.equal(response.name, form.name);
-              assert.equal(response.path, form.path);
-              assert.equal(response.type, 'form');
-              assert.deepEqual(response.submissionAccess, []);
-              assert.deepEqual(response.components, form.components);
-
-              form = response;
+              form = res.body;
 
               // Store the JWT for future API calls.
               template.users.admin.token = res.headers['x-jwt-token'];
 
               done();
             });
+        };
+
+        before(function (done) {
+          ensureForm(done);
+        });
+
+        it('Bootstrap', function (done) {
+          ensureForm(function (err) {
+            if (err) {
+              return done(err);
+            }
+
+            assert(form.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+            assert(
+              form.hasOwnProperty('modified'),
+              'The response should contain a `modified` timestamp.',
+            );
+            assert(
+              form.hasOwnProperty('created'),
+              'The response should contain a `created` timestamp.',
+            );
+            assert(form.hasOwnProperty('access'), 'The response should contain an the `access`.');
+            assert.equal(form.title, formDefinition.title);
+            assert.equal(form.name, formDefinition.name);
+            assert.equal(form.path, formDefinition.path);
+            assert.equal(form.type, 'form');
+            assert.deepEqual(form.submissionAccess, []);
+            assert.deepEqual(form.components, formDefinition.components);
+            done();
+          });
         });
 
         it("Negative Min Length validation won't crash the server on submission", function (done) {
@@ -2289,18 +2483,23 @@ module.exports = function (app, template, hook) {
 
       // FA-566
       describe('Negative Max Length', function () {
-        var form = _.cloneDeep(tempForm);
-        form.title = 'validationform';
-        form.name = 'validationform';
-        form.path = 'validationform';
-        form.components[0].validate.maxLength = -1;
+        var formDefinition = _.cloneDeep(tempForm);
+        formDefinition.title = 'validationform';
+        formDefinition.name = 'validationform';
+        formDefinition.path = 'validationform';
+        formDefinition.components[0].validate.maxLength = -1;
 
-        it('Bootstrap', function (done) {
+        var form = null;
+        var ensureForm = function (done) {
+          if (form && form._id) {
+            return done();
+          }
+
           // Create the test form
           request(app)
             .post(hook.alter('url', '/form', template))
             .set('x-jwt-token', template.users.admin.token)
-            .send(form)
+            .send(formDefinition)
             .expect('Content-Type', /json/)
             .expect(201)
             .end(function (err, res) {
@@ -2308,34 +2507,43 @@ module.exports = function (app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
-              assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
-              assert(
-                response.hasOwnProperty('modified'),
-                'The response should contain a `modified` timestamp.',
-              );
-              assert(
-                response.hasOwnProperty('created'),
-                'The response should contain a `created` timestamp.',
-              );
-              assert(
-                response.hasOwnProperty('access'),
-                'The response should contain an the `access`.',
-              );
-              assert.equal(response.title, form.title);
-              assert.equal(response.name, form.name);
-              assert.equal(response.path, form.path);
-              assert.equal(response.type, 'form');
-              assert.deepEqual(response.submissionAccess, []);
-              assert.deepEqual(response.components, form.components);
-
-              form = response;
+              form = res.body;
 
               // Store the JWT for future API calls.
               template.users.admin.token = res.headers['x-jwt-token'];
 
               done();
             });
+        };
+
+        before(function (done) {
+          ensureForm(done);
+        });
+
+        it('Bootstrap', function (done) {
+          ensureForm(function (err) {
+            if (err) {
+              return done(err);
+            }
+
+            assert(form.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+            assert(
+              form.hasOwnProperty('modified'),
+              'The response should contain a `modified` timestamp.',
+            );
+            assert(
+              form.hasOwnProperty('created'),
+              'The response should contain a `created` timestamp.',
+            );
+            assert(form.hasOwnProperty('access'), 'The response should contain an the `access`.');
+            assert.equal(form.title, formDefinition.title);
+            assert.equal(form.name, formDefinition.name);
+            assert.equal(form.path, formDefinition.path);
+            assert.equal(form.type, 'form');
+            assert.deepEqual(form.submissionAccess, []);
+            assert.deepEqual(form.components, formDefinition.components);
+            done();
+          });
         });
 
         it('Negative Max Length validation will correctly reject submission', function (done) {
@@ -2386,11 +2594,11 @@ module.exports = function (app, template, hook) {
 
       // FOR-272
       describe('Min value', function () {
-        var form = _.cloneDeep(tempForm);
-        form.title = chance.word();
-        form.name = chance.word();
-        form.path = chance.word();
-        form.components = [
+        var formDefinition = _.cloneDeep(tempForm);
+        formDefinition.title = chance.word();
+        formDefinition.name = chance.word();
+        formDefinition.path = chance.word();
+        formDefinition.components = [
           {
             input: true,
             tableView: true,
@@ -2436,12 +2644,17 @@ module.exports = function (app, template, hook) {
           },
         ];
 
-        it('Bootstrap', function (done) {
+        var form = null;
+        var ensureForm = function (done) {
+          if (form && form._id) {
+            return done();
+          }
+
           // Create the test form
           request(app)
             .post(hook.alter('url', '/form', template))
             .set('x-jwt-token', template.users.admin.token)
-            .send(form)
+            .send(formDefinition)
             .expect('Content-Type', /json/)
             .expect(201)
             .end(function (err, res) {
@@ -2449,14 +2662,29 @@ module.exports = function (app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
-              form = response;
+              form = res.body;
 
               // Store the JWT for future API calls.
               template.users.admin.token = res.headers['x-jwt-token'];
 
               done();
             });
+        };
+
+        before(function (done) {
+          ensureForm(done);
+        });
+
+        it('Bootstrap', function (done) {
+          ensureForm(function (err) {
+            if (err) {
+              return done(err);
+            }
+
+            assert(form.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+            assert.deepEqual(form.components, formDefinition.components);
+            done();
+          });
         });
 
         it('Min value 0 will correctly stop submissions with a negative value', function (done) {
@@ -2498,11 +2726,11 @@ module.exports = function (app, template, hook) {
 
       // FOR-290
       describe('Number Component - Decimal values will not be truncated when step=any', function () {
-        var form = _.cloneDeep(tempForm);
-        form.title = chance.word();
-        form.name = chance.word();
-        form.path = chance.word();
-        form.components = [
+        var formDefinition = _.cloneDeep(tempForm);
+        formDefinition.title = chance.word();
+        formDefinition.name = chance.word();
+        formDefinition.path = chance.word();
+        formDefinition.components = [
           {
             input: true,
             tableView: true,
@@ -2534,12 +2762,17 @@ module.exports = function (app, template, hook) {
           },
         ];
 
-        it('Bootstrap', function (done) {
+        var form = null;
+        var ensureForm = function (done) {
+          if (form && form._id) {
+            return done();
+          }
+
           // Create the test form
           request(app)
             .post(hook.alter('url', '/form', template))
             .set('x-jwt-token', template.users.admin.token)
-            .send(form)
+            .send(formDefinition)
             .expect('Content-Type', /json/)
             .expect(201)
             .end(function (err, res) {
@@ -2547,14 +2780,29 @@ module.exports = function (app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
-              form = response;
+              form = res.body;
 
               // Store the JWT for future API calls.
               template.users.admin.token = res.headers['x-jwt-token'];
 
               done();
             });
+        };
+
+        before(function (done) {
+          ensureForm(done);
+        });
+
+        it('Bootstrap', function (done) {
+          ensureForm(function (err) {
+            if (err) {
+              return done(err);
+            }
+
+            assert(form.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+            assert.deepEqual(form.components, formDefinition.components);
+            done();
+          });
         });
 
         it('Decimal values will correctly persist without validation issues with the default step', function (done) {
@@ -2599,18 +2847,23 @@ module.exports = function (app, template, hook) {
       // FOR-278
       describe('Adding a min value to an existing component will persist the changes', function () {
         var for278 = require('./fixtures/forms/for278');
-        var form = _.cloneDeep(tempForm);
-        form.title = chance.word();
-        form.name = chance.word();
-        form.path = chance.word();
-        form.components = for278.initial;
+        var formDefinition = _.cloneDeep(tempForm);
+        formDefinition.title = chance.word();
+        formDefinition.name = chance.word();
+        formDefinition.path = chance.word();
+        formDefinition.components = for278.initial;
 
-        it('Bootstrap', function (done) {
+        var form = null;
+        var ensureForm = function (done) {
+          if (form && form._id) {
+            return done();
+          }
+
           // Create the test form
           request(app)
             .post(hook.alter('url', '/form', template))
             .set('x-jwt-token', template.users.admin.token)
-            .send(form)
+            .send(formDefinition)
             .expect('Content-Type', /json/)
             .expect(201)
             .end(function (err, res) {
@@ -2618,88 +2871,140 @@ module.exports = function (app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
-              form = response;
+              form = res.body;
 
               // Store the JWT for future API calls.
               template.users.admin.token = res.headers['x-jwt-token'];
 
               done();
             });
+        };
+
+        // Everything after 'Changing a number components min value' asserts on the updated
+        // component, so the update lives here. Guarded on the min value the update lands,
+        // never on a flag: after a rebuild the guard is false again.
+        var minValueUpdateResponse = null;
+        var ensureMinValueApplied = function (done) {
+          ensureForm(function (err) {
+            if (err) {
+              return done(err);
+            }
+
+            if (_.get(form, 'components[0].validate.min') === for278.update[0].validate.min) {
+              return done();
+            }
+
+            form.components = for278.update;
+
+            request(app)
+              .put(hook.alter('url', '/form/' + form._id, template))
+              .set('x-jwt-token', template.users.admin.token)
+              .send(_.omit(form, 'modified'))
+              .expect('Content-Type', /json/)
+              .expect(200)
+              .end(function (err, res) {
+                if (err) {
+                  return done(err);
+                }
+
+                minValueUpdateResponse = res.body;
+                form = res.body;
+
+                // Store the JWT for future API calls.
+                template.users.admin.token = res.headers['x-jwt-token'];
+
+                done();
+              });
+          });
+        };
+
+        before(function (done) {
+          ensureForm(done);
+        });
+
+        it('Bootstrap', function (done) {
+          ensureForm(function (err) {
+            if (err) {
+              return done(err);
+            }
+
+            assert(form.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+            assert.deepEqual(form.components, for278.initial);
+            done();
+          });
         });
 
         it('Changing a number components min value', function (done) {
-          form.components = for278.update;
+          ensureMinValueApplied(function (err) {
+            if (err) {
+              return done(err);
+            }
 
-          request(app)
-            .put(hook.alter('url', '/form/' + form._id, template))
-            .set('x-jwt-token', template.users.admin.token)
-            .send(_.omit(form, 'modified'))
-            .expect('Content-Type', /json/)
-            .expect(200)
-            .end(function (err, res) {
-              if (err) {
-                return done(err);
-              }
-
-              var response = res.body;
-              assert.deepEqual(response.components, form.components);
-              form = response;
-
-              // Store the JWT for future API calls.
-              template.users.admin.token = res.headers['x-jwt-token'];
-
-              done();
-            });
+            assert.deepEqual(minValueUpdateResponse.components, for278.update);
+            done();
+          });
         });
 
         it('Min value changes will persist for 0', function (done) {
-          form.components = for278.update;
+          ensureMinValueApplied(function (err) {
+            if (err) {
+              return done(err);
+            }
 
-          request(app)
-            .get(hook.alter('url', '/form/' + form._id, template))
-            .set('x-jwt-token', template.users.admin.token)
-            .expect('Content-Type', /json/)
-            .expect(200)
-            .end(function (err, res) {
-              if (err) {
-                return done(err);
-              }
+            request(app)
+              .get(hook.alter('url', '/form/' + form._id, template))
+              .set('x-jwt-token', template.users.admin.token)
+              .expect('Content-Type', /json/)
+              .expect(200)
+              .end(function (err, res) {
+                if (err) {
+                  return done(err);
+                }
 
-              var response = res.body;
-              assert.equal(response.components.length, 1);
-              assert(response.components[0].validate.min === for278.update[0].validate.min);
-              form = response;
+                var response = res.body;
+                assert.equal(response.components.length, 1);
+                assert(response.components[0].validate.min === for278.update[0].validate.min);
+                form = response;
 
-              // Store the JWT for future API calls.
-              template.users.admin.token = res.headers['x-jwt-token'];
+                // Store the JWT for future API calls.
+                template.users.admin.token = res.headers['x-jwt-token'];
 
-              done();
-            });
+                done();
+              });
+          });
         });
 
         it('Test invalid submission', function (done) {
-          request(app)
-            .post(hook.alter('url', '/form/' + form._id + '/submission', template))
-            .set('x-jwt-token', template.users.admin.token)
-            .send(for278.fail)
-            .expect('Content-Type', /json/)
-            .expect(400)
-            .end(function (err, res) {
-              if (err) {
-                return done(err);
-              }
+          ensureMinValueApplied(function (err) {
+            if (err) {
+              return done(err);
+            }
 
-              var response = res.body;
-              assert.equal(_.get(response, 'name'), 'ValidationError');
-              assert.equal(response.details.length, 1);
-              assert.equal(_.get(response, 'details[0].message'), 'number cannot be less than 0.');
+            request(app)
+              .post(hook.alter('url', '/form/' + form._id + '/submission', template))
+              .set('x-jwt-token', template.users.admin.token)
+              .send(for278.fail)
+              .expect('Content-Type', /json/)
+              .expect(400)
+              .end(function (err, res) {
+                if (err) {
+                  return done(err);
+                }
 
-              // Store the JWT for future API calls.
-              template.users.admin.token = res.headers['x-jwt-token'];
+                var response = res.body;
+                assert.equal(_.get(response, 'name'), 'ValidationError');
+                assert.equal(response.details.length, 1);
+                assert.equal(
+                  _.get(response, 'details[0].message'),
+                  'number cannot be less than 0.',
+                );
 
-              done();
-            });
+                // Store the JWT for future API calls.
+                template.users.admin.token = res.headers['x-jwt-token'];
+
+                done();
+              });
+          });
         });
 
         it('Test valid submission', function (done) {
@@ -2818,7 +3123,15 @@ module.exports = function (app, template, hook) {
             });
         });
 
-        it('A form can be created with unique component api keys', function (done) {
+        // 'A form cannot be updated with duplicate component api keys' and 'Form cleanup' both
+        // need the form this builder creates. Guarded on identity, so in file order the test
+        // below still creates it and the two later calls are no-ops.
+        var uniqueKeysFormResponse = null;
+        var ensureUniqueKeysForm = function (done) {
+          if (form._id) {
+            return done();
+          }
+
           form.components = [
             {
               type: 'textfield',
@@ -2915,6 +3228,7 @@ module.exports = function (app, template, hook) {
               assert.deepEqual(response.submissionAccess, []);
               assert.deepEqual(response.components, form.components);
 
+              uniqueKeysFormResponse = response;
               form = response;
 
               // Store the JWT for future API calls.
@@ -2922,6 +3236,20 @@ module.exports = function (app, template, hook) {
 
               done();
             });
+        };
+
+        it('A form can be created with unique component api keys', function (done) {
+          ensureUniqueKeysForm(function (err) {
+            if (err) {
+              return done(err);
+            }
+
+            assert(
+              uniqueKeysFormResponse.hasOwnProperty('_id'),
+              'The response should contain an `_id`.',
+            );
+            done();
+          });
         });
 
         it('A form can be created with unique component api keys nested within layout components (FIO-10591)', async function () {
@@ -3021,164 +3349,182 @@ module.exports = function (app, template, hook) {
         });
 
         it('A form cannot be updated with duplicate component api keys', function (done) {
-          var components = [
-            {
-              type: 'textfield',
-              validate: {
-                custom: '',
-                pattern: '',
-                maxLength: '',
-                minLength: '',
-                required: false,
-              },
-              defaultValue: '',
-              multiple: false,
-              suffix: '',
-              prefix: '',
-              placeholder: 'foo',
-              key: 'foo',
-              label: 'foo',
-              inputMask: '',
-              inputType: 'text',
-              input: true,
-            },
-            {
-              type: 'textfield',
-              validate: {
-                custom: '',
-                pattern: '',
-                maxLength: '',
-                minLength: '',
-                required: false,
-              },
-              defaultValue: '',
-              multiple: false,
-              suffix: '',
-              prefix: '',
-              placeholder: 'foo',
-              key: 'foo',
-              label: 'foo',
-              inputMask: '',
-              inputType: 'text',
-              input: true,
-            },
-            {
-              type: 'textfield',
-              validate: {
-                custom: '',
-                pattern: '',
-                maxLength: '',
-                minLength: '',
-                required: false,
-              },
-              defaultValue: '',
-              multiple: false,
-              suffix: '',
-              prefix: '',
-              placeholder: 'bar',
-              key: 'bar',
-              label: 'bar',
-              inputMask: '',
-              inputType: 'text',
-              input: true,
-            },
-            {
-              type: 'textfield',
-              validate: {
-                custom: '',
-                pattern: '',
-                maxLength: '',
-                minLength: '',
-                required: false,
-              },
-              defaultValue: '',
-              multiple: false,
-              suffix: '',
-              prefix: '',
-              placeholder: 'bar',
-              key: 'bar',
-              label: 'bar',
-              inputMask: '',
-              inputType: 'text',
-              input: true,
-            },
-            {
-              type: 'button',
-              theme: 'primary',
-              disableOnInvalid: false,
-              action: 'submit',
-              block: false,
-              rightIcon: '',
-              leftIcon: '',
-              size: 'md',
-              key: 'submit',
-              tableView: false,
-              label: 'Submit',
-              input: true,
-              tags: [],
-              conditional: {
-                show: '',
-                when: null,
-                eq: '',
-              },
-            },
-          ];
+          ensureUniqueKeysForm(function (err) {
+            if (err) {
+              return done(err);
+            }
 
-          // Create the test form
-          request(app)
-            .put(hook.alter('url', '/form', template) + '/' + form._id)
-            .set('x-jwt-token', template.users.admin.token)
-            .send({
-              components: components,
-            })
-            .expect('Content-Type', /json/)
-            .expect(400)
-            .end(function (err, res) {
-              if (err) {
-                return done(err);
-              }
+            var components = [
+              {
+                type: 'textfield',
+                validate: {
+                  custom: '',
+                  pattern: '',
+                  maxLength: '',
+                  minLength: '',
+                  required: false,
+                },
+                defaultValue: '',
+                multiple: false,
+                suffix: '',
+                prefix: '',
+                placeholder: 'foo',
+                key: 'foo',
+                label: 'foo',
+                inputMask: '',
+                inputType: 'text',
+                input: true,
+              },
+              {
+                type: 'textfield',
+                validate: {
+                  custom: '',
+                  pattern: '',
+                  maxLength: '',
+                  minLength: '',
+                  required: false,
+                },
+                defaultValue: '',
+                multiple: false,
+                suffix: '',
+                prefix: '',
+                placeholder: 'foo',
+                key: 'foo',
+                label: 'foo',
+                inputMask: '',
+                inputType: 'text',
+                input: true,
+              },
+              {
+                type: 'textfield',
+                validate: {
+                  custom: '',
+                  pattern: '',
+                  maxLength: '',
+                  minLength: '',
+                  required: false,
+                },
+                defaultValue: '',
+                multiple: false,
+                suffix: '',
+                prefix: '',
+                placeholder: 'bar',
+                key: 'bar',
+                label: 'bar',
+                inputMask: '',
+                inputType: 'text',
+                input: true,
+              },
+              {
+                type: 'textfield',
+                validate: {
+                  custom: '',
+                  pattern: '',
+                  maxLength: '',
+                  minLength: '',
+                  required: false,
+                },
+                defaultValue: '',
+                multiple: false,
+                suffix: '',
+                prefix: '',
+                placeholder: 'bar',
+                key: 'bar',
+                label: 'bar',
+                inputMask: '',
+                inputType: 'text',
+                input: true,
+              },
+              {
+                type: 'button',
+                theme: 'primary',
+                disableOnInvalid: false,
+                action: 'submit',
+                block: false,
+                rightIcon: '',
+                leftIcon: '',
+                size: 'md',
+                key: 'submit',
+                tableView: false,
+                label: 'Submit',
+                input: true,
+                tags: [],
+                conditional: {
+                  show: '',
+                  when: null,
+                  eq: '',
+                },
+              },
+            ];
 
-              var response = res.body;
-              var msg = _.get(response, 'errors.components.message');
-              assert.equal(msg, 'Component keys must be unique: foo, bar');
+            // Create the test form
+            request(app)
+              .put(hook.alter('url', '/form', template) + '/' + form._id)
+              .set('x-jwt-token', template.users.admin.token)
+              .send({
+                components: components,
+              })
+              .expect('Content-Type', /json/)
+              .expect(400)
+              .end(function (err, res) {
+                if (err) {
+                  return done(err);
+                }
 
-              // Store the JWT for future API calls.
-              template.users.admin.token = res.headers['x-jwt-token'];
+                var response = res.body;
+                var msg = _.get(response, 'errors.components.message');
+                assert.equal(msg, 'Component keys must be unique: foo, bar');
 
-              done();
-            });
+                // Store the JWT for future API calls.
+                template.users.admin.token = res.headers['x-jwt-token'];
+
+                done();
+              });
+          });
         });
 
         it('Form cleanup', function (done) {
-          request(app)
-            .delete(hook.alter('url', '/form/' + form._id, template))
-            .set('x-jwt-token', template.users.admin.token)
-            .expect(200)
-            .end(function (err, res) {
-              if (err) {
-                return done(err);
-              }
+          ensureUniqueKeysForm(function (err) {
+            if (err) {
+              return done(err);
+            }
 
-              var response = res.body;
-              assert.deepEqual(response, {});
-              done();
-            });
+            request(app)
+              .delete(hook.alter('url', '/form/' + form._id, template))
+              .set('x-jwt-token', template.users.admin.token)
+              .expect(200)
+              .end(function (err, res) {
+                if (err) {
+                  return done(err);
+                }
+
+                var response = res.body;
+                assert.deepEqual(response, {});
+                done();
+              });
+          });
         });
       });
 
       if (!docker && !customer)
         describe('Invalid Form paths', function () {
-          var form;
-          it('Bootstrap', function (done) {
-            form = _.cloneDeep(tempForm);
-            form.title = chance.word();
-            form.name = chance.word();
-            form.path = chance.word();
+          // Without this the FOR-156 test below PUTs to /form/undefined, which is also a 400 —
+          // it passed on its own while asserting nothing about an existing form.
+          var form = null;
+          var ensureForm = function (done) {
+            if (form && form._id) {
+              return done();
+            }
+
+            var formDefinition = _.cloneDeep(tempForm);
+            formDefinition.title = chance.word();
+            formDefinition.name = chance.word();
+            formDefinition.path = chance.word();
 
             request(app)
               .post(hook.alter('url', '/form', template))
               .set('x-jwt-token', template.users.admin.token)
-              .send(form)
+              .send(formDefinition)
               .expect('Content-Type', /json/)
               .expect(201)
               .end(function (err, res) {
@@ -3186,14 +3532,28 @@ module.exports = function (app, template, hook) {
                   return done(err);
                 }
 
-                var response = res.body;
-                form = response;
+                form = res.body;
 
                 // Store the JWT for future API calls.
                 template.users.admin.token = res.headers['x-jwt-token'];
 
                 done();
               });
+          };
+
+          before(function (done) {
+            ensureForm(done);
+          });
+
+          it('Bootstrap', function (done) {
+            ensureForm(function (err) {
+              if (err) {
+                return done(err);
+              }
+
+              assert(form.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+              done();
+            });
           });
 
           // FOR-155
@@ -3284,11 +3644,12 @@ module.exports = function (app, template, hook) {
 
       // FOR-132 && FOR-182
       describe('Unique fields are case insensitive', function () {
-        var testEmailForm;
+        var testEmailForm = null;
+        var formDefinition = null;
         var email = chance.email().toLowerCase();
 
         before(function () {
-          testEmailForm = {
+          formDefinition = {
             title: 'Test email Form',
             name: 'testEmailForm',
             path: 'temp/testemailform',
@@ -3329,12 +3690,16 @@ module.exports = function (app, template, hook) {
           };
         });
 
-        it('Bootstrap', function (done) {
+        var ensureTestEmailForm = function (done) {
+          if (testEmailForm && testEmailForm._id) {
+            return done();
+          }
+
           // Create the test form
           request(app)
             .post(hook.alter('url', '/form', template))
             .set('x-jwt-token', template.users.admin.token)
-            .send(testEmailForm)
+            .send(formDefinition)
             .expect('Content-Type', /json/)
             .expect(201)
             .end(function (err, res) {
@@ -3342,59 +3707,87 @@ module.exports = function (app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
-              assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
-              assert(
-                response.hasOwnProperty('modified'),
-                'The response should contain a `modified` timestamp.',
-              );
-              assert(
-                response.hasOwnProperty('created'),
-                'The response should contain a `created` timestamp.',
-              );
-              assert(
-                response.hasOwnProperty('access'),
-                'The response should contain an the `access`.',
-              );
-              assert.equal(response.title, testEmailForm.title);
-              assert.equal(response.name, testEmailForm.name);
-              assert.equal(response.path, testEmailForm.path);
-              assert.equal(response.type, 'form');
-              assert.deepEqual(response.submissionAccess, testEmailForm.submissionAccess);
-              assert.deepEqual(response.components, testEmailForm.components);
-
-              testEmailForm = response;
+              testEmailForm = res.body;
 
               // Store the JWT for future API calls.
               template.users.admin.token = res.headers['x-jwt-token'];
 
               done();
             });
+        };
+
+        // The duplicate-rejection tests and the FOR-182 read need this exact submission.
+        // Guarded on the submission's own form so a rebuilt form gets a fresh submission.
+        var sub = null;
+        var ensureUniqueSubmission = function (done) {
+          ensureTestEmailForm(function (err) {
+            if (err) {
+              return done(err);
+            }
+
+            if (sub && sub.form === testEmailForm._id) {
+              return done();
+            }
+
+            request(app)
+              .post(hook.alter('url', '/form/' + testEmailForm._id + '/submission', template))
+              .send({ data: { email: email } })
+              .expect('Content-Type', /json/)
+              .expect(201)
+              .end(function (err, res) {
+                if (err) {
+                  return done(err);
+                }
+
+                sub = res.body;
+                done();
+              });
+          });
+        };
+
+        before(function (done) {
+          ensureUniqueSubmission(done);
         });
 
-        var sub;
+        it('Bootstrap', function (done) {
+          ensureTestEmailForm(function (err) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = testEmailForm;
+            assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+            assert(
+              response.hasOwnProperty('modified'),
+              'The response should contain a `modified` timestamp.',
+            );
+            assert(
+              response.hasOwnProperty('created'),
+              'The response should contain a `created` timestamp.',
+            );
+            assert(
+              response.hasOwnProperty('access'),
+              'The response should contain an the `access`.',
+            );
+            assert.equal(response.title, formDefinition.title);
+            assert.equal(response.name, formDefinition.name);
+            assert.equal(response.path, formDefinition.path);
+            assert.equal(response.type, 'form');
+            assert.deepEqual(response.submissionAccess, formDefinition.submissionAccess);
+            assert.deepEqual(response.components, formDefinition.components);
+            done();
+          });
+        });
+
         it('A unique submission can be made', function (done) {
-          var submission = {
-            data: {
-              email: email,
-            },
-          };
+          ensureUniqueSubmission(function (err) {
+            if (err) {
+              return done(err);
+            }
 
-          request(app)
-            .post(hook.alter('url', '/form/' + testEmailForm._id + '/submission', template))
-            .send(submission)
-            .expect('Content-Type', /json/)
-            .expect(201)
-            .end(function (err, res) {
-              if (err) {
-                return done(err);
-              }
-
-              var response = res.body;
-              sub = response;
-              assert.deepEqual(response.data, submission.data);
-              done();
-            });
+            assert.deepEqual(sub.data, { email: email });
+            done();
+          });
         });
 
         it('A duplicate submission cannot be made', function (done) {
@@ -3606,11 +3999,12 @@ module.exports = function (app, template, hook) {
       });
       // FOR-136 && FOR-182
       describe('Unique fields work inside layout components', function () {
-        var testUniqueField;
+        var testUniqueField = null;
+        var formDefinition = null;
         var data = chance.word().toUpperCase();
 
         before(function () {
-          testUniqueField = {
+          formDefinition = {
             title: 'nested uniques',
             display: 'form',
             type: 'form',
@@ -3677,12 +4071,16 @@ module.exports = function (app, template, hook) {
           };
         });
 
-        it('Bootstrap', function (done) {
+        var ensureTestUniqueField = function (done) {
+          if (testUniqueField && testUniqueField._id) {
+            return done();
+          }
+
           // Create the test form
           request(app)
             .post(hook.alter('url', '/form', template))
             .set('x-jwt-token', template.users.admin.token)
-            .send(testUniqueField)
+            .send(formDefinition)
             .expect('Content-Type', /json/)
             .expect(201)
             .end(function (err, res) {
@@ -3690,61 +4088,87 @@ module.exports = function (app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
-              assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
-              assert(
-                response.hasOwnProperty('modified'),
-                'The response should contain a `modified` timestamp.',
-              );
-              assert(
-                response.hasOwnProperty('created'),
-                'The response should contain a `created` timestamp.',
-              );
-              assert(
-                response.hasOwnProperty('access'),
-                'The response should contain an the `access`.',
-              );
-              assert.equal(response.title, testUniqueField.title);
-              assert.equal(response.name, testUniqueField.name);
-              assert.equal(response.path, testUniqueField.path);
-              assert.equal(response.type, 'form');
-              assert.deepEqual(response.submissionAccess, testUniqueField.submissionAccess);
-              assert.deepEqual(response.components, testUniqueField.components);
-
-              testUniqueField = response;
+              testUniqueField = res.body;
 
               // Store the JWT for future API calls.
               template.users.admin.token = res.headers['x-jwt-token'];
 
               done();
             });
+        };
+
+        // The duplicate-rejection test and the FOR-182 read need this exact submission.
+        // Guarded on the submission's own form so a rebuilt form gets a fresh submission.
+        var sub = null;
+        var ensureUniqueSubmission = function (done) {
+          ensureTestUniqueField(function (err) {
+            if (err) {
+              return done(err);
+            }
+
+            if (sub && sub.form === testUniqueField._id) {
+              return done();
+            }
+
+            request(app)
+              .post(hook.alter('url', '/form/' + testUniqueField._id + '/submission', template))
+              .send({ data: { container1: { unique: data } } })
+              .expect('Content-Type', /json/)
+              .expect(201)
+              .end(function (err, res) {
+                if (err) {
+                  return done(err);
+                }
+
+                sub = res.body;
+                done();
+              });
+          });
+        };
+
+        before(function (done) {
+          ensureUniqueSubmission(done);
         });
 
-        var sub;
+        it('Bootstrap', function (done) {
+          ensureTestUniqueField(function (err) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = testUniqueField;
+            assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+            assert(
+              response.hasOwnProperty('modified'),
+              'The response should contain a `modified` timestamp.',
+            );
+            assert(
+              response.hasOwnProperty('created'),
+              'The response should contain a `created` timestamp.',
+            );
+            assert(
+              response.hasOwnProperty('access'),
+              'The response should contain an the `access`.',
+            );
+            assert.equal(response.title, formDefinition.title);
+            assert.equal(response.name, formDefinition.name);
+            assert.equal(response.path, formDefinition.path);
+            assert.equal(response.type, 'form');
+            assert.deepEqual(response.submissionAccess, formDefinition.submissionAccess);
+            assert.deepEqual(response.components, formDefinition.components);
+            done();
+          });
+        });
+
         it('A unique submission can be made', function (done) {
-          var submission = {
-            data: {
-              container1: {
-                unique: data,
-              },
-            },
-          };
+          ensureUniqueSubmission(function (err) {
+            if (err) {
+              return done(err);
+            }
 
-          request(app)
-            .post(hook.alter('url', '/form/' + testUniqueField._id + '/submission', template))
-            .send(submission)
-            .expect('Content-Type', /json/)
-            .expect(201)
-            .end(function (err, res) {
-              if (err) {
-                return done(err);
-              }
-
-              var response = res.body;
-              sub = response;
-              assert.deepEqual(response.data, submission.data);
-              done();
-            });
+            assert.deepEqual(sub.data, { container1: { unique: data } });
+            done();
+          });
         });
 
         it('A duplicate submission cannot be made', function (done) {
@@ -3865,18 +4289,23 @@ module.exports = function (app, template, hook) {
 
       // FOR-272
       describe('Old layout components without API keys, still submit data for all child components', function () {
-        var form = _.cloneDeep(tempForm);
-        form.title = chance.word();
-        form.name = chance.word();
-        form.path = chance.word();
-        form.components = require('./fixtures/forms/for272');
+        var formDefinition = _.cloneDeep(tempForm);
+        formDefinition.title = chance.word();
+        formDefinition.name = chance.word();
+        formDefinition.path = chance.word();
+        formDefinition.components = require('./fixtures/forms/for272');
 
-        it('Bootstrap', function (done) {
+        var form = null;
+        var ensureForm = function (done) {
+          if (form && form._id) {
+            return done();
+          }
+
           // Create the test form
           request(app)
             .post(hook.alter('url', '/form', template))
             .set('x-jwt-token', template.users.admin.token)
-            .send(form)
+            .send(formDefinition)
             .expect('Content-Type', /json/)
             .expect(201)
             .end(function (err, res) {
@@ -3884,34 +4313,43 @@ module.exports = function (app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
-              assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
-              assert(
-                response.hasOwnProperty('modified'),
-                'The response should contain a `modified` timestamp.',
-              );
-              assert(
-                response.hasOwnProperty('created'),
-                'The response should contain a `created` timestamp.',
-              );
-              assert(
-                response.hasOwnProperty('access'),
-                'The response should contain an the `access`.',
-              );
-              assert.equal(response.title, form.title);
-              assert.equal(response.name, form.name);
-              assert.equal(response.path, form.path);
-              assert.equal(response.type, 'form');
-              assert.deepEqual(response.submissionAccess, []);
-              assert.deepEqual(response.components, form.components);
-
-              form = response;
+              form = res.body;
 
               // Store the JWT for future API calls.
               template.users.admin.token = res.headers['x-jwt-token'];
 
               done();
             });
+        };
+
+        before(function (done) {
+          ensureForm(done);
+        });
+
+        it('Bootstrap', function (done) {
+          ensureForm(function (err) {
+            if (err) {
+              return done(err);
+            }
+
+            assert(form.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+            assert(
+              form.hasOwnProperty('modified'),
+              'The response should contain a `modified` timestamp.',
+            );
+            assert(
+              form.hasOwnProperty('created'),
+              'The response should contain a `created` timestamp.',
+            );
+            assert(form.hasOwnProperty('access'), 'The response should contain an the `access`.');
+            assert.equal(form.title, formDefinition.title);
+            assert.equal(form.name, formDefinition.name);
+            assert.equal(form.path, formDefinition.path);
+            assert.equal(form.type, 'form');
+            assert.deepEqual(form.submissionAccess, []);
+            assert.deepEqual(form.components, formDefinition.components);
+            done();
+          });
         });
 
         it('Child components will be validated and contain data', function (done) {
@@ -3959,11 +4397,13 @@ module.exports = function (app, template, hook) {
       // FOR-255
       describe('Custom validation', function () {
         var templates = require('./fixtures/forms/customValidation');
-        var form = _.cloneDeep(tempForm);
-        form.title = 'customvalidation';
-        form.name = 'customvalidation';
-        form.path = 'customvalidation';
-        form.components = [];
+        var formDefinition = _.cloneDeep(tempForm);
+        formDefinition.title = 'customvalidation';
+        formDefinition.name = 'customvalidation';
+        formDefinition.path = 'customvalidation';
+        formDefinition.components = [];
+
+        var form = null;
 
         var updatePrimary = function (done) {
           request(app)
@@ -4028,23 +4468,47 @@ module.exports = function (app, template, hook) {
             .end(done);
         };
 
+        // `Bootstrap custom validation form` is a sibling of every suite below it, so as a test
+        // its form was invisible to them. The builder is called from a `before` at this scope —
+        // an ancestor hook every nested suite can see — and the Bootstrap test still asserts on
+        // the creation response.
+        var ensurePrimaryForm = function (done) {
+          if (form && form._id) {
+            return done();
+          }
+
+          request(app)
+            .post(hook.alter('url', '/form', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(formDefinition)
+            .expect('Content-Type', /json/)
+            .expect(201)
+            .end(function (err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              form = res.body;
+              done();
+            });
+        };
+
+        before(function (done) {
+          ensurePrimaryForm(done);
+        });
+
         describe('Bootstrap custom validation form', function () {
           it('Create the primary form', function (done) {
-            request(app)
-              .post(hook.alter('url', '/form', template))
-              .set('x-jwt-token', template.users.admin.token)
-              .send(form)
-              .expect('Content-Type', /json/)
-              .expect(201)
-              .end(function (err, res) {
-                if (err) {
-                  return done(err);
-                }
+            ensurePrimaryForm(function (err) {
+              if (err) {
+                return done(err);
+              }
 
-                var response = res.body;
-                form = response;
-                done();
-              });
+              assert(form.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+              assert.equal(form.name, formDefinition.name);
+              assert.equal(form.path, formDefinition.path);
+              done();
+            });
           });
         });
 
@@ -4837,6 +5301,17 @@ module.exports = function (app, template, hook) {
     });
 
     describe('Access Information', function () {
+      // Both tests read /access: the first names `testComponentForm`, the second needs at least
+      // one anonymous-readable form to exist — `tempForm` is created with `read_all` for
+      // anonymous. Both fixtures are built by sibling suites, hence the builders.
+      before(function (done) {
+        ensureTempForm(done);
+      });
+
+      before(function (done) {
+        ensureTestComponentForm(done);
+      });
+
       it('Authenticated users have appropriate form/role access visibility', function (done) {
         request(app)
           .get(hook.alter('url', '/access', template))
@@ -4976,7 +5451,7 @@ module.exports = function (app, template, hook) {
     });
 
     describe('Reference Components', function () {
-      var resourceForm = {
+      var resourceFormDefinition = {
         title: chance.word(),
         name: chance.word(),
         path: chance.word(),
@@ -5008,11 +5483,19 @@ module.exports = function (app, template, hook) {
           },
         ],
       };
-      it('Should create a new resource', (done) => {
+      // The first four tests build a chain every later test reads, and two of them used to pass
+      // alone only because they iterate an empty array. Each link is its own guarded builder,
+      // and the tests that used to build now assert on what the builder produced.
+      var resourceForm = null;
+      var ensureResourceForm = function (done) {
+        if (resourceForm && resourceForm._id) {
+          return done();
+        }
+
         request(app)
           .post(hook.alter('url', '/form', template))
           .set('x-jwt-token', template.users.admin.token)
-          .send(resourceForm)
+          .send(resourceFormDefinition)
           .expect('Content-Type', /json/)
           .expect(201)
           .end(function (err, res) {
@@ -5022,147 +5505,284 @@ module.exports = function (app, template, hook) {
             resourceForm = res.body;
             done();
           });
-      });
+      };
 
       var resources = [];
-      it('Should create a few resources', (done) => {
-        resources = [
-          {
-            data: {
-              firstName: 'Joe',
-              lastName: 'Smith',
-              email: chance.email(),
+      var originalResourceEmails = [];
+      var ensureResources = function (done) {
+        ensureResourceForm(function (err) {
+          if (err) {
+            return done(err);
+          }
+
+          if (resources.length && resources[0]._id) {
+            return done();
+          }
+
+          resources = [
+            {
+              data: {
+                firstName: 'Joe',
+                lastName: 'Smith',
+                email: chance.email(),
+              },
             },
-          },
-          {
-            data: {
-              firstName: 'Joe',
-              lastName: 'Thompson',
-              email: chance.email(),
+            {
+              data: {
+                firstName: 'Joe',
+                lastName: 'Thompson',
+                email: chance.email(),
+              },
             },
-          },
-          {
-            data: {
-              firstName: 'Sally',
-              lastName: 'Smith',
-              email: chance.email(),
+            {
+              data: {
+                firstName: 'Sally',
+                lastName: 'Smith',
+                email: chance.email(),
+              },
             },
-          },
-          {
-            data: {
-              firstName: 'Susie',
-              lastName: 'Johnston',
-              email: chance.email(),
+            {
+              data: {
+                firstName: 'Susie',
+                lastName: 'Johnston',
+                email: chance.email(),
+              },
             },
-          },
-          {
-            data: {
-              firstName: 'Zack',
-              lastName: 'Murray',
-              email: chance.email(),
+            {
+              data: {
+                firstName: 'Zack',
+                lastName: 'Murray',
+                email: chance.email(),
+              },
             },
-          },
-        ];
-        async.eachOf(
-          resources,
-          (resource, index, next) => {
-            request(app)
-              .post(hook.alter('url', '/form/' + resourceForm._id + '/submission', template))
-              .set('x-jwt-token', template.users.admin.token)
-              .send(resource)
-              .expect('Content-Type', /json/)
-              .expect(201)
-              .end(function (err, res) {
-                if (err) {
-                  return next(err);
-                }
-                resources[index] = res.body;
-                next();
-              });
-          },
-          done,
-        );
-      });
+          ];
+          originalResourceEmails = _.map(resources, 'data.email');
+          async.eachOf(
+            resources,
+            (resource, index, next) => {
+              request(app)
+                .post(hook.alter('url', '/form/' + resourceForm._id + '/submission', template))
+                .set('x-jwt-token', template.users.admin.token)
+                .send(resource)
+                .expect('Content-Type', /json/)
+                .expect(201)
+                .end(function (err, res) {
+                  if (err) {
+                    return next(err);
+                  }
+                  resources[index] = res.body;
+                  next();
+                });
+            },
+            done,
+          );
+        });
+      };
 
       var referenceForm = null;
-      it('Should create a new form with reference component', function (done) {
-        referenceForm = {
-          title: chance.word(),
-          name: chance.word(),
-          path: chance.word(),
-          components: [
-            {
-              input: true,
-              tableView: true,
-              reference: true,
-              label: 'User',
-              key: 'user',
-              placeholder: '',
-              resource: resourceForm._id,
-              project: '',
-              defaultValue: '',
-              template: '<span>{{ item.data }}</span>',
-              selectFields: '',
-              searchFields: '',
-              multiple: false,
-              protected: false,
-              persistent: true,
-              clearOnHide: true,
-              validate: {
-                required: false,
-              },
-              defaultPermission: '',
-              type: 'resource',
-              tags: [],
-              conditional: {
-                show: '',
-                when: null,
-                eq: '',
-              },
-            },
-          ],
-        };
-        request(app)
-          .post(hook.alter('url', '/form', template))
-          .set('x-jwt-token', template.users.admin.token)
-          .send(referenceForm)
-          .expect('Content-Type', /json/)
-          .expect(201)
-          .end(function (err, res) {
-            if (err) {
-              return done(err);
-            }
-            referenceForm = res.body;
-            done();
-          });
-      });
+      var ensureReferenceForm = function (done) {
+        ensureResources(function (err) {
+          if (err) {
+            return done(err);
+          }
+
+          if (referenceForm && referenceForm._id) {
+            return done();
+          }
+
+          request(app)
+            .post(hook.alter('url', '/form', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send({
+              title: chance.word(),
+              name: chance.word(),
+              path: chance.word(),
+              components: [
+                {
+                  input: true,
+                  tableView: true,
+                  reference: true,
+                  label: 'User',
+                  key: 'user',
+                  placeholder: '',
+                  resource: resourceForm._id,
+                  project: '',
+                  defaultValue: '',
+                  template: '<span>{{ item.data }}</span>',
+                  selectFields: '',
+                  searchFields: '',
+                  multiple: false,
+                  protected: false,
+                  persistent: true,
+                  clearOnHide: true,
+                  validate: {
+                    required: false,
+                  },
+                  defaultPermission: '',
+                  type: 'resource',
+                  tags: [],
+                  conditional: {
+                    show: '',
+                    when: null,
+                    eq: '',
+                  },
+                },
+              ],
+            })
+            .expect('Content-Type', /json/)
+            .expect(201)
+            .end(function (err, res) {
+              if (err) {
+                return done(err);
+              }
+              referenceForm = res.body;
+              done();
+            });
+        });
+      };
 
       var references = [];
-      it('Should create a new submission in that form.', (done) => {
-        async.eachOfSeries(
-          resources,
-          (resource, index, next) => {
-            request(app)
-              .post(hook.alter('url', '/form/' + referenceForm._id + '/submission', template))
-              .set('x-jwt-token', template.users.admin.token)
-              .send({
-                data: {
-                  user: resource,
-                },
-              })
-              .expect('Content-Type', /json/)
-              .expect(201)
-              .end(function (err, res) {
-                if (err) {
-                  return next(err);
-                }
-                references[index] = res.body;
-                assert.deepEqual(references[index].data.user.data, resource.data);
+      var ensureReferences = function (done) {
+        ensureReferenceForm(function (err) {
+          if (err) {
+            return done(err);
+          }
+
+          if (references.length === resources.length && references[0] && references[0]._id) {
+            return done();
+          }
+
+          references = [];
+          async.eachOfSeries(
+            resources,
+            (resource, index, next) => {
+              request(app)
+                .post(hook.alter('url', '/form/' + referenceForm._id + '/submission', template))
+                .set('x-jwt-token', template.users.admin.token)
+                .send({
+                  data: {
+                    user: resource,
+                  },
+                })
+                .expect('Content-Type', /json/)
+                .expect(201)
+                .end(function (err, res) {
+                  if (err) {
+                    return next(err);
+                  }
+                  references[index] = res.body;
+                  assert.deepEqual(references[index].data.user.data, resource.data);
+                  next();
+                });
+            },
+            done,
+          );
+        });
+      };
+
+      // 'Should be able to refer to the correct resource references' asserts that the references
+      // track the edits made below. Guarded on the edited email, not on a flag.
+      var ensureAlteredResources = function (done) {
+        ensureReferences(function (err) {
+          if (err) {
+            return done(err);
+          }
+
+          if (_.get(resources, '[0].data.email') !== originalResourceEmails[0]) {
+            return done();
+          }
+
+          async.eachOf(
+            resources,
+            (resource, index, next) => {
+              if (index % 2 === 0) {
+                request(app)
+                  .put(
+                    hook.alter(
+                      'url',
+                      '/form/' + resourceForm._id + '/submission/' + resource._id,
+                      template,
+                    ),
+                  )
+                  .send({
+                    data: {
+                      email: chance.email(),
+                    },
+                  })
+                  .set('x-jwt-token', template.users.admin.token)
+                  .expect('Content-Type', /json/)
+                  .expect(200)
+                  .end(function (err, res) {
+                    if (err) {
+                      return next(err);
+                    }
+                    resources[index] = res.body;
+                    next();
+                  });
+              } else {
                 next();
-              });
-          },
-          done,
-        );
+              }
+            },
+            done,
+          );
+        });
+      };
+
+      before(function (done) {
+        ensureReferences(done);
+      });
+
+      it('Should create a new resource', (done) => {
+        ensureResourceForm(function (err) {
+          if (err) {
+            return done(err);
+          }
+
+          assert(resourceForm.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+          assert.equal(resourceForm.name, resourceFormDefinition.name);
+          done();
+        });
+      });
+
+      it('Should create a few resources', (done) => {
+        ensureResources(function (err) {
+          if (err) {
+            return done(err);
+          }
+
+          assert.equal(resources.length, 5);
+          resources.forEach((resource) => {
+            assert(resource.hasOwnProperty('_id'), 'Every resource should have an `_id`.');
+            assert.equal(resource.form, resourceForm._id);
+          });
+          done();
+        });
+      });
+
+      it('Should create a new form with reference component', function (done) {
+        ensureReferenceForm(function (err) {
+          if (err) {
+            return done(err);
+          }
+
+          assert(referenceForm.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+          assert.equal(referenceForm.components[0].resource, resourceForm._id);
+          done();
+        });
+      });
+
+      it('Should create a new submission in that form.', (done) => {
+        ensureReferences(function (err) {
+          if (err) {
+            return done(err);
+          }
+
+          assert.equal(references.length, resources.length);
+          references.forEach((reference, index) => {
+            assert.deepEqual(reference.data.user._id, resources[index]._id);
+          });
+          done();
+        });
       });
 
       it('Should be able to filter the list of references', (done) => {
@@ -5281,23 +5901,34 @@ module.exports = function (app, template, hook) {
       });
 
       it('Should be able to alter some of the resources', (done) => {
-        async.eachOf(
-          resources,
-          (resource, index, next) => {
-            if (index % 2 === 0) {
+        ensureAlteredResources(function (err) {
+          if (err) {
+            return done(err);
+          }
+
+          assert.notEqual(resources[0].data.email, originalResourceEmails[0]);
+          assert.equal(resources[1].data.email, originalResourceEmails[1]);
+          done();
+        });
+      });
+
+      it('Should be able to refer to the correct resource references', (done) => {
+        ensureAlteredResources(function (err) {
+          if (err) {
+            return done(err);
+          }
+
+          async.eachOf(
+            references,
+            (reference, index, next) => {
               request(app)
-                .put(
+                .get(
                   hook.alter(
                     'url',
-                    '/form/' + resourceForm._id + '/submission/' + resource._id,
+                    '/form/' + referenceForm._id + '/submission/' + reference._id,
                     template,
                   ),
                 )
-                .send({
-                  data: {
-                    email: chance.email(),
-                  },
-                })
                 .set('x-jwt-token', template.users.admin.token)
                 .expect('Content-Type', /json/)
                 .expect(200)
@@ -5305,42 +5936,13 @@ module.exports = function (app, template, hook) {
                   if (err) {
                     return next(err);
                   }
-                  resources[index] = res.body;
+                  Helper.assert.propertiesEqual(res.body.data.user, resources[index]);
                   next();
                 });
-            } else {
-              next();
-            }
-          },
-          done,
-        );
-      });
-
-      it('Should be able to refer to the correct resource references', (done) => {
-        async.eachOf(
-          references,
-          (reference, index, next) => {
-            request(app)
-              .get(
-                hook.alter(
-                  'url',
-                  '/form/' + referenceForm._id + '/submission/' + reference._id,
-                  template,
-                ),
-              )
-              .set('x-jwt-token', template.users.admin.token)
-              .expect('Content-Type', /json/)
-              .expect(200)
-              .end(function (err, res) {
-                if (err) {
-                  return next(err);
-                }
-                Helper.assert.propertiesEqual(res.body.data.user, resources[index]);
-                next();
-              });
-          },
-          done,
-        );
+            },
+            done,
+          );
+        });
       });
 
       it('Should pull in the references even with index queries.', (done) => {
@@ -5365,8 +5967,12 @@ module.exports = function (app, template, hook) {
     });
 
     describe('Form with checkboxes grouped as radio', () => {
-      let formId;
-      it('Create form with checkboxes grouped as radio', (done) => {
+      let formId = null;
+      const ensureCheckboxForm = (done) => {
+        if (formId) {
+          return done();
+        }
+
         request(app)
           .post(hook.alter('url', '/form', template))
           .set('x-jwt-token', template.users.admin.token)
@@ -5435,27 +6041,65 @@ module.exports = function (app, template, hook) {
             formId = res.body._id;
             done();
           });
+      };
+
+      let checkboxSubmission = null;
+      const ensureCheckboxSubmission = (done) => {
+        ensureCheckboxForm((err) => {
+          if (err) {
+            return done(err);
+          }
+
+          if (checkboxSubmission && checkboxSubmission.form === formId) {
+            return done();
+          }
+
+          request(app)
+            .post(hook.alter('url', '/form/' + formId + '/submission', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send({
+              data: {
+                submit: true,
+                check: 'two',
+              },
+              state: 'submitted',
+            })
+            .expect('Content-Type', /json/)
+            .expect(201)
+            .end(function (err, res) {
+              if (err) {
+                return done(err);
+              }
+              checkboxSubmission = res.body;
+              done();
+            });
+        });
+      };
+
+      before((done) => {
+        ensureCheckboxSubmission(done);
+      });
+
+      it('Create form with checkboxes grouped as radio', (done) => {
+        ensureCheckboxForm((err) => {
+          if (err) {
+            return done(err);
+          }
+
+          assert(formId, 'The created form should have an `_id`.');
+          done();
+        });
       });
 
       it('Submit form', (done) => {
-        request(app)
-          .post(hook.alter('url', '/form/' + formId + '/submission', template))
-          .set('x-jwt-token', template.users.admin.token)
-          .send({
-            data: {
-              submit: true,
-              check: 'two',
-            },
-            state: 'submitted',
-          })
-          .expect('Content-Type', /json/)
-          .expect(201)
-          .end(function (err, res) {
-            if (err) {
-              return done(err);
-            }
-            done();
-          });
+        ensureCheckboxSubmission((err) => {
+          if (err) {
+            return done(err);
+          }
+
+          assert.equal(checkboxSubmission.data.check, 'two');
+          done();
+        });
       });
 
       it('Checkboxes data grouped as radio', (done) => {
@@ -5475,7 +6119,13 @@ module.exports = function (app, template, hook) {
     });
 
     describe('Last Modified Header', () => {
-      it('Should create a new form and get Last-Modified header of created form', (done) => {
+      // Every test here reads the form the first one creates. Guarded on identity so the
+      // whole-file ordering is unchanged.
+      const ensureLastModifiedForm = (done) => {
+        if (template.forms.tempLastModifiedForm && template.forms.tempLastModifiedForm._id) {
+          return done();
+        }
+
         request(app)
           .post(hook.alter('url', '/form', template))
           .set('x-jwt-token', template.users.admin.token)
@@ -5495,18 +6145,42 @@ module.exports = function (app, template, hook) {
             }
 
             template.forms.tempLastModifiedForm = res.body;
-
-            request(app)
-              .get(hook.alter('url', '/form', template))
-              .set('x-jwt-token', template.users.admin.token)
-              .expect('Content-Type', /json/)
-              .expect(206)
-              .expect(
-                'Last-Modified',
-                new Date(template.forms.tempLastModifiedForm.modified).toUTCString(),
-              )
-              .end(done);
+            done();
           });
+      };
+
+      // 200 vs 206 on the form index only says whether the project holds more than one page of
+      // forms, which depends on how many earlier tests happened to create one. What these tests
+      // are about is the Last-Modified header and the 304 handling, so assert the index answered
+      // instead of pinning the paging status.
+      const expectIndexAnswered = (res) => {
+        assert(
+          res.status === 200 || res.status === 206,
+          'Expected the form index to answer with 200 or 206, got ' + res.status,
+        );
+      };
+
+      before((done) => {
+        ensureLastModifiedForm(done);
+      });
+
+      it('Should create a new form and get Last-Modified header of created form', (done) => {
+        ensureLastModifiedForm((err) => {
+          if (err) {
+            return done(err);
+          }
+
+          request(app)
+            .get(hook.alter('url', '/form', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .expect('Content-Type', /json/)
+            .expect(expectIndexAnswered)
+            .expect(
+              'Last-Modified',
+              new Date(template.forms.tempLastModifiedForm.modified).toUTCString(),
+            )
+            .end(done);
+        });
       });
 
       it('Should get 200 response when request forms with If-Modified-Since header of not last modified date', (done) => {
@@ -5517,7 +6191,7 @@ module.exports = function (app, template, hook) {
             'If-Modified-Since',
             new Date(template.forms.tempLastModifiedForm.modified - 1000).toUTCString(),
           )
-          .expect(206)
+          .expect(expectIndexAnswered)
           .expect(
             'Last-Modified',
             new Date(template.forms.tempLastModifiedForm.modified).toUTCString(),
@@ -5564,7 +6238,7 @@ module.exports = function (app, template, hook) {
                 .set('x-jwt-token', template.users.admin.token)
                 .set('If-Modified-Since', new Date(previousModified).toUTCString())
                 .expect('Content-Type', /json/)
-                .expect(206)
+                .expect(expectIndexAnswered)
                 .expect(
                   'Last-Modified',
                   new Date(template.forms.tempLastModifiedForm.modified).toUTCString(),
@@ -5594,7 +6268,7 @@ module.exports = function (app, template, hook) {
                   new Date(template.forms.tempLastModifiedForm.modified).toUTCString(),
                 )
                 .expect('Content-Type', /json/)
-                .expect(206)
+                .expect(expectIndexAnswered)
                 .end((err, res) => {
                   if (err) {
                     return done(err);
@@ -5620,7 +6294,12 @@ module.exports = function (app, template, hook) {
       let idorFormA = null;
       let idorFormB = null;
 
-      it('Should create Form A for IDOR tests', (done) => {
+      // The three spoofing tests below read both forms, so each creation is a guarded builder.
+      const ensureIdorFormA = (done) => {
+        if (idorFormA && idorFormA._id) {
+          return done();
+        }
+
         request(app)
           .post(hook.alter('url', '/form', template))
           .set('x-jwt-token', template.users.admin.token)
@@ -5651,9 +6330,13 @@ module.exports = function (app, template, hook) {
             template.users.admin.token = res.headers['x-jwt-token'];
             done();
           });
-      });
+      };
 
-      it('Should create Form B for IDOR tests', (done) => {
+      const ensureIdorFormB = (done) => {
+        if (idorFormB && idorFormB._id) {
+          return done();
+        }
+
         request(app)
           .post(hook.alter('url', '/form', template))
           .set('x-jwt-token', template.users.admin.token)
@@ -5684,6 +6367,38 @@ module.exports = function (app, template, hook) {
             template.users.admin.token = res.headers['x-jwt-token'];
             done();
           });
+      };
+
+      before((done) => {
+        ensureIdorFormA(done);
+      });
+
+      before((done) => {
+        ensureIdorFormB(done);
+      });
+
+      it('Should create Form A for IDOR tests', (done) => {
+        ensureIdorFormA((err) => {
+          if (err) {
+            return done(err);
+          }
+
+          assert(idorFormA.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+          assert.equal(idorFormA.title, 'IDOR Test Form A');
+          done();
+        });
+      });
+
+      it('Should create Form B for IDOR tests', (done) => {
+        ensureIdorFormB((err) => {
+          if (err) {
+            return done(err);
+          }
+
+          assert(idorFormB.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+          assert.equal(idorFormB.title, 'IDOR Test Form B');
+          done();
+        });
       });
 
       it('Should not allow POST /form with a spoofed _id to overwrite an existing form', (done) => {

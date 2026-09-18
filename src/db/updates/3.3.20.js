@@ -1,5 +1,3 @@
-const debug = require('debug')('formio:db');
-
 /**
  * Update 3.1.20
  *

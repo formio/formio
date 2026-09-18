@@ -4,15 +4,12 @@ const async = require(`async`);
 const _ = require(`lodash`);
 const util = require(`../util/util`);
 const EVERYONE = '000000000000000000000000';
-const debug = {
-  template: require(`debug`)(`formio:template:template`),
-  items: require(`debug`)(`formio:template:items`),
-  install: require(`debug`)(`formio:template:install`),
-  save: require(`debug`)(`formio:template:save`),
-  updateSchema: require(`debug`)(`formio:template:updateSchema`),
-  final: require(`debug`)(`formio:template:final`),
-  cleanUp: require(`debug`)(`formio:template:cleanUp`),
-};
+const { logger } = require('../util/logger');
+const templateLogger = logger.child({ module: 'formio:template:template' });
+const itemsLogger = logger.child({ module: 'formio:template:items' });
+const installLogger = logger.child({ module: 'formio:template:install' });
+const saveLogger = logger.child({ module: 'formio:template:save' });
+const cleanUpLogger = logger.child({ module: 'formio:template:cleanUp' });
 
 /**
  * Perform an installation of a specified template.
@@ -278,7 +275,7 @@ module.exports = (router) => {
             changes = true;
           }
         } catch (err) {
-          debug.install(err);
+          installLogger.error(err);
         }
       })();
     }
@@ -382,7 +379,7 @@ module.exports = (router) => {
             nestedForm.form = formio.util.idToString(doc._id);
           }
         } catch (err) {
-          debug.install(err);
+          installLogger.error(err);
           throw err;
         }
       },
@@ -428,7 +425,7 @@ module.exports = (router) => {
       });
       return cb();
     } catch (err) {
-      debug.install(err);
+      installLogger.error(err);
       return cb(err);
     }
   };
@@ -492,7 +489,7 @@ module.exports = (router) => {
               return;
             }
 
-            debug.cleanUp(`Need to update resource component _ids for`, machineName);
+            cleanUpLogger.debug(`Need to update resource component _ids for ${machineName}`);
             await model
               .updateOne(
                 { _id: resource._id, deleted: { $eq: null } },
@@ -508,7 +505,7 @@ module.exports = (router) => {
             }
 
             resources[machineName] = doc;
-            debug.cleanUp(`Updated resource component _ids for`, machineName);
+            cleanUpLogger.debug(`Updated resource component _ids for ${machineName}`);
           },
           done,
         );
@@ -566,7 +563,7 @@ module.exports = (router) => {
               return;
             }
 
-            debug.cleanUp(`Need to update form component _ids for`, machineName);
+            cleanUpLogger.debug(`Need to update form component _ids for ${machineName}`);
             await model
               .updateOne(
                 { _id: form._id, deleted: { $eq: null } },
@@ -582,7 +579,7 @@ module.exports = (router) => {
             }
 
             forms[machineName] = doc;
-            debug.cleanUp(`Updated form component _ids for`, machineName);
+            cleanUpLogger.debug(`Updated form component _ids for ${machineName}`);
           },
           done,
         );
@@ -783,16 +780,18 @@ module.exports = (router) => {
 
       // If no items were given for the install, skip this model.
       if (!items || _.isEmpty(items)) {
-        debug.items(`No items given to install`);
+        itemsLogger.debug(`No items given to install`);
         return done();
       }
 
       alter = alter || baseAlter;
-      debug.items(Object.keys(items));
+      itemsLogger.debug(Object.keys(items));
 
       // If the given items don't have a valid structure for this entity, skip the import.
       if (valid && !valid(items, template)) {
-        debug.install(`The given items were not valid: ${JSON.stringify(Object.keys(items))}`);
+        installLogger.debug(
+          `The given items were not valid: ${JSON.stringify(Object.keys(items))}`,
+        );
         return done();
       }
 
@@ -801,7 +800,7 @@ module.exports = (router) => {
       if (requiredAttributes) {
         requiredAttrs = await requiredAttributes(template);
         if (requiredAttrs.error) {
-          debug.install(requiredAttrs.error);
+          installLogger.debug(requiredAttrs.error);
           return done();
         }
       }
@@ -815,13 +814,13 @@ module.exports = (router) => {
           }
           // If no document was provided after the alter, skip the insertion.
           if (!document) {
-            debug.install(
+            installLogger.debug(
               `No document was given to install after the alter ${item.name} (${machineName})`,
             );
             return next();
           }
 
-          debug.install(document.name);
+          installLogger.debug(document.name);
           const query = entity.query
             ? entity.query(document, template, requiredAttrs)
             : {
@@ -849,13 +848,13 @@ module.exports = (router) => {
 
                 items[machineName] = result.toObject();
                 await hook.alter('saveRevisions', template, result);
-                debug.save(items[machineName].machineName);
+                saveLogger.debug(items[machineName].machineName);
                 if (entity.hasOwnProperty('deleteAllActions')) {
                   return entity.deleteAllActions(updatedDoc._id, next);
                 }
                 return next();
               } catch (err) {
-                debug.install(err.errors || err);
+                installLogger.error(err.errors || err);
                 return next(err);
               }
             };
@@ -873,25 +872,25 @@ module.exports = (router) => {
             };
 
             if (!doc) {
-              debug.install(`Existing not found (${document.machineName})`);
+              installLogger.debug(`Existing not found (${document.machineName})`);
               setVid(document, 0);
 
               return saveDoc(new model(document), true);
             } else if (!createOnly) {
-              debug.install(`Existing found`);
+              installLogger.debug(`Existing found`);
               doc = _.assign(doc, document);
               setVid(doc, 0);
               // update the modified date
               setModified(doc);
-              debug.install(doc.machineName);
+              installLogger.debug(doc.machineName);
               return saveDoc(doc);
             } else {
-              debug.install(`Skipping existing entity`);
+              installLogger.debug(`Skipping existing entity`);
               items[machineName] = doc.toObject();
               return next();
             }
           } catch (err) {
-            debug.install(err);
+            installLogger.error(err);
             return next(err);
           }
         });
@@ -909,7 +908,7 @@ module.exports = (router) => {
 
           // If no document was provided before the alter, skip the insertion.
           if (!document) {
-            debug.items(`Skipping item ${item}`);
+            itemsLogger.debug(`Skipping item ${item}`);
             return next();
           }
 
@@ -926,7 +925,7 @@ module.exports = (router) => {
         },
         (err) => {
           if (err) {
-            debug.install(err);
+            installLogger.error(err);
             return done(err);
           }
           if (cleanUp) {
@@ -958,7 +957,7 @@ module.exports = (router) => {
       }),
       (err) => {
         if (err) {
-          debug.template(err);
+          templateLogger.error(err);
           return done(err);
         }
 
@@ -1010,7 +1009,7 @@ module.exports = (router) => {
 
     async.series(hook.alter(`templateImportSteps`, importSteps, install, template), (err) => {
       if (err) {
-        debug.template(err);
+        templateLogger.error(err);
         return done(err);
       }
 
@@ -1090,7 +1089,7 @@ module.exports = (router) => {
           }
         })
         .catch((err) => {
-          debug.template(err);
+          templateLogger.error(err);
         });
     });
   }
@@ -1107,7 +1106,7 @@ module.exports = (router) => {
         return project._id;
       })
       .catch((err) => {
-        debug.template(err);
+        templateLogger.error(err);
       });
   }
 

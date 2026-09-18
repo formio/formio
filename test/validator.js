@@ -10,7 +10,7 @@ const IS_NEXTGEN =
 const itCoreOnly = IS_NEXTGEN ? it.skip : it;
 
 module.exports = function (app, template, hook) {
-  const formio = hook.alter('formio', app.formio);
+  let formio;
 
   describe('Validator tests', function () {
     let testResourceWithFlatComponents;
@@ -18,6 +18,7 @@ module.exports = function (app, template, hook) {
     let resourceWithFlatComponentsId;
     let resourceWithNestedComponentsId;
     before(function () {
+      formio = hook.alter('formio', app.formio);
       testResourceWithFlatComponents = {
         title: 'fields',
         name: 'fields',
@@ -293,7 +294,16 @@ module.exports = function (app, template, hook) {
       };
     });
 
-    it('Bootstrap', function (done) {
+    // Both resources are created by the `Bootstrap` test below and read by the two
+    // data-table filter tests and by the teardown. Guarded rather than hoisted into a
+    // `before` so `Bootstrap` stays a test that really creates something: in file order it
+    // still does the creating and every later call is a no-op, while a test run on its own
+    // builds what it needs. INDEPENDENCE.md pattern E.
+    const ensureResources = (done) => {
+      if (resourceWithFlatComponentsId && resourceWithNestedComponentsId) {
+        return done();
+      }
+
       request(app)
         .post(hook.alter('url', '/form', template))
         .set('x-jwt-token', template.users.admin.token)
@@ -305,9 +315,8 @@ module.exports = function (app, template, hook) {
             return done(err);
           }
 
-          const response = res.body;
-          assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
-          resourceWithFlatComponentsId = response._id;
+          assert(res.body.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+          resourceWithFlatComponentsId = res.body._id;
 
           request(app)
             .post(hook.alter('url', '/form', template))
@@ -320,253 +329,268 @@ module.exports = function (app, template, hook) {
                 return done(err);
               }
 
-              const response = res.body;
-              assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
-              resourceWithNestedComponentsId = response._id;
+              assert(res.body.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+              resourceWithNestedComponentsId = res.body._id;
 
               done();
             });
         });
+    };
+
+    it('Bootstrap', function (done) {
+      ensureResources(done);
     });
 
     it('Should filter resource components based on data table settings', function (done) {
-      const validator = new Validator(
-        {
-          headers: {
-            'x-jwt-token': template.users.admin.token,
-          },
-        },
-        { formio },
-      );
-      const dataTableComponent = {
-        type: 'datatable',
-        fetch: {
-          enableFetch: true,
-          components: [
-            {
-              path: 'TextField',
-              key: 'TextField',
-            },
-            {
-              path: 'TextArea',
-              key: 'TextArea',
-            },
-          ],
-          dataSrc: 'resource',
-          resource: resourceWithFlatComponentsId,
-        },
-      };
-      validator
-        .dereferenceDataTableComponent(dataTableComponent)
-        .then((components) => {
-          assert.deepEqual(components, [
-            {
-              label: '1 - Text Field',
-              placeholder: 'Text Field',
-              tableView: true,
-              key: 'TextField',
-              type: 'textfield',
-              input: true,
-            },
-            {
-              label: '3 - Text Area',
-              placeholder: 'Text Area',
-              tableView: true,
-              key: 'TextArea',
-              type: 'textarea',
-              input: true,
-            },
-          ]);
+      ensureResources(function (err) {
+        if (err) {
+          return done(err);
+        }
 
-          done();
-        })
-        .catch((err) => {
-          done(err);
-        });
+        const validator = new Validator(
+          {
+            headers: {
+              'x-jwt-token': template.users.admin.token,
+            },
+          },
+          { formio },
+        );
+        const dataTableComponent = {
+          type: 'datatable',
+          fetch: {
+            enableFetch: true,
+            components: [
+              {
+                path: 'TextField',
+                key: 'TextField',
+              },
+              {
+                path: 'TextArea',
+                key: 'TextArea',
+              },
+            ],
+            dataSrc: 'resource',
+            resource: resourceWithFlatComponentsId,
+          },
+        };
+        validator
+          .dereferenceDataTableComponent(dataTableComponent)
+          .then((components) => {
+            assert.deepEqual(components, [
+              {
+                label: '1 - Text Field',
+                placeholder: 'Text Field',
+                tableView: true,
+                key: 'TextField',
+                type: 'textfield',
+                input: true,
+              },
+              {
+                label: '3 - Text Area',
+                placeholder: 'Text Area',
+                tableView: true,
+                key: 'TextArea',
+                type: 'textarea',
+                input: true,
+              },
+            ]);
+
+            done();
+          })
+          .catch((err) => {
+            done(err);
+          });
+      });
     });
 
     it('Should filter nested resource components based on data table settings', function (done) {
-      const validator = new Validator(
-        {
-          headers: {
-            'x-jwt-token': template.users.admin.token,
+      ensureResources(function (err) {
+        if (err) {
+          return done(err);
+        }
+
+        const validator = new Validator(
+          {
+            headers: {
+              'x-jwt-token': template.users.admin.token,
+            },
           },
-        },
-        { formio },
-      );
-      const dataTableComponent = {
-        type: 'datatable',
-        fetch: {
-          enableFetch: true,
-          components: [
-            {
-              path: 'textField',
-              key: 'textField',
-            },
-            {
-              path: 'container.textField',
-              key: 'container.textField',
-            },
-            {
-              path: 'container.textFieldColumn',
-              key: 'container.textFieldColumn',
-            },
-            {
-              path: 'container.a',
-              key: 'container.a',
-            },
-            {
-              path: 'container.b',
-              key: 'container.b',
-            },
-          ],
-          dataSrc: 'resource',
-          resource: resourceWithNestedComponentsId,
-        },
-      };
-      validator
-        .dereferenceDataTableComponent(dataTableComponent)
-        .then((components) => {
-          assert.deepEqual(components, [
-            {
-              label: 'Text Field',
-              tableView: true,
-              key: 'textField',
-              type: 'textfield',
-              input: true,
-            },
-            {
-              collapsible: false,
-              key: 'panel',
-              type: 'panel',
-              label: 'Panel',
-              input: false,
-              tableView: false,
-              components: [
-                {
-                  label: 'Container',
-                  key: 'container',
-                  type: 'container',
-                  input: true,
-                  components: [
-                    {
-                      label: 'Text Field',
-                      tableView: true,
-                      key: 'textField',
-                      type: 'textfield',
-                      input: true,
-                    },
-                    {
-                      label: 'Columns',
-                      columns: [
-                        {
-                          components: [
+          { formio },
+        );
+        const dataTableComponent = {
+          type: 'datatable',
+          fetch: {
+            enableFetch: true,
+            components: [
+              {
+                path: 'textField',
+                key: 'textField',
+              },
+              {
+                path: 'container.textField',
+                key: 'container.textField',
+              },
+              {
+                path: 'container.textFieldColumn',
+                key: 'container.textFieldColumn',
+              },
+              {
+                path: 'container.a',
+                key: 'container.a',
+              },
+              {
+                path: 'container.b',
+                key: 'container.b',
+              },
+            ],
+            dataSrc: 'resource',
+            resource: resourceWithNestedComponentsId,
+          },
+        };
+        validator
+          .dereferenceDataTableComponent(dataTableComponent)
+          .then((components) => {
+            assert.deepEqual(components, [
+              {
+                label: 'Text Field',
+                tableView: true,
+                key: 'textField',
+                type: 'textfield',
+                input: true,
+              },
+              {
+                collapsible: false,
+                key: 'panel',
+                type: 'panel',
+                label: 'Panel',
+                input: false,
+                tableView: false,
+                components: [
+                  {
+                    label: 'Container',
+                    key: 'container',
+                    type: 'container',
+                    input: true,
+                    components: [
+                      {
+                        label: 'Text Field',
+                        tableView: true,
+                        key: 'textField',
+                        type: 'textfield',
+                        input: true,
+                      },
+                      {
+                        label: 'Columns',
+                        columns: [
+                          {
+                            components: [
+                              {
+                                label: 'Text Field',
+                                applyMaskOn: 'change',
+                                tableView: true,
+                                validateWhenHidden: false,
+                                key: 'textFieldColumn',
+                                type: 'textfield',
+                                input: true,
+                              },
+                            ],
+                            width: 6,
+                            offset: 0,
+                            push: 0,
+                            pull: 0,
+                            size: 'md',
+                            currentWidth: 6,
+                          },
+                          {
+                            components: [],
+                            width: 6,
+                            offset: 0,
+                            push: 0,
+                            pull: 0,
+                            size: 'md',
+                            currentWidth: 6,
+                          },
+                        ],
+                        key: 'columns',
+                        type: 'columns',
+                        input: false,
+                        tableView: false,
+                      },
+                      {
+                        label: 'Table',
+                        cellAlignment: 'left',
+                        key: 'table',
+                        type: 'table',
+                        input: false,
+                        tableView: false,
+                        rows: [
+                          [
                             {
-                              label: 'Text Field',
-                              applyMaskOn: 'change',
-                              tableView: true,
-                              validateWhenHidden: false,
-                              key: 'textFieldColumn',
-                              type: 'textfield',
-                              input: true,
+                              components: [
+                                {
+                                  label: 'A',
+                                  applyMaskOn: 'change',
+                                  mask: false,
+                                  tableView: false,
+                                  delimiter: false,
+                                  requireDecimal: false,
+                                  inputFormat: 'plain',
+                                  truncateMultipleSpaces: false,
+                                  validateWhenHidden: false,
+                                  key: 'a',
+                                  type: 'number',
+                                  input: true,
+                                },
+                              ],
+                            },
+                            {
+                              components: [
+                                {
+                                  label: 'B',
+                                  applyMaskOn: 'change',
+                                  mask: false,
+                                  tableView: false,
+                                  delimiter: false,
+                                  requireDecimal: false,
+                                  inputFormat: 'plain',
+                                  truncateMultipleSpaces: false,
+                                  validateWhenHidden: false,
+                                  key: 'b',
+                                  type: 'number',
+                                  input: true,
+                                },
+                              ],
+                            },
+                            {
+                              components: [],
                             },
                           ],
-                          width: 6,
-                          offset: 0,
-                          push: 0,
-                          pull: 0,
-                          size: 'md',
-                          currentWidth: 6,
-                        },
-                        {
-                          components: [],
-                          width: 6,
-                          offset: 0,
-                          push: 0,
-                          pull: 0,
-                          size: 'md',
-                          currentWidth: 6,
-                        },
-                      ],
-                      key: 'columns',
-                      type: 'columns',
-                      input: false,
-                      tableView: false,
-                    },
-                    {
-                      label: 'Table',
-                      cellAlignment: 'left',
-                      key: 'table',
-                      type: 'table',
-                      input: false,
-                      tableView: false,
-                      rows: [
-                        [
-                          {
-                            components: [
-                              {
-                                label: 'A',
-                                applyMaskOn: 'change',
-                                mask: false,
-                                tableView: false,
-                                delimiter: false,
-                                requireDecimal: false,
-                                inputFormat: 'plain',
-                                truncateMultipleSpaces: false,
-                                validateWhenHidden: false,
-                                key: 'a',
-                                type: 'number',
-                                input: true,
-                              },
-                            ],
-                          },
-                          {
-                            components: [
-                              {
-                                label: 'B',
-                                applyMaskOn: 'change',
-                                mask: false,
-                                tableView: false,
-                                delimiter: false,
-                                requireDecimal: false,
-                                inputFormat: 'plain',
-                                truncateMultipleSpaces: false,
-                                validateWhenHidden: false,
-                                key: 'b',
-                                type: 'number',
-                                input: true,
-                              },
-                            ],
-                          },
-                          {
-                            components: [],
-                          },
+                          [
+                            {
+                              components: [],
+                            },
+                            {
+                              components: [],
+                            },
+                            {
+                              components: [],
+                            },
+                          ],
                         ],
-                        [
-                          {
-                            components: [],
-                          },
-                          {
-                            components: [],
-                          },
-                          {
-                            components: [],
-                          },
-                        ],
-                      ],
-                      numRows: 2,
-                    },
-                  ],
-                },
-              ],
-            },
-          ]);
+                        numRows: 2,
+                      },
+                    ],
+                  },
+                ],
+              },
+            ]);
 
-          done();
-        })
-        .catch((err) => {
-          done(err);
-        });
+            done();
+          })
+          .catch((err) => {
+            done(err);
+          });
+      });
     });
 
     it('Should be able to leverage instances in custom validation', async function () {
@@ -1043,30 +1067,35 @@ module.exports = function (app, template, hook) {
       });
     });
 
+    // Self-sufficient teardown. It used to delete the ids the `Bootstrap` *test* set, so
+    // running any other test in this suite on its own left it deleting /form/undefined --
+    // a 400 that mocha then blamed on whichever test happened to run last, not on the
+    // hook. INDEPENDENCE.md pattern G.
     after(function (done) {
-      request(app)
-        .delete(hook.alter('url', `/form/${resourceWithFlatComponentsId}`, template))
-        .set('x-jwt-token', template.users.admin.token)
-        .expect('Content-Type', /text/)
-        .expect(200)
-        .end(function (err) {
-          if (err) {
-            return done(err);
-          }
+      const ids = [resourceWithFlatComponentsId, resourceWithNestedComponentsId].filter(Boolean);
+      resourceWithFlatComponentsId = undefined;
+      resourceWithNestedComponentsId = undefined;
 
-          request(app)
-            .delete(hook.alter('url', `/form/${resourceWithNestedComponentsId}`, template))
-            .set('x-jwt-token', template.users.admin.token)
-            .expect('Content-Type', /text/)
-            .expect(200)
-            .end(function (err) {
-              if (err) {
-                return done(err);
-              }
+      const deleteNext = (index) => {
+        if (index >= ids.length) {
+          return done();
+        }
 
-              done();
-            });
-        });
+        request(app)
+          .delete(hook.alter('url', `/form/${ids[index]}`, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .expect('Content-Type', /text/)
+          .expect(200)
+          .end(function (err) {
+            if (err) {
+              return done(err);
+            }
+
+            deleteNext(index + 1);
+          });
+      };
+
+      deleteNext(0);
     });
   });
 };

@@ -11,12 +11,8 @@ const fetch = require('@formio/node-fetch-http-proxy');
 const { mockBrowserContext } = require('@formio/vm');
 mockBrowserContext();
 const Formio = require('@formio/js');
-const debug = {
-  idToBson: require('debug')('formio:util:idToBson'),
-  getUrlParams: require('debug')('formio:util:getUrlParams'),
-  removeProtectedFields: require('debug')('formio:util:removeProtectedFields'),
-  uniqueMachineName: require('debug')('formio:util:uniqueMachineName'),
-};
+const { logger } = require('./logger');
+const getUrlParamsLogger = logger.child({ module: 'formio:util:getUrlParams' });
 
 const SUBMISSION_ID_KEYS = ['_id', 'form', 'owner', 'project'];
 
@@ -450,7 +446,7 @@ const Utils = {
     }
     const parsed = nodeUrl.parse(url);
     let parts = parsed.pathname.split('/');
-    debug.getUrlParams(parsed);
+    getUrlParamsLogger.debug(`Parsing url params from ${parsed.pathname}`);
 
     // Remove element originating from first slash.
     parts = _.tail(parts);
@@ -465,7 +461,7 @@ const Utils = {
       urlParams[parts[a].toLowerCase()] = parts[a + 1];
     }
 
-    debug.getUrlParams(urlParams);
+    getUrlParamsLogger.debug(urlParams);
     return urlParams;
   },
 
@@ -518,7 +514,10 @@ const Utils = {
     try {
       _id = _.isObject(_id) ? _id : new mongoose.Types.ObjectId(_id);
     } catch (ignoreErr) {
-      debug.idToBson(`Unknown _id given: ${_id}, typeof: ${typeof _id}`);
+      logger.error(
+        { module: 'formio:util:idToBson', err: ignoreErr },
+        `Unknown _id given: ${_id}, typeof: ${typeof _id}`,
+      );
     }
 
     return _id;
@@ -627,7 +626,10 @@ const Utils = {
       (component, path) => {
         path = `data.${path}`;
         if (component.protected) {
-          debug.removeProtectedFields('Removing protected field:', component.key);
+          logger.debug(
+            { module: 'formio:util:removeProtectedFields' },
+            `Removing protected field: ${component.key}`,
+          );
           modifyFields.push(deleteProp(path));
         } else if (component.type === 'signature' && action === 'index' && !doNotMinify) {
           modifyFields.push((submission) => {
@@ -710,7 +712,8 @@ const Utils = {
         // Fallback if bad hint or index not found
         if (err.code === 2 || err.code === 291) {
           records = await model.find(query).lean().exec();
-          debug.uniqueMachineName(
+          logger.debug(
+            { module: 'formio:util:uniqueMachineName' },
             `Hint rejected (code ${err.code}) on ${model.modelName}; falling back to non-hinted query.`,
           );
         } else {
@@ -770,9 +773,12 @@ const Utils = {
   layoutComponents: ['panel', 'table', 'well', 'columns', 'fieldset', 'tabs'],
 
   /*eslint max-depth: ["error", 4]*/
-  eachValue(components, data, fn, context, path = '', fullPath = '') {
+  eachValue(components, data, fn, context, path = '', fullPath = '', parentHidden = false) {
     components.forEach((component) => {
       if (component) {
+        // Layout components never appear in the data path, so a hidden parent can only be
+        // seen by children if the state travels down with the walk.
+        const hiddenForChildren = parentHidden || !!component.hidden;
         if (Array.isArray(component.components)) {
           // If tree type is an array of objects like datagrid and editgrid.
           if (
@@ -788,6 +794,8 @@ const Utils = {
                   fn,
                   context,
                   this.valuePath(path, `${component.key}[${index}]`),
+                  '', // fullPath restarts inside tree types (pre-existing default)
+                  hiddenForChildren,
                 );
               });
             }
@@ -798,6 +806,8 @@ const Utils = {
               fn,
               context,
               this.valuePath(path, `${component.key}.data`),
+              '', // fullPath restarts inside a nested form (pre-existing default)
+              hiddenForChildren,
             );
           } else if (
             ['container'].includes(component.type) ||
@@ -810,6 +820,7 @@ const Utils = {
               context,
               this.valuePath(path, component.key),
               this.valuePath(fullPath, component.key),
+              hiddenForChildren,
             );
           } else {
             this.eachValue(
@@ -819,6 +830,7 @@ const Utils = {
               context,
               path,
               this.valuePath(fullPath, component.key),
+              hiddenForChildren,
             );
           }
         } else if (Array.isArray(component.columns)) {
@@ -831,6 +843,7 @@ const Utils = {
               context,
               path,
               this.valuePath(fullPath, component.key),
+              hiddenForChildren,
             );
           });
         } else if (Array.isArray(component.rows)) {
@@ -845,6 +858,7 @@ const Utils = {
                   context,
                   path,
                   this.valuePath(fullPath, component.key),
+                  hiddenForChildren,
                 );
               });
             }
@@ -859,6 +873,7 @@ const Utils = {
         component,
         path,
         fullPath,
+        parentHidden,
       });
     });
   },

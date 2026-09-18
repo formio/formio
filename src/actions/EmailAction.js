@@ -1,16 +1,11 @@
 'use strict';
 const fetch = require('@formio/node-fetch-http-proxy');
 
-const LOG_EVENT = 'Email Action';
-
 module.exports = (router) => {
   const Action = router.formio.Action;
   const hook = require('../util/hook')(router.formio);
   const emailer = require('../util/email')(router);
-  const debug = require('debug')('formio:action:email');
   const ecode = router.formio.util.errorCodes;
-  const logOutput = router.formio.log || debug;
-  const log = (...args) => logOutput(LOG_EVENT, ...args);
 
   /**
    * EmailAction class.
@@ -177,7 +172,7 @@ module.exports = (router) => {
 
         return next(null, settingsForm);
       } catch (err) {
-        log(req, ecode.emailer.ENOTRANSP, err);
+        req.log.error({ module: 'formio:action:email', err }, ecode.emailer.ENOTRANSP);
         return next(err);
       }
     }
@@ -199,14 +194,14 @@ module.exports = (router) => {
           if (!form) {
             const err = new Error(ecode.form.ENOFORM);
             setActionItemMessage('Error no form', err, 'error');
-            log(req, ecode.cache.EFORMLOAD, err);
+            req.log.error({ module: 'formio:action:email', err }, ecode.cache.EFORMLOAD);
             next(err);
             return null;
           }
           return form;
         } catch (err) {
           setActionItemMessage('Error loading form', err, 'error');
-          log(req, ecode.cache.EFORMLOAD, err);
+          req.log.error({ module: 'formio:action:email', err }, ecode.cache.EFORMLOAD);
           next(err);
           return null;
         }
@@ -237,7 +232,7 @@ module.exports = (router) => {
             },
             'error',
           );
-          log(req, ecode.emailer.ESENDMAIL, JSON.stringify(err));
+          req.log.error({ module: 'formio:action:email', err }, ecode.emailer.ESENDMAIL);
         }
       };
 
@@ -291,7 +286,7 @@ module.exports = (router) => {
         await sendEmail(req, res, this.settings, params, setActionItemMessage);
       } catch (err) {
         setActionItemMessage('Emailer error', err, 'error');
-        log(req, ecode.emailer.ESUBPARAMS, err);
+        req.log.error({ module: 'formio:action:email', err }, ecode.emailer.ESUBPARAMS);
       }
     }
   }

@@ -3,10 +3,6 @@
 const jwt = require('jsonwebtoken');
 const _ = require('lodash');
 const util = require('../util/util');
-const debug = {
-  error: require('debug')('formio:error'),
-  handler: require('debug')('formio:middleware:tokenHandler'),
-};
 
 /**
  * The Token Handler middleware.
@@ -55,6 +51,7 @@ module.exports = (router) => {
    * @param next
    */
   const userHandler = (req, res, decoded, token, user, next) => {
+    const log = req.log.child({ module: 'formio:middleware:tokenHandler' });
     hook.alter('user', user, (err, user) => {
       if (err) {
         return next();
@@ -77,15 +74,16 @@ module.exports = (router) => {
       // Refresh the token that is sent back to the user when appropriate.
       req.tokenIssued = Math.trunc(Date.now() / 1000);
       generateToken(token, decoded, res, req);
-      router.formio.log('Token', req, 'Using normal token');
+      log.debug('Using normal token');
       if (req.user) {
-        router.formio.log('User', req, req.user._id);
+        log.debug(`User: ${req.user._id}`);
       }
       next();
     });
   };
 
   return (req, res, next) => {
+    const log = req.log.child({ module: 'formio:middleware:tokenHandler' });
     // If someone else provided then skip.
     if (req.user && req.token && res.token) {
       return next();
@@ -93,7 +91,7 @@ module.exports = (router) => {
 
     const token = util.getRequestValue(req, 'x-jwt-token');
     const noToken = () => {
-      router.formio.log('Token', req, 'No token found');
+      log.debug('No token found');
       // Try the request with no tokens.
       delete req.headers['x-jwt-token'];
       req.user = null;
@@ -129,17 +127,16 @@ module.exports = (router) => {
     // Decode/refresh the token and store for later middleware.
     jwt.verify(token, jwtConfig.secret, (err, decoded) => {
       if (err || !decoded) {
-        debug.handler(err || `Token could not decoded: ${token}`);
+        // Any unauthenticated client can send a bad token; the audit trail records it.
         router.formio.audit('EAUTH_TOKENBAD', req, err);
-        router.formio.log('Token', req, 'Token could not be decoded');
 
         // If the token has expired, send a 440 error (Login Timeout)
         if (err && err.name === 'JsonWebTokenError') {
-          router.formio.log('Token', req, 'Bad Token');
+          log.debug({ err }, 'Bad Token');
           return res.status(400).send('Bad Token');
         } else if (err && err.name === 'TokenExpiredError') {
           router.formio.audit('EAUTH_TOKENEXPIRED', req, err);
-          router.formio.log('Token', req, 'Token Expired');
+          log.debug({ err }, 'Token Expired');
           return res.status(440).send('Token Expired');
         } else {
           return noToken();
@@ -154,8 +151,7 @@ module.exports = (router) => {
 
         // If this is a temporary token, then decode it and set it in the request.
         if (decoded.temp) {
-          router.formio.log('Token', req, 'Using temp token');
-          debug.handler('Temp token');
+          log.debug('Temp token');
           req.tempToken = decoded;
           req.user = null;
           req.token = null;
@@ -177,9 +173,9 @@ module.exports = (router) => {
         }
 
         if (decoded.isAdmin) {
-          router.formio.log('Token', req, 'User is admin');
+          log.debug('User is admin');
           if (req.user) {
-            router.formio.log('User', req, req.user._id);
+            log.debug(`User: ${req.user._id}`);
           }
           req.permissionsChecked = true;
           req.isAdmin = true;
@@ -232,7 +228,7 @@ module.exports = (router) => {
             user.metadata.jwtIssuedAfter &&
             decoded.iat < user.metadata.jwtIssuedAfter
           ) {
-            router.formio.log('Token', req, 'Token No Longer Valid');
+            log.debug('Token No Longer Valid');
             return res.status(440).send('Token No Longer Valid');
           }
 

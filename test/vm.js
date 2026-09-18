@@ -2,10 +2,12 @@
 
 const assert = require('assert');
 const { IsolateVM } = require('@formio/vm');
-const { CORE_LODASH_MOMENT_INPUTMASK_NUNJUCKS } = require('../src/vm');
+const FormioCore = require('@formio/core');
+const { CORE_LODASH_MOMENT_INPUTMASK_NUNJUCKS, IsolateVMEvaluator } = require('../src/vm');
 const { getScript } = require('../src/util/email/renderEmail');
 const { RootShim } = require('../src/vm/src/RootShim');
 const { InstanceShim } = require('../src/vm/src/InstanceShim');
+const debug = require('debug');
 
 module.exports = function (app, template, hook) {
   describe('VM bundles', function () {
@@ -116,7 +118,13 @@ module.exports = function (app, template, hook) {
     let component1, component2, component3, component4;
     let components, data, dataGrid;
     let root, instanceMap;
+    let previousEvaluator;
     before('bootstrap RootShim/InstanceShim tests', function () {
+      // The shims resolve `util`/`utils` from the env bundle, which only the
+      // isolate-backed evaluator provides; the server registers it at bootstrap
+      // (index.js) but no harness bootstraps an app for this spec.
+      previousEvaluator = FormioCore.Evaluator;
+      FormioCore.registerEvaluator(new IsolateVMEvaluator({}, hook));
       component1 = {
         type: 'textfield',
         key: 'firstName',
@@ -205,6 +213,10 @@ module.exports = function (app, template, hook) {
       instanceMap = root.instanceMap;
     });
 
+    after('restore the previous evaluator', function () {
+      FormioCore.registerEvaluator(previousEvaluator);
+    });
+
     it('should create an instance map', () => {
       assert(instanceMap.hasOwnProperty('firstName'));
       assert(instanceMap.hasOwnProperty('lastName'));
@@ -230,6 +242,58 @@ module.exports = function (app, template, hook) {
     it('should expose a getCustomDefaultValue method', () => {
       const firstNameInstance = instanceMap.firstName;
       assert.equal(firstNameInstance.getCustomDefaultValue(), 'John');
+    });
+
+    it('should resolve utils from the env bundle without logging clone errors', () => {
+      // `utils` is in scope only while the core Evaluator singleton is the IsolateVM one,
+      // and the only thing that registers it is index.js's configureEvaluator() during app
+      // boot. This wrapper deliberately boots no app, so the test used to pass only when
+      // some earlier *.test.js had booted one — it failed whenever vm.test.js ran first, or
+      // alone. Register the evaluator it actually needs and hand the singleton back
+      // afterwards. INDEPENDENCE.md pattern F.
+      const core = require('@formio/core');
+      const { IsolateVMEvaluator } = require('../src/vm');
+      // Read off the module rather than destructuring: registerEvaluator reassigns the
+      // export, so a captured binding would restore the wrong one.
+      const previousEvaluator = core.Evaluator;
+      const evaluator = new IsolateVMEvaluator({}, hook);
+      core.registerEvaluator(evaluator);
+
+      const previousNamespaces = debug.disable();
+      const previousLog = debug.log;
+      const logged = [];
+      debug.enable('formio:vm');
+      debug.log = (...args) => logged.push(args.join(' '));
+
+      try {
+        const root = new RootShim(
+          {
+            components: [
+              {
+                type: 'textfield',
+                key: 'greeting',
+                customDefaultValue: 'value = utils.getComponentKey(component);',
+              },
+            ],
+          },
+          { data: {} },
+        );
+        assert.equal(root.instanceMap.greeting.getCustomDefaultValue(), 'greeting');
+      } finally {
+        debug.log = previousLog;
+        debug.enable(previousNamespaces);
+        core.registerEvaluator(previousEvaluator);
+        // Dispose the isolate, not just the registration: an IsolateVM that is only
+        // unregistered stays alive for the rest of the process and starves the isolates
+        // later tests build — it stopped `NextgenIsolateRenderer` from producing its mask
+        // error further down this file.
+        evaluator.vm.dispose();
+      }
+
+      assert.deepEqual(
+        logged.filter((line) => line.includes('Error setting global')),
+        [],
+      );
     });
 
     it('should add rowIndex property to the nested components', () => {
@@ -462,6 +526,33 @@ module.exports = function (app, template, hook) {
           (d) => d.context.path === 'firstName' && d.context.validator === 'required',
         ),
         'expected a required-field error for firstName',
+      );
+    });
+
+    it('validates an input mask entirely inside the isolate', async function () {
+      const form = {
+        _id: '000000000000000000000001',
+        components: [
+          {
+            type: 'textfield',
+            key: 'textField',
+            label: 'Text Field',
+            input: true,
+            inputMask: 'aaa',
+          },
+        ],
+      };
+      const result = await renderer.renderProcess({
+        form,
+        submission: { data: { textField: '123' } },
+        applyDefaults: true,
+        callbacks: stubCallbacks,
+      });
+      assert.ok(
+        result.details.some(
+          (d) => d.context.path === 'textField' && d.context.validator === 'mask',
+        ),
+        'expected a mask error for textField',
       );
     });
 
@@ -821,6 +912,19 @@ module.exports = function (app, template, hook) {
       };
       delete require.cache[adapterPath];
       ({ buildNextgenHostCallbacks } = require('../src/util/nextgenAdapter'));
+
+      // These assertions only mean anything if the stub above is what the adapter
+      // actually loaded. When this suite runs inside the formio-server harness,
+      // test/utils/initialize-app.js has mockery intercepting this very module, so
+      // require() hands back mockery's mock instead and the stub never applies.
+      if (require('@formio/node-fetch-http-proxy') !== require.cache[proxyPath].exports) {
+        this.skip();
+      }
+    });
+
+    // Each test asserts against only the call it made itself, so either can run alone.
+    beforeEach(function () {
+      calls.length = 0;
     });
 
     after(function () {
@@ -843,8 +947,8 @@ module.exports = function (app, template, hook) {
     it('routes fetch() through @formio/node-fetch-http-proxy, not bare fetch', async function () {
       const callbacks = buildNextgenHostCallbacks({ config: {}, token: null });
       await callbacks.fetch('https://ds.example.com/list', { method: 'GET' });
-      assert.equal(calls.length, 2);
-      assert.equal(calls[1].url, 'https://ds.example.com/list');
+      assert.equal(calls.length, 1);
+      assert.equal(calls[0].url, 'https://ds.example.com/list');
     });
   });
 

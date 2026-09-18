@@ -2,8 +2,10 @@
 
 const crypto = require('crypto');
 const util = require('../util/util');
+const { logger } = require('../util/logger');
 const { deriveKeyAndIv } = require('./util');
 
+const dbLogger = logger.child({ module: 'formio:db' });
 module.exports = function (db, schema) {
   return {
     /**
@@ -20,10 +22,11 @@ module.exports = function (db, schema) {
     updateLockVersion(version, callback) {
       schema.updateOne({ key: 'formio' }, { $set: { version: version } }, (err) => {
         if (err) {
+          dbLogger.error(err);
           throw err;
         }
 
-        util.log(` > Upgrading MongoDB Schema lock to v${version}`);
+        dbLogger.info(` > Upgrading MongoDB Schema lock to v${version}`);
         callback();
       });
     },

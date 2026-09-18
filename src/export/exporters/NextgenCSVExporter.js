@@ -2,7 +2,6 @@
 
 const _ = require('lodash');
 const csv = require('csv');
-const debug = require('debug')('formio:error');
 const Exporter = require('../Exporter');
 const { renderSubmission } = require('../nextgen/NextgenCsvRenderer');
 
@@ -14,6 +13,7 @@ class NextgenCSVExporter extends Exporter {
     this.stringifier = csv.stringify({ delimiter: ',', quoted: true });
     this.columns = [];
     this.formatted = req.query?.view === 'formatted';
+    this.logger = req.log.child({ module: 'formio:export:NextgenCSVExporter' });
   }
 
   async start(resolve, reject) {
@@ -56,7 +56,7 @@ class NextgenCSVExporter extends Exporter {
             ]);
           })
           .catch((err) => {
-            debug(`CSV export failed to render submission ${submission?._id}:`, err);
+            this.logger.error({ err }, `CSV export failed to render submission ${submission?._id}`);
             this.stringifier.write([...metadata, ...this.columns.map(() => '')]);
           })
           .then(() => stream.resume()),

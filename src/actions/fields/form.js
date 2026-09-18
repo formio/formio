@@ -6,7 +6,17 @@ module.exports = (router) => {
   /**
    * Perform hierarchial submissions of sub-forms.
    */
-  const submitSubForms = function (component, data, validation, req, res, path, fullPath, next) {
+  const submitSubForms = function (
+    component,
+    data,
+    validation,
+    req,
+    res,
+    path,
+    fullPath,
+    parentHidden,
+    next,
+  ) {
     // Only submit subforms after validation has occurred.
     if (!validation) {
       return next();
@@ -44,11 +54,12 @@ module.exports = (router) => {
     };
     // GOTCHA(G-FOS03)
     // Only execute if the component should save reference and conditions do not apply.
-    if (
-      (component.hasOwnProperty('reference') && !component.reference) ||
-      isConditionallyHidden() ||
-      (component.hidden && component.clearOnHide !== false)
-    ) {
+    const savesInline = component.hasOwnProperty('reference') && !component.reference;
+    // A hidden layout parent hides us too, and it never shows up in our data path (FIO-9879).
+    const hiddenByJson = Boolean(component.hidden) || parentHidden;
+    // clearOnHide defaults to true, so only an explicit false keeps a hidden child's data.
+    const clearedWhileHidden = hiddenByJson && component.clearOnHide !== false;
+    if (savesInline || isConditionallyHidden() || clearedWhileHidden) {
       return next();
     }
 
@@ -128,6 +139,7 @@ module.exports = (router) => {
    * Set parent submission id in externalIds of child form component's submission
    */
   const setChildFormParenthood = async function (component, data, validation, req, res, path) {
+    const log = req.log.child({ module: 'formio:form:childFormParenthood' });
     if (
       res.resource &&
       res.resource.item &&
@@ -145,7 +157,7 @@ module.exports = (router) => {
             .findOne({ _id: compValue._id, deleted: { $eq: null } })
             .exec();
           if (!submission) {
-            return router.formio.util.log('No subform found to update external ids.');
+            return log.debug('No subform found to update external ids.');
           }
 
           // Update the submission's externalIds.
@@ -170,24 +182,40 @@ module.exports = (router) => {
             );
           }
         } catch (err) {
-          return router.formio.util.log(err);
+          return log.error(err);
         }
       }
     }
     return;
   };
 
-  return async (component, data, handler, action, { validation, path, fullPath, req, res }) => {
+  return async (
+    component,
+    data,
+    handler,
+    action,
+    { validation, path, fullPath, parentHidden, req, res },
+  ) => {
     switch (handler) {
       case 'beforePut':
       case 'beforePost':
         return new Promise((resolve, reject) => {
-          submitSubForms(component, data, validation, req, res, path, fullPath, (err) => {
-            if (err) {
-              return reject(err);
-            }
-            return resolve();
-          });
+          submitSubForms(
+            component,
+            data,
+            validation,
+            req,
+            res,
+            path,
+            fullPath,
+            parentHidden,
+            (err) => {
+              if (err) {
+                return reject(err);
+              }
+              return resolve();
+            },
+          );
         });
       case 'afterPut':
       case 'afterPost':

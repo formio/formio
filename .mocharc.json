@@ -1,0 +1,8 @@
+{
+  "require": [
+    "./test/utils/isolate-process.js",
+    "./test/utils/reuse-listener.js",
+    "./test/utils/unique-words.js",
+    "./test/utils/root-hooks.js"
+  ]
+}
