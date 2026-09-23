@@ -3142,10 +3142,10 @@ node-paginate-anything@^1.0.0:
   resolved "https://registry.npmjs.org/node-paginate-anything/-/node-paginate-anything-1.0.0.tgz#591fe30b0d6bf09ffbcab97d113b76cfa99d1d9b"
   integrity sha512-L3eCybrEpnBbcG8ey+IqcsxlNOiV+fjyUqVaeGN/Wq95RUBmEktRQIXe2fC9cfmCpKbq5m/QhQ/lPehgUC1i8w==
 
-nodemailer@^9.1.1:
-  version "9.1.1"
-  resolved "https://registry.npmjs.org/nodemailer/-/nodemailer-9.1.1.tgz#fb991992723657f34dbe1d829139aa66be008e96"
-  integrity sha512-izw9mVKFix6YSnC9eLgV6g1opl9DUlRio9ZNcq+Wu9Ujn2UwF+8Nl0B8nz22kEC+CTZCvinkxwJ0DeFbb6NwcQ==
+nodemailer@^8.0.11:
+  version "8.0.11"
+  resolved "https://registry.npmjs.org/nodemailer/-/nodemailer-8.0.11.tgz#ce46b7c2c8bbf17b0408122fbfb4e47f4bffc688"
+  integrity sha512-nrO/pDAUKl+wXX+lx16tDLbnm0fW6sK/x8mgohaCpg+CdCEl482bD4tCuAZk2DyliruiNTIZxRCoWkDqJEnAiA==
 
 nodemon@^2.0.20:
   version "2.0.22"
