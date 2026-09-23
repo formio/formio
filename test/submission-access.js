@@ -714,6 +714,35 @@ module.exports = function(app, template, hook) {
 
             request401(req, done);
           });
+
+          // CVE-2025-67718: Mixed-case path segments must not bypass permission checks.
+          it('An Anonymous user should not be able to Read the Index of submissions using a mixed-case form path segment', function(done) {
+            var req = request(app)
+              .get(hook.alter('url', '/Form/' + tempForm._id + '/submission', template));
+
+            request401(req, done);
+          });
+
+          it('An Anonymous user should not be able to Read the Index of submissions using a mixed-case submission path segment', function(done) {
+            var req = request(app)
+              .get(hook.alter('url', '/form/' + tempForm._id + '/Submission', template));
+
+            request401(req, done);
+          });
+
+          it('An Anonymous user should not be able to Read a submission using upper-case path segments', function(done) {
+            var req = request(app)
+              .get(hook.alter('url', '/FORM/' + tempForm._id + '/SUBMISSION/' + tempSubmission._id, template));
+
+            request401(req, done);
+          });
+
+          it('An Anonymous user should not be able to Read the Index of submissions using a mixed-case submission path segment with the Form alias', function(done) {
+            var req = request(app)
+              .get(hook.alter('url', '/' + tempForm.path + '/SubMission', template));
+
+            request401(req, done);
+          });
         });
 
         describe('Submission Normalization', function() {

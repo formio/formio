@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
 ## [Unreleased: 4.2.10-rc.1]
 ### Changed
  - FIO-10572: Fixed issue where the project configuration is not getting sent over to the evaluator correctly
+ - Security: backported fix for CVE-2025-67718 (url parameter keys are now case-normalized so mixed-case request paths cannot bypass permission checks)
    
 ## 4.2.9
 ### Changed
