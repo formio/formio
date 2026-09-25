@@ -324,6 +324,92 @@ module.exports = function (app, template, hook) {
       assert.equal(billNoFieldInstanceRow1.rowIndex, 1);
     });
 
+    it('should keep a root component reachable when a nested form child shares its key', () => {
+      // A nested form's child resolves to a bare key for its local paths, so it contends for
+      // the root-level path of a component with the same key.
+      const rootTextField = { type: 'textfield', key: 'firstName', input: true };
+      const components = [
+        rootTextField,
+        {
+          type: 'form',
+          key: 'nestedForm',
+          input: true,
+          components: [{ type: 'textfield', key: 'firstName', input: true }],
+        },
+      ];
+      const root = new RootShim(
+        { components },
+        { data: { firstName: 'root', nestedForm: { data: { firstName: 'sub' } } } },
+      );
+
+      const resolved = FormioCore.Utils.resolveInstanceAtPath(
+        root.instanceMap,
+        'firstName',
+        'firstName',
+      );
+
+      assert.strictEqual(resolved.component, rootTextField);
+    });
+
+    it('should evaluate custom logic against the instance of the component being evaluated', () => {
+      const { IsolateVMEvaluator } = require('../src/vm');
+      const core = require('@formio/core');
+      const previousEvaluator = core.Evaluator;
+      const evaluator = new IsolateVMEvaluator({}, hook);
+      core.registerEvaluator(evaluator);
+
+      try {
+        const components = [
+          {
+            type: 'radio',
+            key: 'isValid',
+            input: true,
+            values: [
+              { label: 'Yes', value: 'yes' },
+              { label: 'No', value: 'no' },
+            ],
+          },
+          {
+            type: 'checkbox',
+            key: 'noItIsNotValid',
+            inputType: 'radio',
+            name: 'isValid',
+            value: 'no',
+            input: true,
+          },
+        ];
+        const submission = { data: { isValid: '' } };
+        const root = new RootShim({ components }, submission);
+        const checkbox = components[1];
+        const paths = FormioCore.Utils.getComponentPaths(checkbox);
+        const instance = FormioCore.Utils.resolveInstanceAtPath(
+          root.instanceMap,
+          paths.dataPath,
+          checkbox.key,
+        );
+
+        const evaluated = evaluator.evaluate(
+          'value = instance.component.key;',
+          {
+            form: { components },
+            submission,
+            data: submission.data,
+            scope: {},
+            component: checkbox,
+            path: paths.dataPath,
+            paths,
+            instance,
+          },
+          'value',
+        );
+
+        assert.equal(evaluated, 'noItIsNotValid');
+      } finally {
+        core.registerEvaluator(previousEvaluator);
+        evaluator.vm.dispose();
+      }
+    });
+
     it('should return a component (InstanceShim) at an exact path if it exists', () => {
       const components = [
         {
@@ -337,6 +423,51 @@ module.exports = function (app, template, hook) {
       const component = root.getComponent('textField');
       assert(component instanceof InstanceShim);
       assert.equal(component.component.key, 'textField');
+    });
+
+    it('should keep every component reachable when several share a data path', () => {
+      // `getComponentKey()` maps a checkbox with `inputType: 'radio'` onto its `name`, so all
+      // three of these components resolve to the data path `isValid`.
+      const components = [
+        {
+          type: 'radio',
+          key: 'isValid',
+          label: 'Is this valid?',
+          input: true,
+          validate: { required: true },
+          values: [
+            { label: 'Yes', value: 'yes' },
+            { label: 'No', value: 'no' },
+          ],
+        },
+        {
+          type: 'checkbox',
+          key: 'yesThisIsValid',
+          label: 'Yes, this is valid',
+          inputType: 'radio',
+          name: 'isValid',
+          value: 'yes',
+          input: true,
+        },
+        {
+          type: 'checkbox',
+          key: 'noItIsNotValid',
+          label: 'No, it is not valid',
+          inputType: 'radio',
+          name: 'isValid',
+          value: 'no',
+          input: true,
+        },
+      ];
+      const root = new RootShim({ components }, { data: { isValid: '' } });
+
+      const resolved = components.map(
+        (component) =>
+          FormioCore.Utils.resolveInstanceAtPath(root.instanceMap, 'isValid', component.key)
+            .component.key,
+      );
+
+      assert.deepEqual(resolved, ['isValid', 'yesThisIsValid', 'noItIsNotValid']);
     });
 
     it('should return a component at an exact nested path if it exists', () => {

@@ -68,7 +68,11 @@ class IsolateVMEvaluator extends DefaultEvaluator {
           const modelType = util.getModelType(component);
           component.modelType = modelType;
           const instances = root.instanceMap;
-          const instance = instances[(['none', 'content']).includes(component.modelType || '') && paths?.fullPath ? paths.fullPath : path];
+          const instance = util.resolveInstanceAtPath(
+            instances,
+            util.getInstanceLookupPath(component, path, paths),
+            component.key,
+          );
         `;
       }
 
