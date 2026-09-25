@@ -1,5 +1,25 @@
 # formio
 
+## 4.10.1
+
+### Patch Changes
+
+- 6d5f18f: FIO-12390: resolve a processor's component instance by its own schema when several components share a data path, so a required radio is still validated alongside radio-input checkboxes named after it
+- Updated dependencies [6d5f18f]
+- Updated dependencies [c2b3cc2]
+  - @formio/core@2.9.0
+  - @formio/js@5.6.1
+
+## 4.10.1-api911.0
+
+### Patch Changes
+
+- 6d5f18f: FIO-12390: resolve a processor's component instance by its own schema when several components share a data path, so a required radio is still validated alongside radio-input checkboxes named after it
+- Updated dependencies [6d5f18f]
+- Updated dependencies [c2b3cc2]
+  - @formio/core@2.9.0-api911.0
+  - @formio/js@5.6.1-api911.0
+
 ## 4.10.0
 
 ### Minor Changes
