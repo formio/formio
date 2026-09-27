@@ -173,6 +173,24 @@ module.exports = function(app, template, hook) {
    }
   });
 
+  describe('Url params', function() {
+    const util = require('../src/util/util');
+
+    it('Should parse the url parameters', function() {
+      const params = util.getUrlParams('/form/123/submission/456');
+      assert.deepEqual(params, {form: '123', submission: '456'});
+    });
+
+    it('Should normalize the case of the url parameter keys (CVE-2025-67718)', function() {
+      assert.deepEqual(util.getUrlParams('/Form/123/SUBMISSION/456'), {form: '123', submission: '456'});
+      assert.deepEqual(util.getUrlParams('/FORM/abc/Role/def'), {form: 'abc', role: 'def'});
+    });
+
+    it('Should not alter the case of the url parameter values', function() {
+      assert.deepEqual(util.getUrlParams('/form/AbCdEf'), {form: 'AbCdEf'});
+    });
+  });
+
   describe('ObjectId transform', function() {
     it('Should transform a document\'s _id property to a string when calling toObject', function(done) {
       const schema = new mongoose.Schema({
