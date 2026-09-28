@@ -4,7 +4,12 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
-## [Unreleased: 4.2.10-rc.1]
+## 4.2.10-rc.1
+### Changed
+ - Updated formiojs@4.21.8-rc.0
+ - Updated @formio/core@2.3.4-rc.1
+ - Updated @formio/vm@0.2.10-rc.1
+
 ### Changed
  - FIO-10572: Fixed issue where the project configuration is not getting sent over to the evaluator correctly
  - Security: backported fix for CVE-2025-67718 (url parameter keys are now case-normalized so mixed-case request paths cannot bypass permission checks)
