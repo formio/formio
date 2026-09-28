@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
-### [Unreleased: 4.2.10-rc.2]
+## 4.2.10-rc.2
 ### Changed
  - Security: upgraded nodemailer to 9.1.1
 
