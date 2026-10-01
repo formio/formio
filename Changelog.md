@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## 4.2.10
+### Changed
+ - Official Release
+ - Updated formiojs@4.21.8
+ - Updated @formio/core@2.3.4
+ - Updated @formio/vm@0.2.10
+
 ## 4.2.10-rc.2
 ### Changed
  - Security: upgraded nodemailer to 9.1.1
