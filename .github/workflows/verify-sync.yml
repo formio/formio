@@ -1,0 +1,248 @@
+name: verify-sync
+
+# Drop into any OSS repo at `.github/workflows/verify-sync.yml`. Pair with
+# a per-repo `.github/sync-verify.yml` exclude config (see
+# `formio/gh-workflows:oss-templates/sync-verify.yml` for the sample).
+#
+# Requires repo (or org) secret `MONOREPO_SYNC_TOKEN` with read access to
+# `formio/nirvana` and `formio/gh-workflows`.
+#
+# The job only runs on PRs whose body contains the `<!-- formio-sync-meta ... -->`
+# marker that `gh-workflows/bin/sync-oss.mjs` stamps. Other PRs (dependabot,
+# community contributions, hotfixes) show the job as skipped — no comment, no noise.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  compare:
+    if: github.event.pull_request.body != null && contains(github.event.pull_request.body, '<!-- formio-sync-meta ')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: pr-head
+
+      - name: Parse sync-meta marker
+        id: meta
+        env:
+          BODY: ${{ github.event.pull_request.body }}
+        run: |
+          set -euo pipefail
+          MARKER=$(printf '%s' "$BODY" | grep -oE '<!-- formio-sync-meta [^>]+ -->' | head -1)
+          if [ -z "$MARKER" ]; then
+            echo "::error::formio-sync-meta marker not found in PR body"
+            exit 1
+          fi
+          PACKAGE=$(echo "$MARKER" | sed -nE 's/.*package="([^"]+)".*/\1/p')
+          VERSION=$(echo "$MARKER" | sed -nE 's/.*version="([^"]+)".*/\1/p')
+          SHA=$(echo "$MARKER"     | sed -nE 's/.*monorepo-sha="([^"]+)".*/\1/p')
+          if [ -z "$PACKAGE" ] || [ -z "$VERSION" ] || [ -z "$SHA" ]; then
+            echo "::error::marker found but malformed: $MARKER"
+            exit 1
+          fi
+          echo "package=$PACKAGE" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "sha=$SHA"         >> "$GITHUB_OUTPUT"
+          echo "Parsed: package=$PACKAGE version=$VERSION sha=$SHA"
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Checkout nirvana at marker sha
+        uses: actions/checkout@v4
+        with:
+          repository: formio/nirvana
+          ref: ${{ steps.meta.outputs.sha }}
+          token: ${{ secrets.MONOREPO_SYNC_TOKEN }}
+          path: nirvana
+          fetch-depth: 1
+
+      - name: Checkout gh-workflows (verify tool)
+        uses: actions/checkout@v4
+        with:
+          repository: formio/gh-workflows
+          ref: main
+          token: ${{ secrets.MONOREPO_SYNC_TOKEN }}
+          path: gh-workflows
+          fetch-depth: 1
+
+      - name: Install pnpm
+        # verify-oss-sync.mjs calls `pnpm ls -r` to build the sibling version
+        # map for workspace:* resolution.
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+          run_install: false
+
+      - name: Run verify
+        id: verify
+        continue-on-error: true
+        run: |
+          set -uo pipefail
+          CFG="$GITHUB_WORKSPACE/pr-head/.github/sync-verify.yml"
+          CFG_FLAG=""
+          if [ -f "$CFG" ]; then
+            CFG_FLAG="--config=$CFG"
+            echo "Using exclude config: $CFG"
+          else
+            echo "No .github/sync-verify.yml in PR head — comparing without OSS-side excludes."
+          fi
+          node "$GITHUB_WORKSPACE/gh-workflows/bin/verify-oss-sync.mjs" \
+            --monorepo="$GITHUB_WORKSPACE/nirvana" \
+            --filter="${{ steps.meta.outputs.package }}" \
+            --oss-path="$GITHUB_WORKSPACE/pr-head" \
+            --json \
+            $CFG_FLAG \
+            > "$GITHUB_WORKSPACE/verify.json" \
+            2> "$GITHUB_WORKSPACE/verify.err"
+          echo "exit=$?" >> "$GITHUB_OUTPUT"
+          echo "--- stderr ---"
+          cat "$GITHUB_WORKSPACE/verify.err" || true
+
+      - name: Build comment + decide pass/fail
+        id: report
+        env:
+          PKG: ${{ steps.meta.outputs.package }}
+          VERSION: ${{ steps.meta.outputs.version }}
+          SHA: ${{ steps.meta.outputs.sha }}
+          VERIFY_EXIT: ${{ steps.verify.outputs.exit }}
+        run: |
+          set -euo pipefail
+          if ! jq -e '.[0]' "$GITHUB_WORKSPACE/verify.json" > /dev/null 2>&1; then
+            CRIT=0; INFO=0
+            {
+              echo "<!-- formio-sync-verify -->"
+              echo "## :warning: Sync verify could not run"
+              echo ""
+              echo "verify-oss-sync.mjs failed to produce a result for \`$PKG\` against \`formio/nirvana@$SHA\`. stderr:"
+              echo ""
+              echo '```'
+              head -c 4000 "$GITHUB_WORKSPACE/verify.err" || true
+              echo '```'
+              echo ""
+              echo "<sub>[workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})</sub>"
+            } > "$GITHUB_WORKSPACE/comment.md"
+            echo "critical=1" >> "$GITHUB_OUTPUT"
+            echo "exit=1" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          jq '.[0]' "$GITHUB_WORKSPACE/verify.json" > "$GITHUB_WORKSPACE/pkg.json"
+          CRIT=$(jq '[.issues[] | select(.severity == "critical")] | length' "$GITHUB_WORKSPACE/pkg.json")
+          INFO=$(jq '[.issues[] | select(.severity == "info")]     | length' "$GITHUB_WORKSPACE/pkg.json")
+          echo "critical=$CRIT" >> "$GITHUB_OUTPUT"
+          echo "info=$INFO"     >> "$GITHUB_OUTPUT"
+
+          # Cap per-section list size so the comment can't exceed GitHub's
+          # 65k-char limit. The full machine-readable list is in verify.json,
+          # uploaded as a workflow artifact for anyone needing the whole set.
+          MAX_PER_SECTION=200
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+          {
+            echo "<!-- formio-sync-verify -->"
+            echo "## Sync verify: \`$PKG@$VERSION\`"
+            echo ""
+            echo "Compared this PR head against \`formio/nirvana@$SHA\`."
+            echo ""
+            if [ "$CRIT" = "0" ] && [ "$INFO" = "0" ]; then
+              echo ":white_check_mark: **No drift** — PR head matches the synthesized release exactly."
+            elif [ "$CRIT" = "0" ]; then
+              echo ":white_check_mark: **No critical drift.** $INFO informational entries below."
+            else
+              echo ":x: **$CRIT critical drift entries.** $INFO informational entries."
+              echo ""
+              echo "Critical drift means the PR contains content that did not come from nirvana. Either roll the offending changes into nirvana (so they ship via the next sync) or, if the file is OSS-owned, add it to \`.github/sync-verify.yml\`'s \`exclude:\` list and re-trigger."
+            fi
+            echo ""
+
+            if [ "$CRIT" != "0" ]; then
+              echo "### Critical — OSS contains changes not in nirvana"
+              echo ""
+              jq -r --argjson max $MAX_PER_SECTION '
+                [.issues[] | select(.severity == "critical")][:$max][] |
+                if   .kind == "oss-only"             then "- :heavy_plus_sign: `" + .file + "` — extra file in OSS"
+                elif .kind == "content-diff"         then "- :pencil2: `" + .file + "` — content differs from nirvana"
+                elif .kind == "dep-extra-in-oss"     then "- :package: [`" + .section + "`] `" + .key + "` = `" + (.oss|tostring) + "` — dep only in OSS"
+                elif .kind == "dep-version-mismatch" then "- :package: [`" + .section + "`] `" + .key + "` — nirvana=`" + (.mono|tostring) + "`, OSS=`" + (.oss|tostring) + "`"
+                elif .kind == "workspace-orphan"     then "- :warning: [`" + .section + "`] `" + .key + "` — workspace ref `" + (.mono|tostring) + "` has no sibling in nirvana"
+                else "- " + tostring end' "$GITHUB_WORKSPACE/pkg.json"
+              if [ "$CRIT" -gt "$MAX_PER_SECTION" ]; then
+                REMAINING=$((CRIT - MAX_PER_SECTION))
+                echo ""
+                echo "_… and $REMAINING more critical entries truncated. Full list in the [workflow run]($RUN_URL) artifact \`verify.json\`._"
+              fi
+              echo ""
+            fi
+
+            if [ "$INFO" != "0" ]; then
+              echo "<details><summary>Informational ($INFO entries — nirvana has content the PR doesn't)</summary>"
+              echo ""
+              jq -r --argjson max $MAX_PER_SECTION '
+                [.issues[] | select(.severity == "info")][:$max][] |
+                if   .kind == "mono-only"          then "- :grey_question: `" + .file + "` — missing in OSS"
+                elif .kind == "dep-missing-in-oss" then "- :package: [`" + .section + "`] `" + .key + "` = `" + (.mono|tostring) + "` — dep only in nirvana"
+                else "- " + tostring end' "$GITHUB_WORKSPACE/pkg.json"
+              if [ "$INFO" -gt "$MAX_PER_SECTION" ]; then
+                REMAINING=$((INFO - MAX_PER_SECTION))
+                echo ""
+                echo "_… and $REMAINING more informational entries truncated._"
+              fi
+              echo ""
+              echo "</details>"
+              echo ""
+            fi
+
+            echo "<sub>[workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) · adjust drift policy in <a href=\"${{ github.server_url }}/${{ github.repository }}/blob/${{ github.event.pull_request.head.ref }}/.github/sync-verify.yml\"><code>.github/sync-verify.yml</code></a></sub>"
+          } > "$GITHUB_WORKSPACE/comment.md"
+
+          if [ "$CRIT" != "0" ]; then
+            echo "exit=1" >> "$GITHUB_OUTPUT"
+          else
+            echo "exit=0" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload verify.json artifact
+        # Always upload so the full machine-readable drift list is accessible
+        # even when the PR comment is truncated.
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verify-result
+          path: ${{ github.workspace }}/verify.json
+          if-no-files-found: ignore
+          retention-days: 30
+
+      - name: Post sticky comment
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          REPO="${{ github.repository }}"
+          EXISTING=$(gh api "repos/$REPO/issues/$PR_NUMBER/comments" \
+            --jq 'map(select(.body | startswith("<!-- formio-sync-verify -->"))) | .[0].id // empty')
+          PAYLOAD=$(jq -n --rawfile body "$GITHUB_WORKSPACE/comment.md" '{body: $body}')
+          if [ -n "$EXISTING" ]; then
+            echo "Updating existing comment $EXISTING"
+            printf '%s' "$PAYLOAD" | gh api -X PATCH "repos/$REPO/issues/comments/$EXISTING" --input -
+          else
+            echo "Creating new comment"
+            printf '%s' "$PAYLOAD" | gh api -X POST "repos/$REPO/issues/$PR_NUMBER/comments" --input -
+          fi
+
+      - name: Fail on critical drift
+        if: steps.report.outputs.exit != '0'
+        run: |
+          echo "::error::Critical drift detected (${{ steps.report.outputs.critical }} entries). See PR comment."
+          exit 1

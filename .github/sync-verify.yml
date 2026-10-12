@@ -1,0 +1,35 @@
+# Drift-suppression config for the OSS-side verify-sync workflow.
+#
+# Place at `.github/sync-verify.yml` in each OSS mirror.
+#
+# Patterns are matched against repo-relative paths (the package root).
+# Suffix syntax:
+#   foo          → exact path `foo` OR anything under `foo/`
+#   foo/         → same
+#   foo/*        → same (treated as a recursive prefix; intentionally loose)
+#   foo/**       → same
+# Inner globs (`*` mid-segment) are intentionally NOT supported — keep
+# patterns shaped like paths or directory prefixes.
+#
+# Always-excluded paths (you don't need to list them here; they're
+# hardcoded in verify-oss-sync.mjs):
+#   - `.github/workflows/` — CI configs always diverge per repo
+#   - `.github/sync-verify.yml` — this file itself
+#
+# Add a path here when:
+#   1. OSS owns a file nirvana doesn't sync (custom community files,
+#      sponsor configs, badges, etc.) — suppresses `oss-only` drift.
+#   2. Nirvana intentionally omits a file that's also in monorepo history —
+#      suppresses `mono-only` drift.
+
+exclude:
+  # GitHub community / metadata files — usually OSS-owned, not synced.
+  - .github/ISSUE_TEMPLATE
+  - .github/PULL_REQUEST_TEMPLATE.md
+  - .github/CODE_OF_CONDUCT.md
+  - .github/CONTRIBUTING.md
+  - .github/SECURITY.md
+  - .github/FUNDING.yml
+  # Test coverage artifacts sometimes committed to OSS but never to nirvana.
+  - .nyc_output
+  - coverage
