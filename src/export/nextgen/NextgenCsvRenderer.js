@@ -47,11 +47,16 @@ async function renderSubmission(form, submission, options = {}) {
     { readOnly: true },
   );
   const values = {};
-  eachInstance(root, ({ instance, pathPrefix }) => {
+  // CSV headers join nested-form segments with "." (`child.age`), not ".data.".
+  const columnPrefixes = new Map([[root, '']]);
+  eachInstance(root, ({ instance, path, owner }) => {
+    const columnKey = (columnPrefixes.get(owner) ?? '') + (instance.dataPath || path);
+    if (instance._process) {
+      columnPrefixes.set(instance, `${columnKey}.`);
+    }
     if (!isDataColumn(instance)) {
       return;
     }
-    const columnKey = pathPrefix ? `${pathPrefix}.${instance.dataPath}` : instance.dataPath;
     const { valueSchema } = instance.definition;
     if (valueSchema?.properties) {
       const value = instance.value || {};

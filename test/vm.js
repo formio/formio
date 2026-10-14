@@ -324,6 +324,92 @@ module.exports = function (app, template, hook) {
       assert.equal(billNoFieldInstanceRow1.rowIndex, 1);
     });
 
+    it('should keep a root component reachable when a nested form child shares its key', () => {
+      // A nested form's child resolves to a bare key for its local paths, so it contends for
+      // the root-level path of a component with the same key.
+      const rootTextField = { type: 'textfield', key: 'firstName', input: true };
+      const components = [
+        rootTextField,
+        {
+          type: 'form',
+          key: 'nestedForm',
+          input: true,
+          components: [{ type: 'textfield', key: 'firstName', input: true }],
+        },
+      ];
+      const root = new RootShim(
+        { components },
+        { data: { firstName: 'root', nestedForm: { data: { firstName: 'sub' } } } },
+      );
+
+      const resolved = FormioCore.Utils.resolveInstanceAtPath(
+        root.instanceMap,
+        'firstName',
+        'firstName',
+      );
+
+      assert.strictEqual(resolved.component, rootTextField);
+    });
+
+    it('should evaluate custom logic against the instance of the component being evaluated', () => {
+      const { IsolateVMEvaluator } = require('../src/vm');
+      const core = require('@formio/core');
+      const previousEvaluator = core.Evaluator;
+      const evaluator = new IsolateVMEvaluator({}, hook);
+      core.registerEvaluator(evaluator);
+
+      try {
+        const components = [
+          {
+            type: 'radio',
+            key: 'isValid',
+            input: true,
+            values: [
+              { label: 'Yes', value: 'yes' },
+              { label: 'No', value: 'no' },
+            ],
+          },
+          {
+            type: 'checkbox',
+            key: 'noItIsNotValid',
+            inputType: 'radio',
+            name: 'isValid',
+            value: 'no',
+            input: true,
+          },
+        ];
+        const submission = { data: { isValid: '' } };
+        const root = new RootShim({ components }, submission);
+        const checkbox = components[1];
+        const paths = FormioCore.Utils.getComponentPaths(checkbox);
+        const instance = FormioCore.Utils.resolveInstanceAtPath(
+          root.instanceMap,
+          paths.dataPath,
+          checkbox.key,
+        );
+
+        const evaluated = evaluator.evaluate(
+          'value = instance.component.key;',
+          {
+            form: { components },
+            submission,
+            data: submission.data,
+            scope: {},
+            component: checkbox,
+            path: paths.dataPath,
+            paths,
+            instance,
+          },
+          'value',
+        );
+
+        assert.equal(evaluated, 'noItIsNotValid');
+      } finally {
+        core.registerEvaluator(previousEvaluator);
+        evaluator.vm.dispose();
+      }
+    });
+
     it('should return a component (InstanceShim) at an exact path if it exists', () => {
       const components = [
         {
@@ -337,6 +423,51 @@ module.exports = function (app, template, hook) {
       const component = root.getComponent('textField');
       assert(component instanceof InstanceShim);
       assert.equal(component.component.key, 'textField');
+    });
+
+    it('should keep every component reachable when several share a data path', () => {
+      // `getComponentKey()` maps a checkbox with `inputType: 'radio'` onto its `name`, so all
+      // three of these components resolve to the data path `isValid`.
+      const components = [
+        {
+          type: 'radio',
+          key: 'isValid',
+          label: 'Is this valid?',
+          input: true,
+          validate: { required: true },
+          values: [
+            { label: 'Yes', value: 'yes' },
+            { label: 'No', value: 'no' },
+          ],
+        },
+        {
+          type: 'checkbox',
+          key: 'yesThisIsValid',
+          label: 'Yes, this is valid',
+          inputType: 'radio',
+          name: 'isValid',
+          value: 'yes',
+          input: true,
+        },
+        {
+          type: 'checkbox',
+          key: 'noItIsNotValid',
+          label: 'No, it is not valid',
+          inputType: 'radio',
+          name: 'isValid',
+          value: 'no',
+          input: true,
+        },
+      ];
+      const root = new RootShim({ components }, { data: { isValid: '' } });
+
+      const resolved = components.map(
+        (component) =>
+          FormioCore.Utils.resolveInstanceAtPath(root.instanceMap, 'isValid', component.key)
+            .component.key,
+      );
+
+      assert.deepEqual(resolved, ['isValid', 'yesThisIsValid', 'noItIsNotValid']);
     });
 
     it('should return a component at an exact nested path if it exists', () => {
@@ -481,6 +612,25 @@ module.exports = function (app, template, hook) {
     });
   });
 
+  describe('IsolateVMEvaluator.evaluate', function () {
+    const { IsolateVMEvaluator } = require('../src/vm');
+
+    it('keeps evaluating custom logic after one evaluation exhausts the memory limit', function () {
+      const evaluator = new IsolateVMEvaluator({ memoryLimitMb: 64, timeoutMs: 10000 }, hook);
+      const args = { component: { key: 'calc' }, data: {} };
+
+      const exhausted = evaluator.evaluate(
+        'const a = []; while (true) a.push(new Array(1e5).fill(0));',
+        args,
+        'value',
+      );
+      assert.equal(exhausted, null);
+
+      assert.equal(evaluator.evaluate('value = 1 + 1;', args, 'value'), 2);
+      evaluator.vm.dispose();
+    });
+  });
+
   describe('NextgenIsolateRenderer.renderProcess', function () {
     const { NextgenIsolateRenderer } = require('../src/vm/nextgen/renderer');
     let renderer;
@@ -598,6 +748,105 @@ module.exports = function (app, template, hook) {
       assert.deepEqual(result.protectedPaths, ['secret']);
     });
 
+    it('reports nested-form validation errors by their instance path', async function () {
+      const nested = (key) => ({
+        type: 'form',
+        key,
+        label: 'Nested',
+        input: true,
+        scope: 'process',
+        components: [
+          {
+            type: 'textfield',
+            key: `${key}TextField`,
+            label: `${key} Text Field`,
+            input: true,
+            validate: { required: true },
+          },
+        ],
+      });
+      const page = (index, child) => ({
+        type: 'panel',
+        key: `page${index}`,
+        title: `Page ${index}`,
+        components: [
+          {
+            type: 'textfield',
+            key: `page${index}TextField`,
+            label: `Page ${index} Text Field`,
+            input: true,
+            validate: { required: true },
+          },
+          child,
+        ],
+      });
+      const form = {
+        _id: '000000000000000000000001',
+        display: 'wizard',
+        components: [page(1, nested('form')), page(2, nested('form1'))],
+      };
+      const result = await renderer.renderProcess({
+        form,
+        submission: { data: {} },
+        applyDefaults: true,
+        callbacks: stubCallbacks,
+      });
+      // The renderer keys errorsRecord by the instance path — layout containers
+      // included, no `.data.` envelope — so that is what the details carry.
+      assert.deepEqual(
+        result.details.map((detail) => detail.path),
+        [
+          ['page1', 'page1TextField'],
+          ['page1', 'form', 'formTextField'],
+          ['page2', 'page2TextField'],
+          ['page2', 'form1', 'form1TextField'],
+        ],
+      );
+      assert.deepEqual(
+        result.details.map((detail) => detail.context.path),
+        [
+          'page1.page1TextField',
+          'page1.form.formTextField',
+          'page2.page2TextField',
+          'page2.form1.form1TextField',
+        ],
+      );
+    });
+
+    it('reports a conditionally-hidden nested form by its data path', async function () {
+      const form = {
+        _id: '000000000000000000000001',
+        display: 'wizard',
+        components: [
+          {
+            type: 'panel',
+            key: 'page1',
+            title: 'Page 1',
+            components: [
+              {
+                type: 'form',
+                key: 'form',
+                label: 'Nested',
+                input: true,
+                scope: 'process',
+                customConditional: 'show = false;',
+                components: [
+                  { type: 'textfield', key: 'nestedTextField', label: 'Nested', input: true },
+                ],
+              },
+            ],
+          },
+        ],
+      };
+      const result = await renderer.renderProcess({
+        form,
+        submission: { data: {} },
+        applyDefaults: true,
+        callbacks: stubCallbacks,
+      });
+      assert.deepEqual(result.hiddenPaths, ['form']);
+    });
+
     it('builds email render data (table html + values/labels) in-isolate', async function () {
       const form = {
         _id: '000000000000000000000001',
@@ -674,6 +923,31 @@ module.exports = function (app, template, hook) {
       });
       assert.doesNotMatch(result.componentValues.subForm, /Complex Data/);
       assert.match(result.componentValues.subForm, /Bob/);
+    });
+
+    it('keys a nested form field by its absolute data path and renders it once', async function () {
+      const form = {
+        _id: '000000000000000000000001',
+        components: [
+          {
+            type: 'form',
+            key: 'subForm',
+            label: 'Sub Form',
+            input: true,
+            scope: 'process',
+            components: [{ type: 'textfield', key: 'firstName', label: 'First Name', input: true }],
+          },
+        ],
+      };
+      const result = await renderer.renderEmail({
+        form,
+        submission: { data: { subForm: { data: { firstName: 'Bob' } } } },
+        callbacks: stubCallbacks,
+      });
+      assert.equal(result.componentValues['subForm.data.firstName'], 'Bob');
+      assert.equal(result.componentLabels['subForm.data.firstName'], 'First Name');
+      const nestedValueMatches = result.submissionTableHtml.match(/Bob/g) || [];
+      assert.equal(nestedValueMatches.length, 1, 'nested value must appear once, not duplicated');
     });
 
     it('excludes non-value components (buttons) from the submission table', async function () {

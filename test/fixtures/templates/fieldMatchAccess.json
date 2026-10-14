@@ -1,0 +1,122 @@
+{
+  "title": "fieldMatchAccess",
+  "name": "fieldMatchAccess",
+  "version": "2.0.0",
+  "description": "fieldMatchAccess import/export role mapping tests",
+  "roles": {
+    "administrator": {
+      "title": "Administrator",
+      "description": "A role for Administrative Users.",
+      "admin": true,
+      "default": false
+    },
+    "authenticated": {
+      "title": "Authenticated",
+      "description": "A role for Authenticated Users.",
+      "admin": false,
+      "default": false
+    },
+    "anonymous": {
+      "title": "Anonymous",
+      "description": "A role for Anonymous Users.",
+      "admin": false,
+      "default": true
+    }
+  },
+  "resources": {
+    "a": {
+      "title": "Customer",
+      "type": "resource",
+      "name": "customer",
+      "path": "customer",
+      "pdfComponents": [],
+      "tags": [],
+      "settings": {},
+      "components": [
+        {
+          "label": "Owner",
+          "tableView": true,
+          "key": "owner",
+          "type": "textfield",
+          "input": true
+        }
+      ],
+      "access": [],
+      "submissionAccess": [],
+      "fieldMatchAccess": {
+        "read": [
+          {
+            "formFieldPath": "data.owner",
+            "value": "authenticated@example.com",
+            "operator": "$eq",
+            "valueType": "string",
+            "roles": ["authenticated"]
+          }
+        ],
+        "write": [
+          {
+            "formFieldPath": "data.owner",
+            "value": "admin@example.com",
+            "operator": "$eq",
+            "valueType": "string",
+            "roles": ["administrator", "everyone"]
+          }
+        ]
+      },
+      "properties": {}
+    }
+  },
+  "forms": {
+    "b": {
+      "title": "Intake",
+      "type": "form",
+      "name": "intake",
+      "path": "intake",
+      "pdfComponents": [],
+      "display": "form",
+      "tags": [],
+      "settings": {},
+      "components": [
+        {
+          "label": "Department",
+          "tableView": true,
+          "key": "department",
+          "type": "textfield",
+          "input": true
+        },
+        {
+          "type": "button",
+          "label": "Submit",
+          "key": "submit",
+          "disableOnInvalid": true,
+          "input": true,
+          "tableView": false
+        }
+      ],
+      "access": [],
+      "submissionAccess": [],
+      "fieldMatchAccess": {
+        "read": [
+          {
+            "formFieldPath": "data.department",
+            "value": "hr",
+            "operator": "$eq",
+            "valueType": "string",
+            "roles": ["authenticated", "anonymous"]
+          }
+        ],
+        "create": [
+          {
+            "formFieldPath": "data.department",
+            "value": "executive",
+            "operator": "$eq",
+            "valueType": "string",
+            "roles": ["administrator"]
+          }
+        ]
+      },
+      "properties": {}
+    }
+  },
+  "actions": {}
+}

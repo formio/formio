@@ -14,9 +14,6 @@ module.exports = {
   // How many field and property handlers one validation pass fanned out to.
   SUBMISSION_FIELD_HANDLERS: 'formio.submission.field_handlers',
 
-  // How many components the form of the current request carries, flattened.
-  FORM_COMPONENTS: 'formio.form.components',
-
   // Submissions persisted.
   SUBMISSION_CREATED: 'formio.submission.created',
 };

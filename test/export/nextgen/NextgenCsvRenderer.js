@@ -212,6 +212,34 @@ module.exports = function (app, template, hook) {
       assert.deepEqual(result, { name: 'Bob', 'child.age': '23', 'child.name': 'Junior' });
     });
 
+    it('keys a nested form inside a panel by data path, not by the panel', async () => {
+      const form = {
+        type: 'form',
+        display: 'wizard',
+        components: [
+          {
+            type: 'panel',
+            key: 'page1',
+            title: 'Page 1',
+            components: [
+              {
+                type: 'form',
+                key: 'child',
+                label: 'Child',
+                components: [{ type: 'textfield', key: 'age', label: 'Age' }],
+              },
+            ],
+          },
+        ],
+      };
+
+      const result = await renderSubmission(form, {
+        data: { child: { data: { age: '23' } } },
+      });
+
+      assert.deepEqual(result, { 'child.age': '23' });
+    });
+
     it('serializes object and array leaf values as JSON', async () => {
       const form = {
         type: 'form',

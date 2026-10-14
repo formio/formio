@@ -1,7 +1,7 @@
 'use strict';
 
 // Output-collection helpers for the encapsulated nextgen render. They walk the
-// LIVE renderer instance graph (errorsRecord, getComponent, eachInstance), so
+// LIVE renderer instance graph (errorsRecord, eachInstance), so
 // they run INSIDE the isolate against the in-isolate form instance and return
 // plain, structured-cloneable results across the boundary. Moved here from
 // Validator.js when the render moved into the sandbox.
@@ -15,7 +15,7 @@ function collectEmailRenderData(formInstance) {
   const componentValues = {};
   const componentLabels = {};
   const rows = [];
-  eachInstance(formInstance, ({ instance }) => {
+  eachInstance(formInstance, ({ instance, absoluteDataPath }) => {
     const definition = instance.definition;
     if (!instance.dataPath) {
       return;
@@ -31,9 +31,9 @@ function collectEmailRenderData(formInstance) {
     const rendered = definition.protected ? '--- PROTECTED ---' : instance.view({ html: true });
     const value = typeof rendered === 'string' ? rendered : renderToHtml(rendered);
     const label = definition.label ?? definition.key;
-    componentValues[instance.dataPath] = value;
-    componentLabels[instance.dataPath] = label;
-    rows.push({ dataPath: instance.dataPath, label, value });
+    componentValues[absoluteDataPath] = value;
+    componentLabels[absoluteDataPath] = label;
+    rows.push({ dataPath: absoluteDataPath, label, value });
   });
   return { submissionTableHtml: buildSubmissionTable(rows), componentValues, componentLabels };
 }
@@ -60,10 +60,9 @@ function collectHiddenPaths(formInstance) {
   const hidden = [];
   eachInstance(
     formInstance,
-    ({ instance, path, pathPrefix }) => {
+    ({ instance, absoluteDataPath }) => {
       if (instance.visible === false) {
-        const absolute = pathPrefix ? `${pathPrefix.split('.').join('.data.')}.data.${path}` : path;
-        hidden.push(absolute);
+        hidden.push(absoluteDataPath);
       }
     },
     { shouldDescend: (instance) => instance.visible !== false },
@@ -73,44 +72,41 @@ function collectHiddenPaths(formInstance) {
 
 // Flatten the renderer's errorsRecord into formio-shaped ValidationError details.
 function errorsRecordToDetails(formInstance) {
-  const errorsRecord = formInstance.errorsRecord || {};
   const details = [];
-  for (const componentPath of Object.keys(errorsRecord)) {
-    const errors = errorsRecord[componentPath] || [];
-    const component =
-      typeof formInstance.getComponent === 'function'
-        ? formInstance.getComponent(componentPath)
-        : null;
-    const definition = component && component.definition;
-    const dataPath = (component && component.dataPath) || componentPath;
-    const pathArray = dataPathToArray(dataPath);
-    const key = pathArray.length ? String(pathArray[pathArray.length - 1]) : '';
-    const indexInArray = pathArray.reduce(
-      (last, segment) => (typeof segment === 'number' ? segment : last),
-      0,
-    );
+  eachInstance(formInstance, ({ instance, path, instancePath, owner }) => {
+    const errors = owner.errorsRecord?.[path] || [];
+    if (!errors.length) {
+      return;
+    }
+    const definition = instance.definition;
+    // errorsRecord is keyed by the instance path, not the data path.
+    const pathArray = dataPathToArray(instancePath);
+    const key = String(pathArray.at(-1) ?? '');
+    const indexInArray = lastRowIndex(pathArray);
     for (const err of errors) {
-      const settingFromConfig =
-        definition && definition.validate ? definition.validate[err.rule] : undefined;
+      const settingFromConfig = definition.validate?.[err.rule];
       details.push({
         message: err.message,
         level: err.severity || 'error',
         path: pathArray,
         context: {
           validator: err.rule,
-          hasLabel: !!(definition && definition.label),
+          hasLabel: !!definition.label,
           key,
-          label:
-            (definition && (definition.label || definition.placeholder || definition.key)) || key,
-          path: dataPath,
+          label: definition.label || definition.placeholder || definition.key || key,
+          path: instancePath,
           ...(settingFromConfig !== undefined ? { setting: settingFromConfig } : {}),
           index: indexInArray,
           ...(err.context || {}),
         },
       });
     }
-  }
+  });
   return details;
+}
+
+function lastRowIndex(pathArray) {
+  return pathArray.reduce((last, segment) => (typeof segment === 'number' ? segment : last), 0);
 }
 
 function dataPathToArray(dataPath) {

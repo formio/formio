@@ -27,21 +27,28 @@ class RootShim {
           this._scope,
         );
         this.components.push(instance);
-        if (path && !this.instanceMap[path]) {
-          this.instanceMap[path] = instance;
+        // Several components can resolve to one path — see `getSharedPathKey` in `@formio/core`
+        // for the rule this follows. Only the path a processor looks this component up by takes
+        // part, and it must be composed the same way on both sides of the map.
+        const lookupPath = FormioCore.Utils.getInstanceLookupPath(component, compPath, paths);
+        if (lookupPath) {
+          FormioCore.Utils.registerInstanceAtPath(
+            this.instanceMap,
+            lookupPath,
+            component.key,
+            instance,
+          );
         }
-        if (fullPath && !this.instanceMap[fullPath]) {
-          this.instanceMap[fullPath] = instance;
-        }
-        if (fullLocalPath && !this.instanceMap[fullLocalPath]) {
-          this.instanceMap[fullLocalPath] = instance;
-        }
-        if (dataPath && !this.instanceMap[dataPath]) {
-          this.instanceMap[dataPath] = instance;
-        }
-        if (localDataPath && !this.instanceMap[localDataPath]) {
-          this.instanceMap[localDataPath] = instance;
-        }
+        // The remaining variants are only there for `getComponent` to address this instance by.
+        // They are registered first-wins and without an alias: a nested form's child resolves to
+        // a bare key for its local ones, so letting them contend would let that child shadow a
+        // root component sharing its key.
+        const addressablePaths = [path, fullPath, fullLocalPath, dataPath, localDataPath];
+        addressablePaths.filter(Boolean).forEach((componentPath) => {
+          if (!this.instanceMap[componentPath]) {
+            this.instanceMap[componentPath] = instance;
+          }
+        });
       },
       true,
     );

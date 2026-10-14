@@ -194,17 +194,23 @@ module.exports = async function (req, router, cb) {
     return definitions;
   };
 
+  const submissionModel = req.submissionModel || router.formio.resources.submission.model;
+  // Clone+omit once — schema paths are identical for every form's submission resource.
+  const omittedSubmissionPaths = ['deleted', '__v', 'machineName'];
+  const submissionSchemaPaths = _.omit(
+    _.cloneDeep(submissionModel.schema.paths),
+    omittedSubmissionPaths,
+  );
+
   const submissionSwagger = function (form) {
     // Need to customize per form instead of returning the same swagger for every form.
-    const submissionModel = req.submissionModel || router.formio.resources.submission.model;
-    const originalPaths = _.cloneDeep(submissionModel.schema.paths);
     const resource = {
       name: form.title,
       modelName: form.name,
       route: resourceUrl(form),
       model: {
         schema: {
-          paths: _.omit(originalPaths, ['deleted', '__v', 'machineName']),
+          paths: submissionSchemaPaths,
         },
       },
       methods: _.clone(router.formio.resources.submission.methods),
@@ -314,6 +320,8 @@ module.exports = async function (req, router, cb) {
     host: hook.alter('host', router.formio.config.baseUrl, req),
   };
 
+  const swaggerFormFields = 'path title name components';
+
   if (typeof req.formId !== 'undefined' && req.formId !== null) {
     const form = await router.formio.cache.loadCurrentForm(req);
     const specs = [];
@@ -322,6 +330,7 @@ module.exports = async function (req, router, cb) {
   } else {
     const forms = await router.formio.resources.form.model
       .find(await hook.alter('formQuery', { deleted: { $eq: null } }, req))
+      .select(swaggerFormFields)
       .lean()
       .exec();
 

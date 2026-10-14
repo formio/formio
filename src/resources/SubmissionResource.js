@@ -150,23 +150,32 @@ module.exports = (router) => {
             ? { collation: { locale: 'en', strength: 2 } }
             : {},
         );
-        // Return not found.
-        if (!submission || !submission._id) {
-          return res.status(404).send('Not found');
-        }
         // By default check permissions to access the endpoint.
         const withoutPermissions = _.get(form, 'settings.allowExistsEndpoint', false);
 
         if (withoutPermissions) {
+          // Return not found.
+          if (!submission || !submission._id) {
+            return res.status(404).send('Not found');
+          }
           // Send only the id as a response if the submission exists.
           return res.status(200).json({
             _id: submission._id.toString(),
           });
+        }
+
+        if (!submission || !submission._id) {
+          req.log.debug(
+            { module: 'formio:exists' },
+            `No submission matched on form ${form._id}; deferring the response to permissionHandler.`,
+          );
+          req.submissionNotFound = true;
+          req.checkSubmissionAccess = true;
         } else {
           req.subId = submission._id.toString();
-          req.permissionsChecked = false;
-          return next();
         }
+        req.permissionsChecked = false;
+        return next();
       } catch (ignoreErr) {
         // Don't expose error details to clients
         return res.status(500).send('Internal server error');
@@ -174,6 +183,9 @@ module.exports = (router) => {
     },
     router.formio.middleware.permissionHandler,
     (req, res, _next) => {
+      if (req.submissionNotFound) {
+        return res.status(404).send('Not found');
+      }
       return res.status(200).json({
         _id: req.subId,
       });

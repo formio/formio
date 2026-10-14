@@ -73,12 +73,12 @@ module.exports = (router) => {
         if (err && err.details && err.details.length) {
           _.each(err.details, (details) => {
             if (details.path) {
-              details.path = `${path}.data.${details.path}`;
-              details.path = details.path
-                .replace(/[[\]]/g, '.')
-                .replace(/\.\./g, '.')
-                .split('.')
-                .map((part) => _.defaultTo(_.toNumber(part), part));
+              // The nextgen validator reports instance paths, which carry no
+              // `.data.` envelope; the classic one reports data paths.
+              const separator = router.formio.util.isNextgenValidatorEnabled(router.formio.hook)
+                ? '.'
+                : '.data.';
+              details.path = router.formio.util.subformErrorPath(path, details.path, separator);
             }
           });
         }

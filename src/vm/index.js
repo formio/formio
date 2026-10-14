@@ -68,7 +68,11 @@ class IsolateVMEvaluator extends DefaultEvaluator {
           const modelType = util.getModelType(component);
           component.modelType = modelType;
           const instances = root.instanceMap;
-          const instance = instances[(['none', 'content']).includes(component.modelType || '') && paths?.fullPath ? paths.fullPath : path];
+          const instance = util.resolveInstanceAtPath(
+            instances,
+            util.getInstanceLookupPath(component, path, paths),
+            component.key,
+          );
         `;
       }
 
@@ -126,9 +130,9 @@ class IsolateVMEvaluator extends DefaultEvaluator {
     let modifyEnv = 'const t = function (text) { return text; };';
     modifyEnv = this.hook.alter('dynamicVmDependencies', modifyEnv, form);
 
-    // The JS-only evaluator sweep: calculate through validation, in one isolate pass. Uses the
-    // async process pipeline so the sweep traverses with eachComponentDataAsync, matching the
-    // default per-expression path exactly.
+    // The JS-only evaluator sweep: filter through validation, in one isolate pass. Uses the async
+    // process pipeline so the sweep traverses with eachComponentDataAsync, like the default path.
+    // filter must stay with normalize/clearHidden, which only mark scope.filter for it (FIO-12147).
     const code = `
       console.error = console.error || console.log;
       console.warn = console.warn || console.log;
@@ -137,6 +141,7 @@ class IsolateVMEvaluator extends DefaultEvaluator {
       const root = new RootShim(context.form, context.submission, context.scope);
       context.instances = root.instanceMap;
       context.processors = [
+        FormioCore.filterProcessInfo,
         FormioCore.calculateProcessInfo,
         FormioCore.conditionProcessInfo,
         FormioCore.logicProcessInfo,

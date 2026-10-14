@@ -149,9 +149,13 @@ class BulkSubmission {
 
         try {
           await executeMiddlewareArray(submissionHandlers, mockReq, mockRes);
+          // FIO-11711: trust only the middleware output. Merging the raw item back
+          // restored fields the submission whitelist dropped (roles, externalIds).
           processedDoc = {
-            ...processedDoc,
             ...mockReq.body,
+            modified: item.modified,
+            deleted: item.deleted,
+            originalIndex: item.originalIndex,
           };
         } catch (error) {
           const details = Array.isArray(error.details)
@@ -165,7 +169,7 @@ class BulkSubmission {
           valid: errors.length === 0,
           errors,
           doc: processedDoc,
-          originalIndex: item.originalIndex !== undefined ? item.originalIndex : item.originalIndex,
+          originalIndex: item.originalIndex,
         };
       }),
     );
@@ -223,7 +227,6 @@ class BulkSubmission {
         deleted: null,
         modified: now,
       };
-      this.hook.alter('enrichBulkSubmissionDoc', req, doc);
       return doc;
     });
 
@@ -260,6 +263,8 @@ class BulkSubmission {
           originalIndex: result.originalIndex,
         });
       } else {
+        // FIO-11711: runs after the pipeline so it enriches the sanitized doc.
+        this.hook.alter('enrichBulkSubmissionDoc', req, result.doc);
         validDocs.push(result.doc);
       }
     });

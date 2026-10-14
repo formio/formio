@@ -882,6 +882,7 @@ module.exports = function (app, template, hook) {
             {
               type: 'panel',
               input: false,
+              key: 'panel',
               title: 'Panel',
               theme: 'default',
               components: [

@@ -407,7 +407,20 @@ class Validator {
     };
 
     const scope = {};
-    const serializedSubmission = JSON.parse(JSON.stringify(submission));
+    let serializedSubmission;
+    try {
+      serializedSubmission = JSON.parse(JSON.stringify(submission));
+    } catch (e) {
+      // TODO: https://formio.atlassian.net/browse/FIO-11862
+      // PATCHing doubly nested form submission data can make serialization throw for some reason.
+      // Surface it as a validation error instead of crashing the server.
+      validatorLogger.error(e.message || e);
+      return next(
+        this.req.method === 'PATCH'
+          ? 'Submission could not be validated. Submission or nested submission data may have been updated; review the submission data.'
+          : 'Submission could not be validated.',
+      );
+    }
     const root = new RootShim(this.form, serializedSubmission, scope);
     const context = {
       form: this.form,
@@ -450,18 +463,17 @@ class Validator {
 
     try {
       if (useEncapsulatedEvaluation) {
-        // Phase 1 (host): data-prep + filter processors needing DB/HTTP.
+        // Phase 1 (host): data-prep processors needing DB/HTTP. filter is not here: it runs in
+        // the phase-2 sweep with normalize/clearHidden, which fill scope.filter (FIO-12147).
         context.processors = [
           FormioCore.serverOverrideProcessInfo,
           FormioCore.defaultValueProcessInfo,
           FormioCore.dereferenceProcessInfo,
           FormioCore.fetchProcessInfo,
-          FormioCore.filterProcessInfo,
         ];
         context.scope = await FormioCore.process(context);
 
         // Phase 2 (isolate): the JS-only evaluator processors in one sweep.
-        delete context.scope.filtered;
         // Drop the database hooks: their functions can't cross the isolate boundary.
         const { database, ...evaluationConfig } = context.config;
         const evaluated = await FormioCore.Evaluator.evaluateProcess({

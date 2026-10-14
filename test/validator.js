@@ -820,6 +820,87 @@ module.exports = function (app, template, hook) {
     );
 
     itCoreOnly(
+      'encapsulated mode strips null values from submission data (matches default)',
+      async function () {
+        const form = {
+          components: [
+            { type: 'textfield', key: 'text', input: true },
+            { type: 'number', key: 'num', input: true },
+            {
+              type: 'select',
+              key: 'sel',
+              input: true,
+              dataSrc: 'values',
+              data: { values: [{ label: 'a', value: 'a' }] },
+            },
+            { type: 'textfield', key: 'kept', input: true },
+          ],
+        };
+
+        const runValidate = async (encapsulated) => {
+          const validator = new Validator({ headers: {}, currentForm: form }, { formio });
+          if (encapsulated) {
+            validator.hook = Object.create(formio.hook);
+            validator.hook.alter = (name, value, ...args) =>
+              name === 'useEncapsulatedEvaluation' ? true : formio.hook.alter(name, value, ...args);
+          }
+          const submission = { data: { text: null, num: null, sel: null, kept: 'value' } };
+          let result;
+          await validator.validate(submission, () => {
+            result = submission.data;
+          });
+          return result;
+        };
+
+        const def = await runValidate(false);
+        const enc = await runValidate(true);
+
+        assert.deepStrictEqual(enc, def);
+        // sanity: a null submitted to a component is dropped, real values are kept
+        assert.deepStrictEqual(def, { kept: 'value' });
+      },
+    );
+
+    itCoreOnly(
+      'encapsulated mode evaluates conditionals against unfiltered data (matches default)',
+      async function () {
+        const form = {
+          components: [
+            {
+              type: 'textfield',
+              key: 'target',
+              input: true,
+              customConditional: 'show = data.extraneous === "yes";',
+            },
+          ],
+        };
+
+        const runValidate = async (encapsulated) => {
+          const validator = new Validator({ headers: {}, currentForm: form }, { formio });
+          if (encapsulated) {
+            validator.hook = Object.create(formio.hook);
+            validator.hook.alter = (name, value, ...args) =>
+              name === 'useEncapsulatedEvaluation' ? true : formio.hook.alter(name, value, ...args);
+          }
+          const submission = { data: { target: 'kept', extraneous: 'yes' } };
+          let result;
+          await validator.validate(submission, () => {
+            result = submission.data;
+          });
+          return result;
+        };
+
+        const def = await runValidate(false);
+        const enc = await runValidate(true);
+
+        assert.deepStrictEqual(enc, def);
+        // sanity: filter strips the non-schema key only after the conditional has read it, so
+        // `target` survives instead of being cleared as conditionally hidden
+        assert.deepStrictEqual(def, { target: 'kept' });
+      },
+    );
+
+    itCoreOnly(
       'encapsulated mode does not validate phantom rows of an absent data grid in a nested form (matches default)',
       async function () {
         const form = {

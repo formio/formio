@@ -27,8 +27,17 @@ module.exports = (router) => {
    * @param inputToken
    * @param payload
    * @param res
+   * @param req
    */
-  const generateToken = (inputToken, payload, res) => {
+  const generateToken = (inputToken, payload, res, req) => {
+    if (payload.tempToken) {
+      const log = req.log.child({ module: 'formio:middleware:tokenHandler' });
+      log.debug('Temporary token; skipping the token refresh.');
+      req.skipTokenRefresh = true;
+      res.token = inputToken;
+      return;
+    }
+
     // Refresh the token that is sent back to the user when appropriate.
     const newToken = router.formio.auth.getToken(payload);
     res.token = newToken ? newToken : inputToken;
@@ -74,7 +83,9 @@ module.exports = (router) => {
       // Refresh the token that is sent back to the user when appropriate.
       req.tokenIssued = Math.trunc(Date.now() / 1000);
       generateToken(token, decoded, res, req);
-      log.debug('Using normal token');
+      if (!req.skipTokenRefresh) {
+        log.debug('Using normal token');
+      }
       if (req.user) {
         log.debug(`User: ${req.user._id}`);
       }

@@ -1,5 +1,136 @@
 # formio
 
+## 4.11.0
+
+### Minor Changes
+
+- b52c16a: Manually force minor bumps as a result of formio.js minor
+
+### Patch Changes
+
+- 4a0a07f: FIO-11711: bulk submission create/upsert field handling
+- 847ecfe: FIO-11754: include fieldMatchAccess in exported templates for forms and resources
+- b241f7a: FIO-12190: fix submission listing on remote stages for team access
+- e6c9d26: FIO-11830: security hardening
+  - FIO-11830: Read hydrated form from req.currentForm instead of operating on potentially dehydrated form in filterProtectedFields
+  - FIO-11839: PATCH raw (not redacted) submission
+  - FIO-11862: Handle error for patch of submission having doubly nested save-as-reference forms
+- 7ca33b3: FIO-12147: Fixes an issue where null values were not stripped from submission data when encapsulated evaluation is enabled
+- 1409434: FIO-12328: nextgen validator compatibility and isolate VM fixes
+- c4f0122: Comment-only documentation marker renumber.
+- 0fc9faa: FIO-12057: optimize GET /spec.json by projecting only swagger fields from forms and cloning submission schema paths once per request
+- 0d87faf: FIO-11796: fix an issue with the /exists endpoint
+- 36984f0: FIO-XXXX: remove the `formio.form.components` (FORM_COMPONENTS) metric and its per-request component-tree walk in `loadCurrentForm`
+- e2656e7: FIO-11862: fix server crash on PATCH to doubly nested reference forms
+- c7a68bf: FIO-11596: fix token handler middleware to not refresh temp tokens
+- c5ba3c1: FIO-12404: upgrade nodemailer from 9.x to 10.x
+- Updated dependencies [15ccea1]
+- Updated dependencies [118421a]
+- Updated dependencies [72662e9]
+- Updated dependencies [9579878]
+- Updated dependencies [01994a0]
+- Updated dependencies [760cf16]
+- Updated dependencies [1409434]
+- Updated dependencies [f18e3b7]
+- Updated dependencies [2eefe56]
+- Updated dependencies [458a807]
+- Updated dependencies [ccdf6bc]
+- Updated dependencies [1409434]
+- Updated dependencies [3759e28]
+- Updated dependencies [0f4e08c]
+- Updated dependencies [de3e0cd]
+- Updated dependencies [a6e7751]
+- Updated dependencies [797da5d]
+- Updated dependencies [598aa95]
+- Updated dependencies [424eda2]
+- Updated dependencies [e673507]
+- Updated dependencies [8f24eeb]
+  - @formio/nextgen@0.2.0
+  - @formio/js@5.7.0
+  - @formio/vm@2.3.1
+
+## 4.11.0-api912.2
+
+### Patch Changes
+
+- 0fc9faa: FIO-12057: optimize GET /spec.json by projecting only swagger fields from forms and cloning submission schema paths once per request
+- Updated dependencies [72662e9]
+- Updated dependencies [a6e7751]
+  - @formio/js@5.7.0-api912.2
+
+## 4.11.0-api912.1
+
+### Patch Changes
+
+- c5ba3c1: FIO-12404: upgrade nodemailer from 9.x to 10.x
+- Updated dependencies [9579878]
+- Updated dependencies [458a807]
+  - @formio/js@5.7.0-api912.1
+  - @formio/vm@2.3.1-api912.1
+
+## 4.11.0-api912.0
+
+### Minor Changes
+
+- b52c16a: Manually force minor bumps as a result of formio.js minor
+
+### Patch Changes
+
+- 4a0a07f: FIO-11711: bulk submission create/upsert field handling
+- 847ecfe: FIO-11754: include fieldMatchAccess in exported templates for forms and resources
+- b241f7a: FIO-12190: fix submission listing on remote stages for team access
+- e6c9d26: FIO-11830: security hardening
+  - FIO-11830: Read hydrated form from req.currentForm instead of operating on potentially dehydrated form in filterProtectedFields
+  - FIO-11839: PATCH raw (not redacted) submission
+  - FIO-11862: Handle error for patch of submission having doubly nested save-as-reference forms
+- 7ca33b3: FIO-12147: Fixes an issue where null values were not stripped from submission data when encapsulated evaluation is enabled
+- 1409434: FIO-12328: nextgen validator compatibility and isolate VM fixes
+- c4f0122: Comment-only documentation marker renumber.
+- 0d87faf: FIO-11796: fix an issue with the /exists endpoint
+- 36984f0: FIO-XXXX: remove the `formio.form.components` (FORM_COMPONENTS) metric and its per-request component-tree walk in `loadCurrentForm`
+- e2656e7: FIO-11862: fix server crash on PATCH to doubly nested reference forms
+- c7a68bf: FIO-11596: fix token handler middleware to not refresh temp tokens
+- Updated dependencies [15ccea1]
+- Updated dependencies [118421a]
+- Updated dependencies [01994a0]
+- Updated dependencies [760cf16]
+- Updated dependencies [1409434]
+- Updated dependencies [f18e3b7]
+- Updated dependencies [2eefe56]
+- Updated dependencies [ccdf6bc]
+- Updated dependencies [1409434]
+- Updated dependencies [3759e28]
+- Updated dependencies [0f4e08c]
+- Updated dependencies [de3e0cd]
+- Updated dependencies [797da5d]
+- Updated dependencies [598aa95]
+- Updated dependencies [424eda2]
+- Updated dependencies [e673507]
+- Updated dependencies [8f24eeb]
+  - @formio/nextgen@0.2.0-api912.0
+  - @formio/js@5.7.0-api912.0
+  - @formio/vm@2.3.1-api912.0
+
+## 4.10.1
+
+### Patch Changes
+
+- 6d5f18f: FIO-12390: resolve a processor's component instance by its own schema when several components share a data path, so a required radio is still validated alongside radio-input checkboxes named after it
+- Updated dependencies [6d5f18f]
+- Updated dependencies [c2b3cc2]
+  - @formio/core@2.9.0
+  - @formio/js@5.6.1
+
+## 4.10.1-api911.0
+
+### Patch Changes
+
+- 6d5f18f: FIO-12390: resolve a processor's component instance by its own schema when several components share a data path, so a required radio is still validated alongside radio-input checkboxes named after it
+- Updated dependencies [6d5f18f]
+- Updated dependencies [c2b3cc2]
+  - @formio/core@2.9.0-api911.0
+  - @formio/js@5.6.1-api911.0
+
 ## 4.10.0
 
 ### Minor Changes

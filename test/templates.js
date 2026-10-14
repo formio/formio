@@ -5021,6 +5021,103 @@ module.exports = (app, template, hook) => {
       });
     });
 
+    describe('Field Match Access Template', function () {
+      const chain = makeChain();
+
+      let testTemplate = require('./fixtures/templates/fieldMatchAccess.json');
+      let _template = _.cloneDeep(testTemplate);
+      const EVERYONE = '000000000000000000000000';
+
+      it(
+        'Should convert fieldMatchAccess role machine names to imported role ids',
+        chain.step(function (done) {
+          importer.import.template(_template, alters, (err) => {
+            if (err) {
+              return done(err);
+            }
+
+            assert.equal(
+              _template.forms.b.fieldMatchAccess.read[0].roles[0].toString(),
+              _template.roles.authenticated._id.toString(),
+            );
+            assert.equal(
+              _template.forms.b.fieldMatchAccess.read[0].roles[1].toString(),
+              _template.roles.anonymous._id.toString(),
+            );
+            assert.equal(
+              _template.forms.b.fieldMatchAccess.create[0].roles[0].toString(),
+              _template.roles.administrator._id.toString(),
+            );
+            assert.equal(
+              _template.resources.a.fieldMatchAccess.read[0].roles[0].toString(),
+              _template.roles.authenticated._id.toString(),
+            );
+            assert.equal(
+              _template.resources.a.fieldMatchAccess.write[0].roles[0].toString(),
+              _template.roles.administrator._id.toString(),
+            );
+            assert.equal(
+              _template.resources.a.fieldMatchAccess.write[0].roles[1].toString(),
+              EVERYONE,
+            );
+            done();
+          });
+        }),
+      );
+
+      it(
+        'Should include fieldMatchAccess with role machine names on export',
+        chain.step(function (done) {
+          importer.export(_template, (err, data) => {
+            if (err) {
+              return done(err);
+            }
+
+            assert.ok(data.forms.b.fieldMatchAccess);
+            assert.ok(data.resources.a.fieldMatchAccess);
+            assert.deepEqual(data.forms.b.fieldMatchAccess.read[0].roles, [
+              'authenticated',
+              'anonymous',
+            ]);
+            assert.deepEqual(data.forms.b.fieldMatchAccess.create[0].roles, ['administrator']);
+            assert.deepEqual(data.resources.a.fieldMatchAccess.read[0].roles, ['authenticated']);
+            assert.deepEqual(data.resources.a.fieldMatchAccess.write[0].roles, [
+              'administrator',
+              'everyone',
+            ]);
+            return done();
+          });
+        }),
+      );
+
+      it(
+        'Should not export the fieldMatchAccess subdocument _id',
+        chain.step(function (done) {
+          importer.export(_template, (err, data) => {
+            if (err) {
+              return done(err);
+            }
+
+            try {
+              assert.ok(!('_id' in data.forms.b.fieldMatchAccess));
+              assert.ok(!('_id' in data.resources.a.fieldMatchAccess));
+            } catch (assertionErr) {
+              return done(assertionErr);
+            }
+            return done();
+          });
+        }),
+      );
+
+      before(function (done) {
+        template.clearData(done);
+      });
+
+      after(function (done) {
+        template.clearData(done);
+      });
+    });
+
     describe('No Revisions Block Template', function () {
       const chain = makeChain();
 

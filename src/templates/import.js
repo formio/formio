@@ -100,6 +100,19 @@ module.exports = (router) => {
     return changes;
   };
 
+  const roleMachineNameToIdFieldMatchAccess = function (
+    template,
+    fieldMatchAccess,
+    fallbacks = [],
+  ) {
+    if (!fieldMatchAccess || typeof fieldMatchAccess !== 'object') {
+      return;
+    }
+    Object.values(fieldMatchAccess).forEach((perms) =>
+      roleMachineNameToId(template, perms, fallbacks),
+    );
+  };
+
   /**
    * Converts an entities form id (machineName) to a bson id.
    *
@@ -476,6 +489,7 @@ module.exports = (router) => {
       transform: (template, resource, fallbacks) => {
         roleMachineNameToId(template, resource.submissionAccess, fallbacks.roles);
         roleMachineNameToId(template, resource.access, fallbacks.roles);
+        roleMachineNameToIdFieldMatchAccess(template, resource.fieldMatchAccess, fallbacks.roles);
         componentMachineNameToId(template, resource.components);
         return resource;
       },
@@ -550,6 +564,7 @@ module.exports = (router) => {
       transform: (template, form, fallbacks) => {
         roleMachineNameToId(template, form.submissionAccess, fallbacks.roles);
         roleMachineNameToId(template, form.access, fallbacks.roles);
+        roleMachineNameToIdFieldMatchAccess(template, form.fieldMatchAccess, fallbacks.roles);
         componentMachineNameToId(template, form.components, fallbacks.nestedForms);
         return form;
       },

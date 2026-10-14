@@ -1674,6 +1674,7 @@ module.exports = function (app, template, hook) {
 
               assert.equal(res.body.data.email, template.users.user1.data.email);
               assert.equal(res.body._id, template.users.user1._id);
+              assert.equal(!res.headers['x-jwt-token'], true);
               done();
             });
         }),
@@ -1687,6 +1688,9 @@ module.exports = function (app, template, hook) {
             .set('x-jwt-token', tempToken)
             .expect(400)
             .expect('Cannot issue a temporary token using another temporary token.')
+            .expect((res) => {
+              assert.equal(!res.headers['x-jwt-token'], true);
+            })
             .end(done);
         }),
       );
@@ -1713,6 +1717,7 @@ module.exports = function (app, template, hook) {
 
               assert.equal(res.body.data.email, template.users.user1.data.email);
               assert.equal(res.body._id, template.users.user1._id);
+              assert.equal(!res.headers['x-jwt-token'], true);
               done();
             });
         }),
@@ -1774,6 +1779,7 @@ module.exports = function (app, template, hook) {
                 return done(err);
               }
               assert.equal(res.body._id, template.resources.user._id);
+              assert.equal(!res.headers['x-jwt-token'], true);
               done();
             });
         }),
@@ -1821,6 +1827,7 @@ module.exports = function (app, template, hook) {
                 return done(err);
               }
               assert.equal(res.body._id, template.resources.user._id);
+              assert.equal(!res.headers['x-jwt-token'], true);
               done();
             });
         }),
@@ -1838,6 +1845,7 @@ module.exports = function (app, template, hook) {
                 return done(err);
               }
               assert.equal(res.body._id, template.users.user1._id);
+              assert.equal(!res.headers['x-jwt-token'], true);
               done();
             });
         }),

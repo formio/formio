@@ -54,9 +54,8 @@ module.exports = function (formio) {
      * something is registered to receive them.
      *
      * `buildArgs` is a callback rather than plain arguments because a reported value can cost real
-     * work — the component-count measurement walks the whole component tree — and a server with no
-     * implementation registered, which is every OSS server, must not pay to compute a measurement
-     * nobody collects.
+     * work to build, and a server with no implementation registered, which is every OSS server,
+     * must not pay to compute a measurement nobody collects.
      *
      * Nothing here may reach the caller: reporting is fire-and-forget, and a measurement that
      * failed is not worth failing the request that produced it.

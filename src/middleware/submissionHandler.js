@@ -54,15 +54,6 @@ module.exports = (router) => {
         throw new Error('Form not found.');
       }
       req.currentForm = hook.alter('currentForm', form, req.body);
-      // A tree walk, in the same order as the ones `loadSubForms` and `executeFieldHandlers`
-      // already do per request — which is why it goes through `hook.report`: unregistered, the
-      // walk never runs.
-      hook.report('observe', () => {
-        const componentCount = Object.keys(
-          util.flattenComponents(req.currentForm.components, true),
-        ).length;
-        return [metrics.FORM_COMPONENTS, componentCount, metricAttributes(req)];
-      });
       await router.formio.cache.loadSubForms(req.currentForm, req);
     }
 
@@ -261,6 +252,20 @@ module.exports = (router) => {
               return resolve();
             }
             if (err) {
+              // in a PATCH, protected fields would return their stored
+              // values on error here (since PATCH must operate on the raw submission, including all of its protected fields)
+              // so remove them
+              if (req.method === 'PATCH') {
+                const redacted = _.cloneDeep(req.body);
+                util.removeProtectedFields(req.currentForm, 'update', redacted, true);
+                _.get(err, 'details', []).forEach((detail) => {
+                  const dataPath = _.get(detail, 'context.path', '');
+                  // if the value is not in redacted, we know it should be removed from the err list
+                  if (!_.has(redacted.data, dataPath)) {
+                    delete detail.context.value;
+                  }
+                });
+              }
               res.status(400).json(err);
               return reject(err);
             }

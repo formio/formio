@@ -84,11 +84,10 @@ enforces all of them:
   require one. A consumer must be able to install this package without them.
 - **No bootstrap.** No `instrumentation.js`, no `src/telemetry/`, and no npm script or Dockerfile
   that `--require`s one.
-- **Report through `hook.report`, never `hook.invoke`.** A reported value can cost real work — the
-  component-count measurement walks the whole component tree — and `invoke` evaluates its arguments
-  whether or not anything is registered. `report` builds them only when something will receive
-  them, and swallows anything thrown: telemetry is fire-and-forget and must never fail the request
-  that produced the measurement.
+- **Report through `hook.report`, never `hook.invoke`.** A reported value can cost real work to
+  build, and `invoke` evaluates its arguments whether or not anything is registered. `report`
+  builds them only when something will receive them, and swallows anything thrown: telemetry is
+  fire-and-forget and must never fail the request that produced the measurement.
 
 The reported metric names live in [`src/util/metrics.js`](./src/util/metrics.js) and are **public
 API** — they ship in the npm tarball and consumers' dashboards key on them. Declare a name there,
@@ -117,10 +116,12 @@ See [`/docs/gotchas/formio.md`](../../docs/gotchas/formio.md). Current entries:
 - `formio/no-telemetry-in-oss-01` — this package carries no OTel dependency and no bootstrap; report through `hook.report`, never `hook.invoke`
 - `formio/test-root-hooks-parallel-01` — a root hook in a preload stops running after a parallel worker's first spec file; use the `mochaHooks` plugin
 - `formio/test-evaluator-registered-at-boot-01` — booting the app swaps the `@formio/core` Evaluator singleton process-wide; a test that boots no app inherits whatever ran first
+- `formio/template-access-fields-lockstep-07` — `fieldMatchAccess` (and any new form access field) must be picked, role-remapped, and imported on forms and resources together; do not add it to revision export (FIO-11754)
+- `formio/json-patch-objectid-walk-07` — `jsonPatch.compare` walks a BSON ObjectId as a plain object; normalize both operands with `Utils.jsonSafeClone` first
 
 ## Cross-cutting triggers
 
-- **Editing `src/middleware/tokenHandler.js` or `src/middleware/permissionHandler.js`** → coordinate with formio-server SSO callers; read [`/docs/cross-cutting/sso-session-flow.md`](../../docs/cross-cutting/sso-session-flow.md) before changing the contract.
+- **Editing `src/middleware/tokenHandler.js` or `src/middleware/permissionHandler.js`** → coordinate with formio-server SSO callers; read [`/docs/cross-cutting/sso-session-flow.md`](../../docs/cross-cutting/sso-session-flow.md) before changing the contract. `permissionHandler` exposes three alters that formio-server implements: `userRoles`, `accessEntity`, and — evaluated inline, before the resource/field-match branch — `hasAllAccess(hasAllAccess, req, access, entity)`, which is how a non-role-bearing caller (an `x-remote-token` stage) reaches the all-access block. `hasAccess` is a _secondary_ check consulted only after OSS `hasAccess` returns false; don't put filter-flag side effects there. See [`formio-server/remote-token-grants-are-not-all-access-11`](../../docs/gotchas/formio-server.md#remote-token-grants-are-not-all-access-11--a-granted-x-remote-token-is-allowed-but-still-query-filtered-because-it-never-reaches-the-all-access-path).
 - **Editing or adding a `hook.alter('...')` call site** → grep `apps/formio-server/src/hooks/alter/` to confirm name + shape; documenting the new hook here is mandatory because formio-server has no other way to discover it.
 - **Editing `src/models/`** → check [`apps/formio-server/src/hooks/alter/models.js`](../../apps/formio-server/src/hooks/alter/models.js); enterprise injects fields via that hook.
 - **Editing `src/util/util.js`, `src/util/hook.js`, or `src/util/encrypt.js`** → these are deep-imported by formio-server. Treat as public-API change.
@@ -130,6 +131,8 @@ See [`/docs/gotchas/formio.md`](../../docs/gotchas/formio.md). Current entries:
 - **Touching reference Select index hydration (`src/actions/properties/reference.js` `$lookup`)** → do not reintroduce `$lookup.let` / `pipeline` (DocumentDB/Cosmos 400). Keep FIO-11566 access-control semantics in a post-`$filter`.
 - **Gating OSS behavior on a feature flag** → this app cannot import the registry cleanly; call `hook.alter('isFeatureEnabled', '<KEY>')` with the flag's **key string** (resolved in [`apps/formio-server/src/hooks/alter/isFeatureEnabled.js`](../../apps/formio-server/src/hooks/alter/isFeatureEnabled.js)). The key must match the registry exactly. Read [`/docs/cross-cutting/feature-flag-registry-contract.md`](../../docs/cross-cutting/feature-flag-registry-contract.md). **One documented exception:** `src/util/logger` runs before `hook` exists, so it imports the registry object and resolves `STRUCTURED_LOGGING` from `process.env` — see [`formio/logger-flag-read-at-module-load-01`](../../docs/gotchas/formio.md#logger-flag-read-at-module-load-01) before changing it.
 - **Adding or changing log calls** → read [`/docs/cross-cutting/logging.md`](../../docs/cross-cutting/logging.md) — the record format is the contract (`module` = the legacy `DEBUG` namespace; a second non-format argument is silently dropped; in legacy mode structured fields print as a JSON tail). The `formio/*` lint rules from `@formio/eslint-config/logging` enforce the call shape and the no-records rule; `test/logSafety.test.js` runs them over the tree as a test.
+- **Touching template import/export access fields (`access`, `submissionAccess`, `fieldMatchAccess`) or the exclude-access download option** → keep the export pick list, export role remap, and import role remap in lockstep for forms and resources. Do not add access fields to `exportRevisions` — revisions do not pin access. Mirror the strip/keep in both portal filters. See [`formio/template-access-fields-lockstep-07`](../../docs/gotchas/formio.md#template-access-fields-lockstep-07--form-access-fields-on-templates-are-a-pick-list-plus-role-remap-on-forms-and-resources).
+- **Adding or editing a `jsonPatch.compare` over submission data or metadata** → both operands are usually hydrated (a `.lean()` read, a mongoose doc, or a body `ensureIds` already re-cast), and `fast-json-patch` diffs two identical ObjectIds to 25 byte-index ops. Normalize with `Utils.jsonSafeClone`. `formio-server`'s `SubmissionRevision` is the other side of this seam — read [`formio/json-patch-objectid-walk-07`](../../docs/gotchas/formio.md#json-patch-objectid-walk-07--jsonpatchcompare-over-a-hydrated-document-treats-every-objectid-as-a-plain-object-and-corrupts-it) + the [seam index](../../docs/cross-cutting/README.md).
 - **`major` bump** → coordinate with OSS release (github.com/formio/formio + npm publish).
 
 ## References

@@ -688,7 +688,7 @@ module.exports = function (router) {
       const isPost = method === 'POST' && entity.hasOwnProperty('id') && entity.id === '';
       const isDelete = method === 'DELETE' && entity.hasOwnProperty('id') && entity.id === '';
       const hasOwnAccess = typedAccess(search.own);
-      const hasAllAccess = typedAccess(search.all);
+      const hasAllAccess = hook.alter('hasAllAccess', typedAccess(search.all), req, access, entity);
       let _hasAccess = false;
 
       // Check for self access. Suppressed for bulk submission routes.
@@ -829,7 +829,10 @@ module.exports = function (router) {
 
       // Check for permissions starting at micro -> macro level.
       let entity = null;
-      if (req.hasOwnProperty('subId') && req.subId !== null && req.subId !== undefined) {
+      if (
+        (req.hasOwnProperty('subId') && req.subId !== null && req.subId !== undefined) ||
+        req.checkSubmissionAccess
+      ) {
         entity = {
           type: 'submission',
           id: req.subId,

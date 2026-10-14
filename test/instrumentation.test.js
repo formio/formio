@@ -77,11 +77,7 @@ describe('hook.instrument', function () {
 });
 
 describe('Metric hook vocabulary', function () {
-  const METRIC_NAMES = [
-    'formio.submission.field_handlers',
-    'formio.form.components',
-    'formio.submission.created',
-  ];
+  const METRIC_NAMES = ['formio.submission.field_handlers', 'formio.submission.created'];
 
   it('declares every metric name formio reports', function () {
     assert.deepStrictEqual(Object.values(metrics).sort(), [...METRIC_NAMES].sort());
@@ -186,7 +182,7 @@ describe('OpenTelemetry is not part of this package', function () {
     );
     assert.deepStrictEqual(
       [...handlerSource.matchAll(/hook\.report\('(count|observe)'/g)].map((match) => match[1]),
-      ['observe', 'observe', 'count'],
+      ['observe', 'count'],
       'every metric call site must go through the guarded reporter',
     );
   });
@@ -197,20 +193,20 @@ describe('hook.invoke for metrics', function () {
     const hook = getHook({ hooks: {} });
 
     assert.strictEqual(hook.invoke('count', metrics.SUBMISSION_CREATED, 1, {}), false);
-    assert.strictEqual(hook.invoke('observe', metrics.FORM_COMPONENTS, 7, {}), false);
+    assert.strictEqual(hook.invoke('observe', metrics.SUBMISSION_FIELD_HANDLERS, 7, {}), false);
   });
 });
 
 describe('hook.report', function () {
   it('does not build its arguments when nothing is registered', function () {
-    // The reported values are not free — `formio.form.components` walks the component tree — so an
-    // OSS server with no implementation must never pay to compute a measurement nobody collects.
+    // Building a reported value has a cost, so an OSS server with no implementation must never pay
+    // to compute a measurement nobody collects.
     const hook = getHook({ hooks: {} });
     let built = 0;
 
     hook.report('observe', () => {
       built++;
-      return [metrics.FORM_COMPONENTS, 7, {}];
+      return [metrics.SUBMISSION_FIELD_HANDLERS, 7, {}];
     });
 
     assert.strictEqual(built, 0);
@@ -222,10 +218,14 @@ describe('hook.report', function () {
       hooks: { on: { observe: (...args) => received.push(args) } },
     });
 
-    hook.report('observe', () => [metrics.FORM_COMPONENTS, 7, { 'http.request.method': 'POST' }]);
+    hook.report('observe', () => [
+      metrics.SUBMISSION_FIELD_HANDLERS,
+      7,
+      { 'http.request.method': 'POST' },
+    ]);
 
     assert.deepStrictEqual(received, [
-      [metrics.FORM_COMPONENTS, 7, { 'http.request.method': 'POST' }],
+      [metrics.SUBMISSION_FIELD_HANDLERS, 7, { 'http.request.method': 'POST' }],
     ]);
   });
 
@@ -355,7 +355,6 @@ makeTestSuite('Instrumented submission lifecycle', (app, template, hook) => {
     assert.deepStrictEqual(
       stub.reported.map(({ verb, name, value }) => ({ verb, name, value })),
       [
-        { verb: 'observe', name: metrics.FORM_COMPONENTS, value: 2 },
         { verb: 'observe', name: metrics.SUBMISSION_FIELD_HANDLERS, value: 1 },
         { verb: 'observe', name: metrics.SUBMISSION_FIELD_HANDLERS, value: 1 },
         { verb: 'observe', name: metrics.SUBMISSION_FIELD_HANDLERS, value: 1 },

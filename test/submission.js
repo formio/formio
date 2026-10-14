@@ -2354,11 +2354,11 @@ module.exports = function (app, template, hook) {
                   label: 'Required Field',
                   setting: true,
                   validator: 'required',
-                  path: 'requiredField',
+                  path: IS_NEXTGEN ? 'panel.requiredField' : 'requiredField',
                 },
                 message: 'Required Field is required',
                 level: 'error',
-                path: ['requiredField'],
+                path: IS_NEXTGEN ? ['panel', 'requiredField'] : ['requiredField'],
               },
             ]);
             done();
@@ -5484,6 +5484,196 @@ module.exports = function (app, template, hook) {
         });
       });
 
+      describe('PATCH with doubly nested saveAsReference forms', () => {
+        let grandchildSubmissionId = null;
+        let childSubmissionId = null;
+        let parentFormId = null;
+        let parentSubmissionId = null;
+
+        before('sets up grandchild, child and parent forms with saveAsReference', (done) => {
+          helper
+            .form('patchGcForm', [
+              {
+                type: 'textfield',
+                label: 'Grandchild Field',
+                key: 'gcField',
+                input: true,
+              },
+            ])
+            .submission('patchGcForm', { gcField: 'gc-initial' })
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+              grandchildSubmissionId = helper.getLastSubmission()._id;
+              const grandchildFormId = helper.template.forms['patchGcForm']._id;
+              helper
+                .form('patchChildRefForm', [
+                  {
+                    type: 'textfield',
+                    label: 'Child Field',
+                    key: 'textField',
+                    input: true,
+                  },
+                  {
+                    type: 'form',
+                    label: 'Grandchild',
+                    key: 'nested',
+                    form: grandchildFormId,
+                    reference: true,
+                    input: true,
+                  },
+                ])
+                .submission('patchChildRefForm', {
+                  textField: 'child-initial',
+                  nested: {
+                    _id: grandchildSubmissionId,
+                    form: grandchildFormId,
+                  },
+                })
+                .execute((err) => {
+                  if (err) {
+                    return done(err);
+                  }
+                  const childSubmission = helper.getLastSubmission();
+                  childSubmissionId = childSubmission._id;
+                  const childFormId = helper.template.forms['patchChildRefForm']._id;
+                  helper
+                    .form('patchParentRefForm', [
+                      {
+                        type: 'form',
+                        label: 'Form',
+                        key: 'form',
+                        form: childFormId,
+                        reference: true,
+                        input: true,
+                      },
+                    ])
+                    .submission('patchParentRefForm', {
+                      form: {
+                        _id: childSubmission._id,
+                        form: childFormId,
+                      },
+                    })
+                    .execute((err) => {
+                      if (err) {
+                        return done(err);
+                      }
+                      const parentSubmission = helper.getLastSubmission();
+                      parentFormId = helper.template.forms['patchParentRefForm']._id;
+                      parentSubmissionId = parentSubmission._id;
+                      done();
+                    });
+                });
+            });
+        });
+
+        it('Test PATCH request on a Nested Form that itself contains a Nested Form', (done) => {
+          // Do not prepend /project/:id — that double-prefixes on remote and 400s.
+          request(app)
+            .patch(
+              hook.alter(
+                'url',
+                `/form/${parentFormId}/submission/${parentSubmissionId}`,
+                helper.template,
+              ),
+            )
+            .set('x-jwt-token', helper.owner.token)
+            .send([
+              {
+                op: 'replace',
+                path: '/data/form/data/textField',
+                value: 'patched child',
+              },
+            ])
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .end(function (err, res) {
+              if (err) {
+                return done(err);
+              }
+              assert.equal(res.body.data.form.data.textField, 'patched child');
+              assert.ok(
+                res.body.data.form.data.nested,
+                'grandchild nested form should still be present',
+              );
+              assert.equal(
+                typeof res.body.data.form.data.nested._id,
+                'string',
+                'grandchild _id should remain a hex string, not a corrupted ObjectId',
+              );
+              assert.match(res.body.data.form.data.nested._id, /^[0-9a-f]{24}$/);
+              assert.equal(res.body.data.form.data.nested._id, grandchildSubmissionId);
+              if (res.body.data.form.data.nested.form) {
+                assert.equal(typeof res.body.data.form.data.nested.form, 'string');
+                assert.match(res.body.data.form.data.nested.form, /^[0-9a-f]{24}$/);
+              }
+              done();
+            });
+        });
+
+        it('Test PATCH request on a Nested Form whose child carries ObjectIds in metadata', (done) => {
+          const submissionModel = hook.alter('formio', app.formio).resources.submission.model;
+          // Shaped like metadata.previousData, which the revisions feature stores verbatim
+          // from a loaded submission -- ObjectIds and all.
+          submissionModel.collection
+            .updateOne(
+              { _id: new mongoose.Types.ObjectId(childSubmissionId) },
+              {
+                $set: {
+                  'metadata.previousData': {
+                    nested: { _id: new mongoose.Types.ObjectId(grandchildSubmissionId) },
+                  },
+                },
+              },
+            )
+            .then(() => {
+              request(app)
+                .patch(
+                  hook.alter(
+                    'url',
+                    `/form/${parentFormId}/submission/${parentSubmissionId}`,
+                    helper.template,
+                  ),
+                )
+                .set('x-jwt-token', helper.owner.token)
+                .send([
+                  {
+                    op: 'replace',
+                    path: '/data/form/data/textField',
+                    value: 'patched with metadata',
+                  },
+                ])
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end(async (err) => {
+                  if (err) {
+                    return done(err);
+                  }
+                  try {
+                    const stored = await submissionModel.collection.findOne({
+                      _id: new mongoose.Types.ObjectId(childSubmissionId),
+                    });
+                    const storedId = stored.metadata.previousData.nested._id;
+                    assert.equal(
+                      String(storedId),
+                      String(grandchildSubmissionId),
+                      'metadata ObjectId must survive the patch intact',
+                    );
+                    assert.ok(
+                      !Object.prototype.hasOwnProperty.call(storedId, '0'),
+                      'metadata ObjectId must not be rewritten into byte-index keys',
+                    );
+                    done();
+                  } catch (assertErr) {
+                    done(assertErr);
+                  }
+                });
+            })
+            .catch(done);
+        });
+      });
+
       describe('Multi-select with embedded submission shapes (no save-as-reference)', () => {
         const embeddedFakeIds = {
           _id: '507f1f77bcf86cd799439011',
@@ -5856,6 +6046,77 @@ module.exports = function (app, template, hook) {
             done();
           });
       });
+
+      // The minifiers walk the same data-paths as protected-field redaction, so inside a
+      // grid they get a row index: dataGrid[0].sig. They must reach every row, and must
+      // never write a value into a row the submission does not have.
+      describe('submission index minification', function () {
+        const util = require('../src/util/util');
+        const gridForm = {
+          components: [
+            {
+              type: 'datagrid',
+              key: 'dataGrid',
+              input: true,
+              components: [
+                { type: 'file', key: 'file', input: true },
+                { type: 'signature', key: 'sig', input: true },
+              ],
+            },
+          ],
+        };
+
+        it('leaves an empty grid empty', function () {
+          const submission = { data: { dataGrid: [] } };
+          util.removeProtectedFields(gridForm, 'index', submission);
+          assert.deepStrictEqual(submission.data, { dataGrid: [] });
+        });
+
+        it('leaves an absent grid absent', function () {
+          const submission = { data: { textField: 'value' } };
+          util.removeProtectedFields(gridForm, 'index', submission);
+          assert.deepStrictEqual(submission.data, { textField: 'value' });
+        });
+
+        it('minifies the signature in every grid row', function () {
+          const signature = `data:image/png;base64,${'A'.repeat(200)}`;
+          const submission = { data: { dataGrid: [{ sig: signature }, { sig: signature }] } };
+          util.removeProtectedFields(gridForm, 'index', submission);
+          assert.deepStrictEqual(submission.data, { dataGrid: [{ sig: 'YES' }, { sig: 'YES' }] });
+        });
+
+        it('strips base64 file urls in every grid row', function () {
+          const submission = {
+            data: {
+              dataGrid: [
+                {
+                  file: [{ name: 'a.png', storage: 'base64', url: 'data:image/png;base64,AAAA' }],
+                },
+                {
+                  file: [{ name: 'b.png', storage: 'base64', url: 'data:image/png;base64,BBBB' }],
+                },
+              ],
+            },
+          };
+          util.removeProtectedFields(gridForm, 'index', submission);
+          assert.deepStrictEqual(submission.data, {
+            dataGrid: [
+              { file: [{ name: 'a.png', storage: 'base64' }] },
+              { file: [{ name: 'b.png', storage: 'base64' }] },
+            ],
+          });
+        });
+
+        it('leaves an absent file value absent instead of returning an empty array', function () {
+          const submission = { data: { textField: 'value' } };
+          util.removeProtectedFields(
+            { components: [{ type: 'file', key: 'file', input: true }] },
+            'index',
+            submission,
+          );
+          assert.deepStrictEqual(submission.data, { textField: 'value' });
+        });
+      });
     });
 
     describe('Wizard', () => {
@@ -6062,7 +6323,7 @@ module.exports = function (app, template, hook) {
     });
   });
 
-  // The four `Bulk *` suites below are siblings of `Form Submissions` and of each other, yet they
+  // The five `Bulk *` suites below are siblings of `Form Submissions` and of each other, yet they
   // share its `helper` and two of its forms. Pattern B: idempotent builders each suite calls from
   // its own `before`, so any one of them can run alone. `upsertForm` is idempotent by itself; the
   // guard is what keeps whole-file runs from making a second round trip.
@@ -7122,7 +7383,7 @@ module.exports = function (app, template, hook) {
       );
     });
 
-    it('POST with submission _id belonging to another form does not modify the foreign submission and does not creates a new one', function (done) {
+    it('POST with submission _id belonging to another form does not modify the foreign submission and does not create a new one', function (done) {
       const payload = [
         {
           _id: foreignFormSubmissionId,
@@ -7383,6 +7644,227 @@ module.exports = function (app, template, hook) {
             },
           );
         });
+    });
+  });
+
+  describe('Bulk Submissions mass assignment tests', function () {
+    // FIO-11711: the bulk handlers merge the raw payload item back over the
+    // middleware output, restoring fields the submission whitelist
+    // (submissionHandler `_.pick`) deliberately dropped.
+    const upsertFormName = bulkUpsertFormName;
+
+    before('Sets up a default project', ensureDefaultProject);
+    before('Create a test form for bulk submission create tests', ensureBulkCreateForm);
+    before('Create a test form for bulk submission upsert tests', ensureBulkUpsertForm);
+
+    it('POST ignores roles from the payload', function (done) {
+      const adminRoleId = helper.template.roles.administrator._id.toString();
+      const payload = [
+        {
+          roles: [adminRoleId],
+          data: {
+            textField1: 'ok',
+            requiredTextField2: 'abc',
+            uniqueTextField3: 'post-mass-assignment-roles',
+          },
+        },
+      ];
+
+      helper.bulkCreateUpsertSubmissions(
+        'bulkEndpointTest',
+        payload,
+        null,
+        [/application\/json/, 201],
+        false,
+        function (err) {
+          if (err) {
+            return done(err);
+          }
+          const result = helper.getLastBulkSubmission();
+          assert.equal(result.insertedCount, 1);
+
+          const submissionId = result.successes[0].submission._id;
+
+          helper.getSubmission('bulkEndpointTest', submissionId, function (err, submission) {
+            if (err) {
+              return done(err);
+            }
+            assert.deepEqual(
+              submission.roles || [],
+              [],
+              'roles must not be taken from the payload',
+            );
+            done();
+          });
+        },
+      );
+    });
+
+    it('PUT ignores roles from the payload', function (done) {
+      const adminRoleId = helper.template.roles.administrator._id.toString();
+      const payload = [
+        {
+          roles: [adminRoleId],
+          data: {
+            textField1: 'ok',
+            requiredTextField2: 'abc',
+            uniqueTextField3: 'put-mass-assignment-roles',
+          },
+        },
+      ];
+
+      helper.bulkCreateUpsertSubmissions(
+        upsertFormName,
+        payload,
+        null,
+        [/application\/json/, 200],
+        true,
+        function (err) {
+          if (err) {
+            return done(err);
+          }
+          const result = helper.getLastBulkSubmission();
+          assert.equal(result.upsertedCount, 1);
+
+          const submissionId = result.upserted[0].submission._id;
+
+          helper.getSubmission(upsertFormName, submissionId, function (err, submission) {
+            if (err) {
+              return done(err);
+            }
+            assert.deepEqual(
+              submission.roles || [],
+              [],
+              'roles must not be taken from the payload',
+            );
+            done();
+          });
+        },
+      );
+    });
+
+    it('POST ignores schema fields outside the submission whitelist', function (done) {
+      const payload = [
+        {
+          externalIds: [{ type: 'attacker', resource: 'attacker', id: 'attacker' }],
+          data: {
+            textField1: 'ok',
+            requiredTextField2: 'abc',
+            uniqueTextField3: 'post-mass-assignment-externalids',
+          },
+        },
+      ];
+
+      helper.bulkCreateUpsertSubmissions(
+        'bulkEndpointTest',
+        payload,
+        null,
+        [/application\/json/, 201],
+        false,
+        function (err) {
+          if (err) {
+            return done(err);
+          }
+          const result = helper.getLastBulkSubmission();
+          assert.equal(result.insertedCount, 1);
+
+          const submissionId = result.successes[0].submission._id;
+
+          helper.getSubmission('bulkEndpointTest', submissionId, function (err, submission) {
+            if (err) {
+              return done(err);
+            }
+            assert.deepEqual(
+              submission.externalIds || [],
+              [],
+              'externalIds must not be taken from the payload',
+            );
+            done();
+          });
+        },
+      );
+    });
+
+    it('POST still sets the server-controlled form and timestamps', function (done) {
+      const payload = [
+        {
+          data: {
+            textField1: 'ok',
+            requiredTextField2: 'abc',
+            uniqueTextField3: 'post-mass-assignment-guard',
+          },
+        },
+      ];
+
+      helper.bulkCreateUpsertSubmissions(
+        'bulkEndpointTest',
+        payload,
+        null,
+        [/application\/json/, 201],
+        false,
+        function (err) {
+          if (err) {
+            return done(err);
+          }
+          const result = helper.getLastBulkSubmission();
+          assert.equal(result.insertedCount, 1);
+
+          const submissionId = result.successes[0].submission._id;
+
+          helper.getSubmission('bulkEndpointTest', submissionId, function (err, submission) {
+            if (err) {
+              return done(err);
+            }
+            assert.equal(
+              submission.form.toString(),
+              helper.template.forms['bulkEndpointTest']._id.toString(),
+            );
+            assert(submission.created, 'created must be set');
+            assert(submission.modified, 'modified must be set');
+            assert.equal(submission.originalIndex, undefined, 'originalIndex must not be stored');
+            done();
+          });
+        },
+      );
+    });
+
+    it('POST ignores deleted from the payload', function (done) {
+      const payload = [
+        {
+          deleted: 1735689600000,
+          data: {
+            textField1: 'ok',
+            requiredTextField2: 'abc',
+            uniqueTextField3: 'post-mass-assignment-deleted',
+          },
+        },
+      ];
+
+      helper.bulkCreateUpsertSubmissions(
+        'bulkEndpointTest',
+        payload,
+        null,
+        [/application\/json/, 201],
+        false,
+        function (err) {
+          if (err) {
+            return done(err);
+          }
+          const result = helper.getLastBulkSubmission();
+          assert.equal(result.insertedCount, 1);
+
+          const submissionId = result.successes[0].submission._id;
+
+          // A payload-set `deleted` would hide the row from every normal query.
+          helper.getSubmission('bulkEndpointTest', submissionId, function (err, submission) {
+            if (err) {
+              return done(err);
+            }
+            assert.equal(submission.deleted, null, 'deleted must not be taken from the payload');
+            done();
+          });
+        },
+      );
     });
   });
 
@@ -7799,7 +8281,10 @@ module.exports = function (app, template, hook) {
 
           assert.equal(helper.lastResponse.body.details.length, 1);
           assert.equal(helper.lastResponse.body.details[0].message, 'A is required');
-          assert.deepEqual(helper.lastResponse.body.details[0].path, ['childA', 'data', 'a']);
+          assert.deepEqual(
+            helper.lastResponse.body.details[0].path,
+            IS_NEXTGEN ? ['childA', 'a'] : ['childA', 'data', 'a'],
+          );
           done();
         });
     });

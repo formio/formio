@@ -29,6 +29,15 @@ module.exports = (router) => {
     });
   };
 
+  // GOTCHA(G-FOS09)
+  const assignFieldMatchAccess = function (_map, fieldMatchAccess) {
+    if (!fieldMatchAccess || typeof fieldMatchAccess !== 'object') {
+      return;
+    }
+    delete fieldMatchAccess._id;
+    Object.values(fieldMatchAccess).forEach((perms) => assignRoles(_map, perms));
+  };
+
   // Assign the role to an entity.
   const assignRole = function (_map, entity) {
     if (!entity) {
@@ -134,6 +143,7 @@ module.exports = (router) => {
         }
         assignRoles(_map, form.access);
         assignRoles(_map, form.submissionAccess);
+        assignFieldMatchAccess(_map, form.fieldMatchAccess);
         const machineName = (form.machineName = hook.alter('machineNameExport', form.machineName));
         _export[`${form.type}s`][machineName] = _.pick(
           form,
@@ -149,6 +159,7 @@ module.exports = (router) => {
           'components',
           'access',
           'submissionAccess',
+          'fieldMatchAccess',
           'properties',
           'controller',
           'submissionRevisions',

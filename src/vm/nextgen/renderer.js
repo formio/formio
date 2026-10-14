@@ -32,12 +32,14 @@ const RENDER_CODE = `
       return host.request(url, method, snapshot(body));
     };
 
+    const metadata = submission.metadata || {};
     const formio = new Formio(baseUrl + '/form/' + form._id);
     const instance = await createHeadlessForm(form, submission, {
       formio: formio,
       headless: true,
       applyDefaults: applyDefaults,
       serverHeaders: serverHeaders,
+      submissionTimezone: metadata.timezone,
     });
     if (instance && instance.ready) { await instance.ready; }
     if (instance && instance.settled) { await instance.settled; }
