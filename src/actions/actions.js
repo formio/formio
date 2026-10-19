@@ -702,6 +702,14 @@ JSON: { "in": [ "authenticated", { "var": "data.roles" } ] }`;
       // Set the form on the request body.
       req.body.form = req.params.formId;
 
+      // Ensure _id always comes from the URL params, never from the request body.
+      if (req.params.actionId) {
+        req.body._id = req.params.actionId;
+      }
+      else {
+        delete req.body._id;
+      }
+
       // Make sure to store handler to lowercase.
       if (req.body.handler) {
         _.each(req.body.handler, (handler, index) => {

@@ -669,6 +669,72 @@ module.exports = function(app, template, hook) {
           });
       });
     });
+
+    describe('Role ID Protection', function() {
+      var roleA = null;
+      var roleB = null;
+
+      var createRole = function(title, done, cb) {
+        request(app)
+          .post(hook.alter('url', '/role', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({title: title, description: title})
+          .expect(201)
+          .end(function(err, res) {
+            return err ? done(err) : cb(res.body);
+          });
+      };
+
+      var deleteRole = function(role, cb) {
+        request(app)
+          .delete(hook.alter('url', '/role/' + role._id, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .end(function() {
+            cb();
+          });
+      };
+
+      before(function(done) {
+        createRole('roleIdProtectionA', done, function(role) {
+          roleA = role;
+          createRole('roleIdProtectionB', done, function(role) {
+            roleB = role;
+            done();
+          });
+        });
+      });
+
+      after(function(done) {
+        deleteRole(roleA, function() {
+          deleteRole(roleB, done);
+        });
+      });
+
+      it('Updating a role with the _id of another role in the body does not modify the other role', function(done) {
+        request(app)
+          .put(hook.alter('url', '/role/' + roleA._id, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({_id: roleB._id, title: 'Changed'})
+          .end(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            request(app)
+              .get(hook.alter('url', '/role/' + roleB._id, template))
+              .set('x-jwt-token', template.users.admin.token)
+              .expect(200)
+              .end(function(err, res) {
+                if (err) {
+                  return done(err);
+                }
+
+                assert.equal(res.body.title, 'roleIdProtectionB');
+                done();
+              });
+          });
+      });
+    });
   });
 
   describe('Submission Role Access', () => {
