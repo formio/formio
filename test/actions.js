@@ -389,6 +389,123 @@ module.exports = (app, template, hook) => {
       });
     });
 
+    describe('Action ID Protection', () => {
+      const originalUrl = 'https://example.com/form-b';
+      let formA = null;
+      let formB = null;
+      let actionA = null;
+      let actionB = null;
+
+      const createForm = (name, access, done, cb) => {
+        request(app)
+          .post(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({
+            title: name,
+            name,
+            path: name.toLowerCase(),
+            type: 'form',
+            access,
+            submissionAccess: [],
+            components: [],
+          })
+          .expect(201)
+          .end((err, res) => (err ? done(err) : cb(res.body)));
+      };
+
+      const createWebhook = (form, url, done, cb) => {
+        request(app)
+          .post(hook.alter('url', `/form/${form._id}/action`, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({
+            title: 'Webhook',
+            name: 'webhook',
+            handler: ['after'],
+            method: ['create'],
+            priority: 0,
+            settings: {url},
+          })
+          .expect(201)
+          .end((err, res) => (err ? done(err) : cb(res.body)));
+      };
+
+      const assertActionBUntouched = (done) => {
+        request(app)
+          .get(hook.alter('url', `/form/${formB._id}/action/${actionB._id}`, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .expect(200)
+          .end((err, res) => {
+            if (err) {
+              return done(err);
+            }
+
+            assert.equal(res.body.settings.url, originalUrl);
+            done();
+          });
+      };
+
+      before((done) => {
+        createForm('actionIdProtectionA', [
+          {type: 'read_all', roles: [template.roles.authenticated._id, template.roles.administrator._id]},
+          {type: 'update_all', roles: [template.roles.authenticated._id]},
+        ], done, (form) => {
+          formA = form;
+          createForm('actionIdProtectionB', [
+            {type: 'read_all', roles: [template.roles.administrator._id]},
+          ], done, (form) => {
+            formB = form;
+            createWebhook(formA, 'https://example.com/form-a', done, (action) => {
+              actionA = action;
+              createWebhook(formB, originalUrl, done, (action) => {
+                actionB = action;
+                done();
+              });
+            });
+          });
+        });
+      });
+
+      it('A user cannot update an action of another form by passing its _id in the body', (done) => {
+        request(app)
+          .put(hook.alter('url', `/form/${formA._id}/action/${actionA._id}`, template))
+          .set('x-jwt-token', template.users.user1.token)
+          .send({_id: actionB._id, settings: {url: 'https://example.com/changed'}})
+          .end((err) => (err ? done(err) : assertActionBUntouched(done)));
+      });
+
+      it('A user cannot update an action of another form by passing its _id inside the data wrapper', (done) => {
+        request(app)
+          .put(hook.alter('url', `/form/${formA._id}/action/${actionA._id}`, template))
+          .set('x-jwt-token', template.users.user1.token)
+          .send({data: {_id: actionB._id, settings: {url: 'https://example.com/changed'}}})
+          .end((err) => (err ? done(err) : assertActionBUntouched(done)));
+      });
+
+      it('Creating an action with the _id of an existing action creates a new action', (done) => {
+        request(app)
+          .post(hook.alter('url', `/form/${formA._id}/action`, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({
+            _id: actionB._id,
+            title: 'Webhook',
+            name: 'webhook',
+            handler: ['after'],
+            method: ['create'],
+            priority: 0,
+            settings: {url: 'https://example.com/changed'},
+          })
+          .expect(201)
+          .end((err, res) => {
+            if (err) {
+              return done(err);
+            }
+
+            assert.notEqual(res.body._id, actionB._id);
+            assertActionBUntouched(done);
+          });
+      });
+    });
+
     describe('Webhook Functionality tests', () => {
       if (docker) {
         return;

@@ -4385,6 +4385,77 @@ module.exports = function(app, template, hook) {
       });
     });
 
+    describe('Form ID Protection', function() {
+      var formA = null;
+      var formB = null;
+
+      var createForm = function(name, access, done, cb) {
+        request(app)
+          .post(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({
+            title: name,
+            name: name,
+            path: name.toLowerCase(),
+            type: 'form',
+            access: access,
+            submissionAccess: [],
+            components: []
+          })
+          .expect(201)
+          .end(function(err, res) {
+            return err ? done(err) : cb(res.body);
+          });
+      };
+
+      before(function(done) {
+        createForm('formIdProtectionA', [
+          {type: 'read_all', roles: [template.roles.authenticated._id, template.roles.administrator._id]},
+          {type: 'update_all', roles: [template.roles.authenticated._id]}
+        ], done, function(form) {
+          formA = form;
+          createForm('formIdProtectionB', [
+            {type: 'read_all', roles: [template.roles.administrator._id]}
+          ], done, function(form) {
+            formB = form;
+            done();
+          });
+        });
+      });
+
+      it('A user cannot update another form by passing its _id, name and path in the body', function(done) {
+        request(app)
+          .put(hook.alter('url', '/form/' + formA._id, template))
+          .set('x-jwt-token', template.users.user1.token)
+          .send({
+            _id: formB._id,
+            name: formB.name,
+            path: formB.path,
+            title: 'Changed',
+            access: [{type: 'read_all', roles: [template.roles.anonymous._id]}]
+          })
+          .end(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            request(app)
+              .get(hook.alter('url', '/form/' + formB._id, template))
+              .set('x-jwt-token', template.users.admin.token)
+              .expect(200)
+              .end(function(err, res) {
+                if (err) {
+                  return done(err);
+                }
+
+                assert.equal(res.body.title, 'formIdProtectionB');
+                assert.deepEqual(res.body.access, formB.access);
+                done();
+              });
+          });
+      });
+    });
+
     describe('Reference Components', function() {
       var resourceForm = {
         title: chance.word(),
