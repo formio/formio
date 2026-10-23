@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const assert = require('assert');
 const fs = require('fs');
 const docker = process.env.DOCKER;
+const {sanitizeMongoConnectionString, redactConfig} = require('../src/db/util');
 
 module.exports = function(app, template, hook) {
   // let Thread = require('formio-workers/Thread');
@@ -213,6 +214,128 @@ module.exports = function(app, template, hook) {
       const obj = doc.toObject({transform: false});
       assert.equal(obj._id instanceof ObjectId, true);
       done();
+    });
+  });
+
+  describe('Sanitize db url', function() {
+    it('Should sanitize a db url with a password', function() {
+      const url = 'mongodb://user:password@localhost:27017/db';
+      const sanitized = sanitizeMongoConnectionString(url);
+      assert.equal(sanitized, 'mongodb://user:***@localhost:27017/db');
+    });
+
+    it('Should sanitize a db url without a password', function() {
+      const url = 'mongodb://user@localhost:27017/db';
+      const sanitized = sanitizeMongoConnectionString(url);
+      assert.equal(sanitized, 'mongodb://user@localhost:27017/db');
+    });
+
+    it('Should sanitize a db url with a password and +srv', function() {
+      const url = 'mongodb+srv://user:password@localhost:27017/db';
+      const sanitized = sanitizeMongoConnectionString(url);
+      assert.equal(sanitized, 'mongodb+srv://user:***@localhost:27017/db');
+    });
+
+    it('Should sanitize a db url without a password and +srv', function() {
+      const url = 'mongodb+srv://user@localhost:27017/db';
+      const sanitized = sanitizeMongoConnectionString(url);
+      assert.equal(sanitized, 'mongodb+srv://user@localhost:27017/db');
+    });
+
+    it('Should not be affected by query string params', function() {
+      const url = 'mongodb://user:password@localhost:27017/db?authSource=admin';
+      const sanitized = sanitizeMongoConnectionString(url);
+      assert.equal(sanitized, 'mongodb://user:***@localhost:27017/db?authSource=admin');
+    });
+  });
+
+  describe('Redact db config', function() {
+    it('Should redact sensitive nested config values without mutating the source', function() {
+      const config = {
+        domain: 'http://localhost:3001',
+        port: 3001,
+        mongo: 'mongodb://user:password@localhost:27017/db?authSource=admin',
+        mongoConfig: '{"auth":{"password":"mongo-config-pass"}}',
+        mongoSecret: 'db-secret',
+        mongoSecretOld: 'old-db-secret',
+        mongoSA: 'mongo-sa',
+        mongoCA: 'mongo-ca',
+        mongoSSL: 'mongo-ssl',
+        mongoSSLValidate: true,
+        mongoSSLPassword: 'ssl-password',
+        sslEnabled: true,
+        sslKey: 'ssl-key',
+        sslCert: 'ssl-cert',
+        licenseKey: 'license-key',
+        pdfProjectApiKey: 'pdf-api-key',
+        esignPrivateKeyPath: 'esign-private-key-path',
+        remoteSecret: 'remote-secret',
+        userAPIKey: 'fortis-api-key',
+        jwt: {
+          secret: 'jwt-secret',
+          expireTime: 240,
+        },
+        email: {
+          username: 'sendgrid-user',
+          password: 'sendgrid-password',
+        },
+        dropbox: {
+          clientId: 'dropbox-client-id',
+          clientSecret: 'dropbox-client-secret',
+        },
+        nested: [
+          {
+            token: 'nested-token',
+            apiKey: 'nested-api-key',
+            privateKey: 'nested-private-key',
+            uri: 'mongodb+srv://nested:nested-password@localhost/db',
+            visible: 'visible-value',
+          },
+        ],
+      };
+
+      const redacted = redactConfig(config);
+      const serialized = JSON.stringify(redacted);
+
+      assert.equal(redacted.domain, config.domain);
+      assert.equal(redacted.port, config.port);
+      assert.equal(redacted.sslEnabled, config.sslEnabled);
+      assert.equal(redacted.mongoSSLValidate, config.mongoSSLValidate);
+      assert.equal(redacted.mongo, 'mongodb://user:***@localhost:27017/db?authSource=admin');
+      assert.equal(redacted.jwt.expireTime, config.jwt.expireTime);
+      assert.equal(redacted.dropbox.clientId, config.dropbox.clientId);
+      assert.equal(redacted.nested[0].token, config.nested[0].token);
+      assert.equal(redacted.nested[0].uri, 'mongodb+srv://nested:***@localhost/db');
+      assert.equal(redacted.nested[0].visible, config.nested[0].visible);
+
+      [
+        'mongo-config-pass',
+        'db-secret',
+        'old-db-secret',
+        'mongo-sa',
+        'mongo-ca',
+        'mongo-ssl',
+        'ssl-password',
+        'ssl-key',
+        'ssl-cert',
+        'license-key',
+        'pdf-api-key',
+        'esign-private-key-path',
+        'remote-secret',
+        'fortis-api-key',
+        'jwt-secret',
+        'sendgrid-password',
+        'dropbox-client-secret',
+        'nested-api-key',
+        'nested-private-key',
+        'nested-password',
+      ].forEach((secret) => {
+        assert.equal(serialized.includes(secret), false);
+      });
+
+      assert.equal(config.mongoSecret, 'db-secret');
+      assert.equal(config.jwt.secret, 'jwt-secret');
+      assert.equal(config.dropbox.clientSecret, 'dropbox-client-secret');
     });
   });
 };
