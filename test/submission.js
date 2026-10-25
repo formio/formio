@@ -5055,5 +5055,233 @@ module.exports = function(app, template, hook) {
         done();
       });
     });
+
+    describe('Submission IDOR Protection', () => {
+      let idorForm = null;
+      let submissionA = null;
+      let submissionB = null;
+
+      it('Should create a form for submission IDOR tests', (done) => {
+        request(app)
+          .post(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({
+            title: 'IDOR Submission Form',
+            name: 'idorSubmissionForm',
+            path: 'idor/submission-form',
+            type: 'form',
+            access: [
+              {
+                type: 'read_all',
+                roles: [template.roles.authenticated._id.toString()],
+              },
+            ],
+            submissionAccess: [
+              {
+                type: 'create_own',
+                roles: [template.roles.authenticated._id.toString()],
+              },
+              {
+                type: 'read_own',
+                roles: [template.roles.authenticated._id.toString()],
+              },
+              {
+                type: 'update_own',
+                roles: [template.roles.authenticated._id.toString()],
+              },
+            ],
+            components: [
+              {
+                type: 'textfield',
+                key: 'name',
+                label: 'Name',
+                input: true,
+              },
+            ],
+          })
+          .expect('Content-Type', /json/)
+          .expect(201)
+          .end((err, res) => {
+            if (err) {
+              return done(err);
+            }
+
+            idorForm = res.body;
+            template.users.admin.token = res.headers['x-jwt-token'];
+            done();
+          });
+      });
+
+      it('Should create Submission A', (done) => {
+        request(app)
+          .post(hook.alter('url', `/form/${idorForm._id}/submission`, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({
+            data: {
+              name: 'Submission A',
+            },
+          })
+          .expect('Content-Type', /json/)
+          .expect(201)
+          .end((err, res) => {
+            if (err) {
+              return done(err);
+            }
+
+            submissionA = res.body;
+            template.users.admin.token = res.headers['x-jwt-token'];
+            done();
+          });
+      });
+
+      it('Should create Submission B', (done) => {
+        request(app)
+          .post(hook.alter('url', `/form/${idorForm._id}/submission`, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({
+            data: {
+              name: 'Submission B',
+            },
+          })
+          .expect('Content-Type', /json/)
+          .expect(201)
+          .end((err, res) => {
+            if (err) {
+              return done(err);
+            }
+
+            submissionB = res.body;
+            template.users.admin.token = res.headers['x-jwt-token'];
+            done();
+          });
+      });
+
+      it('Should not allow POST /form/:formId/submission with a spoofed _id to overwrite an existing submission', (done) => {
+        request(app)
+          .post(hook.alter('url', `/form/${idorForm._id}/submission`, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({
+            data: {
+              name: 'Spoofed Submission',
+            },
+            _id: submissionB._id,
+          })
+          .end((err, res) => {
+            if (err) {
+              return done(err);
+            }
+
+            if (res.statusCode === 201) {
+              assert.notEqual(res.body._id, submissionB._id);
+            }
+            if (res.headers['x-jwt-token']) {
+              template.users.admin.token = res.headers['x-jwt-token'];
+            }
+
+            // Verify Submission B was NOT modified.
+            request(app)
+              .get(hook.alter('url', `/form/${idorForm._id}/submission/${submissionB._id}`, template))
+              .set('x-jwt-token', template.users.admin.token)
+              .expect('Content-Type', /json/)
+              .expect(200)
+              .end((err, res) => {
+                if (err) {
+                  return done(err);
+                }
+
+                assert.equal(res.body._id, submissionB._id);
+                assert.equal(res.body.data.name, 'Submission B');
+                template.users.admin.token = res.headers['x-jwt-token'];
+                done();
+              });
+          });
+      });
+
+      it('Should not allow PUT /form/:formId/submission/:subId with a spoofed _id to target a different submission', (done) => {
+        request(app)
+          .put(hook.alter('url', `/form/${idorForm._id}/submission/${submissionA._id}`, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({
+            data: {
+              name: 'IDOR Hijack Attempt',
+            },
+            _id: submissionB._id,
+          })
+          .end((err, res) => {
+            if (err) {
+              return done(err);
+            }
+
+            if (res.statusCode === 200) {
+              assert.equal(res.body._id, submissionA._id);
+            }
+            if (res.headers['x-jwt-token']) {
+              template.users.admin.token = res.headers['x-jwt-token'];
+            }
+
+            // Verify Submission B was NOT modified.
+            request(app)
+              .get(hook.alter('url', `/form/${idorForm._id}/submission/${submissionB._id}`, template))
+              .set('x-jwt-token', template.users.admin.token)
+              .expect('Content-Type', /json/)
+              .expect(200)
+              .end((err, res) => {
+                if (err) {
+                  return done(err);
+                }
+
+                assert.equal(res.body._id, submissionB._id);
+                assert.equal(res.body.data.name, 'Submission B');
+                template.users.admin.token = res.headers['x-jwt-token'];
+                done();
+              });
+          });
+      });
+
+      it('Should not allow PUT /form/:formId/submission/:subId with a spoofed form to target a different form', (done) => {
+        request(app)
+          .put(hook.alter('url', `/form/${idorForm._id}/submission/${submissionA._id}`, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({
+            data: {
+              name: 'Form Hijack Attempt',
+            },
+            form: template.forms.adminRegister._id,
+          })
+          .end((err, res) => {
+            if (err) {
+              return done(err);
+            }
+
+            if (res.statusCode === 200) {
+              assert.equal(res.body._id, submissionA._id);
+              assert.equal(res.body.form, idorForm._id);
+            }
+            if (res.headers['x-jwt-token']) {
+              template.users.admin.token = res.headers['x-jwt-token'];
+            }
+            done();
+          });
+      });
+
+      it('Should not allow PATCH on /form/:formId/submission/:subId', (done) => {
+        request(app)
+          .patch(hook.alter('url', `/form/${idorForm._id}/submission/${submissionA._id}`, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({
+            data: {
+              name: 'Patched Name',
+            },
+          })
+          .end((err, res) => {
+            if (err) {
+              return done(err);
+            }
+
+            assert(res.statusCode >= 400, `Expected error status but got ${res.statusCode}`);
+            done();
+          });
+      });
+    });
   });
 };

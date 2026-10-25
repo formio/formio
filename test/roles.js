@@ -116,6 +116,40 @@ module.exports = function(app, template, hook) {
           });
       });
 
+      it('An administrator should update the Role in the URL when the body has a different _id', function(done) {
+        request(app)
+          .put(hook.alter('url', '/role/' + template.roles.tempRole._id, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({title: template.roles.tempRole.title, _id: template.roles.authenticated._id})
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert.equal(response._id, template.roles.tempRole._id);
+            template.roles.tempRole = response;
+            template.users.admin.token = res.headers['x-jwt-token'];
+
+            request(app)
+              .get(hook.alter('url', '/role/' + template.roles.authenticated._id, template))
+              .set('x-jwt-token', template.users.admin.token)
+              .expect('Content-Type', /json/)
+              .expect(200)
+              .end(function(err, res) {
+                if (err) {
+                  return done(err);
+                }
+
+                assert.equal(res.body.title, template.roles.authenticated.title);
+                template.users.admin.token = res.headers['x-jwt-token'];
+                done();
+              });
+          });
+      });
+
       it('A user should NOT be able to update an available Role', function(done) {
         request(app)
           .put(hook.alter('url', '/role/' + template.roles.tempRole._id, template))
