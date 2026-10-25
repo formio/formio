@@ -41,6 +41,9 @@ module.exports = function(options) {
 
   // Use the express application.
   const app = options.app || express();
+  // Express 4 freezes the query parser into the router on the first app.use(), so this has
+  // to come before any middleware is mounted.
+  app.set('query parser', 'simple');
 
   // Use the given config.
   const config = options.config || require('config');
