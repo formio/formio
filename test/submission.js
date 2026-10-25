@@ -4494,6 +4494,72 @@ module.exports = function(app, template, hook) {
           });
       });
     })
+
+    describe('Queries', function() {
+      it('should not allow [$operation]', function(done) {
+        const components = [
+          {
+            'type': 'email',
+            'unique': true,
+            'required': true,
+            'placeholder': 'Enter your email address',
+            'key': 'email',
+            'label': 'Email',
+            'tableView': true,
+            'input': true
+          },
+          {
+            'type': 'password',
+            'protected': true,
+            'placeholder': 'Enter your password.',
+            'key': 'password',
+            'label': 'Password',
+            'inputType': 'password',
+            'tableView': false,
+            'input': true
+          }
+        ];
+
+        const submissionOne = {
+          email: 'test@example.com',
+          password: 'pass123'
+        };
+        const submissionTwo = {
+          email: 'test2@example.com',
+          password: '123pass'
+        };
+
+        helper
+          .form('adminquery', components)
+          .submission(submissionOne)
+          .submission(submissionTwo)
+          .expect(201)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+            request(app)
+              .get(hook.alter('url', `/form/${helper.template.forms['adminquery']._id}/submission?data.email[$regex]=^test`, helper.template))
+              .set('x-jwt-token', helper.owner.token)
+              .expect(200)
+              .end(function(err, res) {
+                if (err) {
+                  return done(err);
+                }
+                assert.equal(res.body.length, 0);
+                done();
+              });
+          });
+      });
+
+      it('should not allow [$operation] on the exists endpoint', function(done) {
+        request(app)
+          .get(hook.alter('url', `/form/${helper.template.forms['adminquery']._id}/exists?data.email[$regex]=^test`, helper.template))
+          .set('x-jwt-token', helper.owner.token)
+          .expect(404)
+          .end(done);
+      });
+    });
   });
 
   describe('Nested Submissions', function() {

@@ -186,7 +186,7 @@ module.exports = (router, resourceName, resourceId) => {
      */
     function initializeActions(req, res, done) {
       // If they wish to disable actions, then just skip.
-      if (req.query.hasOwnProperty('dryrun') && req.query.dryrun) {
+      if (req.query.dryrun) {
         return done();
       }
 
@@ -262,7 +262,7 @@ module.exports = (router, resourceName, resourceId) => {
     function executeActions(handler) {
       return (req, res, done) => {
         // If they wish to disable actions, then just skip.
-        if (req.query.hasOwnProperty('dryrun') && req.query.dryrun) {
+        if (req.query.dryrun) {
           return done();
         }
 
