@@ -1740,6 +1740,24 @@ module.exports = function(app, template, hook) {
               .end(done);
           });
 
+          it('Should strip MongoDB operators (i.e. $where) from the /exists query', function(done) {
+            // The sanitize middleware must remove the $where operator. Once it is
+            // gone the only query param is empty -> 400 'Invalid query'.
+            request(app)
+              .get(hook.alter('url', '/form/' + tempForm._id + '/exists?$where=true', template))
+              .set('x-jwt-token', template.users.admin.token)
+              .expect(400, 'Invalid query')
+              .end(done);
+          });
+
+          it('Should not expose database error details from the /exists query', function(done) {
+            request(app)
+              .get(hook.alter('url', '/form/' + tempForm._id + '/exists?_id=notanid', template))
+              .set('x-jwt-token', template.users.admin.token)
+              .expect(500, 'Internal server error')
+              .end(done);
+          });
+
           it('Test if a submissions exists', function(done) {
             request(app)
               .get(hook.alter('url', '/form/' + tempForm._id + '/exists?data.value=foo&owner=' + template.users.user2._id.toString(), template))

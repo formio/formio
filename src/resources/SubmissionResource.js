@@ -129,7 +129,8 @@ module.exports = (router) => {
           (ignoreCase && router.formio.mongoFeatures.collation) ? {collation: {locale: 'en', strength: 2}} : {},
           (err, submission) => {
             if (err) {
-              return next(err);
+              // Don't expose error details to clients
+              return res.status(500).send('Internal server error');
             }
 
             // Return not found.
