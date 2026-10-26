@@ -612,6 +612,33 @@ const Utils = {
     );
   },
 
+  checkReferenceReadAccess(refForm, ownerId, req) {
+    if (req.isAdmin) {
+      return true;
+    }
+
+    const readAllRoles = [];
+    if (refForm && refForm.submissionAccess) {
+      refForm.submissionAccess.forEach((permission) => {
+        if (permission.type === 'read_all') {
+          permission.roles.forEach((id) => readAllRoles.push(id.toString()));
+        }
+      });
+    }
+
+    const userRoles = req.accessRoles || [];
+    if (_.intersection(readAllRoles, userRoles).length > 0) {
+      return true;
+    }
+
+    return !!(
+      ownerId &&
+      req.user &&
+      req.user._id &&
+      ownerId.toString() === req.user._id.toString()
+    );
+  },
+
   /* eslint-disable new-cap */
   base64: {
     /**
