@@ -191,6 +191,89 @@ module.exports = function(app, template, hook) {
     });
   });
 
+  describe('Reference $lookup DocumentDB compatibility (FIO-12058)', function () {
+    it('beforeIndex $lookup stages must use equality-match form without let or pipeline', async function () {
+      const formId = new mongoose.Types.ObjectId();
+      const userId = new mongoose.Types.ObjectId();
+      const mockRouter = {
+        formio: {
+          cache: {
+            // 4.2.x cache.loadForm is callback-style.
+            loadForm: (req, type, id, cb) =>
+              cb(null, {
+                _id: formId,
+                components: [],
+                settings: {},
+                submissionAccess: [{ type: 'read_own', roles: [] }],
+              }),
+          },
+          resources: {
+            submission: {
+              handlers: {
+                beforeIndex: [
+                  function (req, res, next) {
+                    next();
+                  },
+                ],
+              },
+              getFindQuery: function (req) {
+                return req.query || {};
+              },
+            },
+          },
+        },
+      };
+      const reference = require('../src/actions/properties/reference')(mockRouter);
+      const req = {
+        query: {},
+        user: { _id: userId },
+        accessRoles: [],
+        params: {},
+        childRequests: 0,
+        modelQuery: { pipeline: [] },
+        countQuery: {},
+      };
+      const component = {
+        type: 'select',
+        key: 'ref',
+        reference: true,
+        dataSrc: 'resource',
+        data: { resource: formId.toString() },
+      };
+
+      await reference(component, {}, 'beforeIndex', null, {
+        path: 'ref',
+        req: req,
+        res: {},
+      });
+
+      const lookups = (req.modelQuery.pipeline || []).filter(function (stage) {
+        return stage && stage.$lookup;
+      });
+      assert.ok(lookups.length > 0, 'expected at least one $lookup stage');
+      lookups.forEach(function (stage, index) {
+        assert.equal(
+          Object.prototype.hasOwnProperty.call(stage.$lookup, 'let'),
+          false,
+          '$lookup[' + index + '] must not use let (unsupported on DocumentDB/Cosmos)',
+        );
+        assert.equal(
+          Object.prototype.hasOwnProperty.call(stage.$lookup, 'pipeline'),
+          false,
+          '$lookup[' + index + '] must not use pipeline (unsupported on DocumentDB/Cosmos)',
+        );
+        assert.ok(
+          stage.$lookup.localField,
+          '$lookup[' + index + '] must use localField for equality-match join',
+        );
+        assert.ok(
+          stage.$lookup.foreignField,
+          '$lookup[' + index + '] must use foreignField for equality-match join',
+        );
+      });
+    });
+  });
+
   describe('ObjectId transform', function() {
     it('Should transform a document\'s _id property to a string when calling toObject', function(done) {
       const schema = new mongoose.Schema({

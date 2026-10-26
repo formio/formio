@@ -44,13 +44,17 @@ module.exports = (router) => {
     return sub;
   };
 
-  // Checks access within a form index.
+  // Checks access within a form index and resolves with the processed sub-request so
+  // buildPipeline can apply post-$lookup auth filtering. Running the referenced form's
+  // beforeIndex chain enforces the same access gate a direct index would; we then derive
+  // referenceHasReadAll for the owner decision (see buildLookupFilterCond for why this is
+  // computed here rather than read off the sub-request's owner-filter state).
   const checkAccess = function(component, query, req, res) {
     return new Promise((resolve, reject) => {
       let sub = {};
       const respond = function() {
         if (!sub.res.statusCode || sub.res.statusCode < 300 || sub.res.statusCode === 416) {
-          return resolve(true);
+          return resolve(sub.req);
         }
         else {
           return reject();
@@ -69,7 +73,21 @@ module.exports = (router) => {
           return reject(err);
         }
 
-        return resolve();
+        // Determine read_all access on the referenced form by crossing its read_all
+        // role list against the caller's roles (req.accessRoles, set on the parent
+        // request by permissionHandler). This is computed independently of the
+        // sub-request's skipOwnerFilter/ownerFilter, which do not run reliably on the
+        // $lookup path — see buildLookupFilterCond.
+        // Fail closed (no read_all) on a load error or a throw, mirroring main's .catch().
+        router.formio.cache.loadForm(sub.req, null, sub.req.formId, (err, refForm) => {
+          try {
+            sub.req.referenceHasReadAll = !err && util.checkReferenceReadAccess(refForm, null, req);
+          }
+          catch (accessErr) {
+            sub.req.referenceHasReadAll = false;
+          }
+          return resolve(sub.req);
+        });
       });
     });
   };
@@ -198,10 +216,89 @@ module.exports = (router) => {
     return subQuery;
   };
 
+  // Builds $filter conditions applied after an equality-match $lookup. Enforces form
+  // isolation, the delete filter, and an owner restriction for non-read_all callers.
+  //
+  // DocumentDB/Cosmos reject $lookup.let / pipeline, so auth cannot run inside the join.
+  // Equality-match $lookup correlates on _id; this post-filter applies the access rules.
+  //
+  // The owner decision uses subReq.referenceHasReadAll (computed in checkAccess) rather
+  // than the sub-request's skipOwnerFilter/ownerFilter state: on the $lookup path the
+  // sub-request's permissionHandler/ownerFilter do not run reliably (skipOwnerFilter can
+  // carry over as true from a read_all parent), so reusing that state would skip the owner
+  // restriction and leak read_own submissions owned by other users.
+  //   - referenceHasReadAll (read_all / admin): no owner restriction.
+  //   - otherwise (read_own): restrict the lookup to submissions owned by the caller.
+  const buildLookupFilterCond = function(formId, subReq) {
+    const conditions = [
+      {$eq: ['$$item.form', util.ObjectId(formId)]},
+      {$eq: ['$$item.deleted', null]},
+    ];
+
+    const hasCallerUserId = subReq.user && subReq.user._id;
+    const restrictToOwner = !subReq.referenceHasReadAll && hasCallerUserId;
+    if (restrictToOwner) {
+      conditions.push({$eq: ['$$item.owner', util.ObjectId(subReq.user._id)]});
+    }
+
+    return {$and: conditions};
+  };
+
+  // Parent-pipeline $addFields that $convert(s) reference _id(s) to ObjectId before
+  // equality-match $lookup. Kept outside $lookup (no let/pipeline) for DocumentDB.
+  const buildReferenceIdNormalizeStage = function(path) {
+    const dataPath = `$data.${path}`;
+    const toObjectId = function(input) {
+      return {
+        $convert: {
+          input,
+          to: 'objectId',
+          onError: input,
+          onNull: input,
+        },
+      };
+    };
+
+    return {
+      $addFields: {
+        [`data.${path}`]: {
+          $cond: [
+            {$isArray: dataPath},
+            {
+              $map: {
+                input: dataPath,
+                as: 'item',
+                in: {
+                  $mergeObjects: ['$$item', {_id: toObjectId('$$item._id')}],
+                },
+              },
+            },
+            {
+              $cond: [
+                {
+                  $and: [
+                    {$ne: [dataPath, null]},
+                    {$eq: [{$type: dataPath}, 'object']},
+                  ],
+                },
+                {
+                  $mergeObjects: [dataPath, {_id: toObjectId(`${dataPath}._id`)}],
+                },
+                dataPath,
+              ],
+            },
+          ],
+        },
+      },
+    };
+  };
+
   // Build a pipeline to load all references within an index.
   const buildPipeline = function(component, path, req, res) {
-    // First check their access within this form.
-    return checkAccess(component, req.query, req, res).then(async () => {
+    // First check their access within this form. checkAccess resolves with the processed
+    // sub-request carrying referenceHasReadAll, which buildLookupFilterCond uses to decide
+    // whether the post-$lookup $filter needs an owner restriction.
+    return checkAccess(component, req.query, req, res).then(async (subReq) => {
       const formId = component.form || component.resource || component.data.resource;
       const form = await new Promise((resolve, reject) =>
         router.formio.cache.loadForm(req, null, formId, (err, form) => {
@@ -225,7 +322,20 @@ module.exports = (router) => {
               ''
             )}_${form.settings.collection.replace(/[^A-Za-z0-9]+/g, '')}`
           : 'submissions';
-      // Load the reference.
+
+      const origField = `__ref_orig_${path.replace(/\./g, '_')}`;
+      pipeline.push({
+        $addFields: {
+          [origField]: {$ifNull: [`$data.${path}`, null]},
+        },
+      });
+
+      // Normalize reference _id(s) to ObjectId before equality-match $lookup. Multiples
+      // can store string ids; $convert in a parent $addFields stays DocumentDB-safe.
+      pipeline.push(buildReferenceIdNormalizeStage(path));
+
+      // Load the reference via equality-match $lookup (DocumentDB/Cosmos-safe).
+      // Access control (form / deleted / owner) is applied in the post-filter below.
       pipeline.push({
         $lookup: {
           from: submissionsCollectionName,
@@ -233,6 +343,20 @@ module.exports = (router) => {
           foreignField: '_id',
           as: `data.${path}`
         }
+      });
+
+      // Restrict joined docs to the referenced form, non-deleted rows, and (when needed)
+      // the caller's own submissions.
+      pipeline.push({
+        $addFields: {
+          [`data.${path}`]: {
+            $filter: {
+              input: {$ifNull: [`$data.${path}`, []]},
+              as: 'item',
+              cond: buildLookupFilterCond(formId, subReq),
+            },
+          },
+        },
       });
 
       // Flatten the reference to an object if we are not configured as multiple.
@@ -258,6 +382,29 @@ module.exports = (router) => {
           $sort: subQuery.sort
         });
       }
+
+      // Restore the stored value (the bare {_id} shell) when the reference was not hydrated.
+      if (!component.multiple) {
+        pipeline.push({
+          $addFields: {
+            [`data.${path}`]: {$ifNull: [`$data.${path}`, `$${origField}`]},
+          },
+        });
+      }
+      else {
+        pipeline.push({
+          $addFields: {
+            [`data.${path}`]: {
+              $cond: [
+                {$gt: [{$size: {$ifNull: [`$data.${path}`, []]}}, 0]},
+                `$data.${path}`,
+                {$ifNull: [`$${origField}`, []]},
+              ],
+            },
+          },
+        });
+      }
+      pipeline.push({$unset: origField});
 
       return new Promise((resolve, reject) => {
         // Build the pipeline for the subdata.
