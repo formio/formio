@@ -68,6 +68,7 @@ describe('Initialization', function() {
     require('./actions')(app, template, hook);
     require('./submission-access')(app, template, hook);
     require('./submission')(app, template, hook);
+    require('./protected')(app, template, hook);
     require('./export/CSVExporter/CSVExporter')(app, template, hook);
     require('./unit')(app, template, hook);
   });

@@ -4384,6 +4384,77 @@ module.exports = function(app, template, hook) {
               done();
             });
       });
+
+      // The minifiers walk the same data-paths as protected-field redaction, so inside a
+      // grid they get a row index: dataGrid[0].sig. They must reach every row, and must
+      // never write a value into a row the submission does not have.
+      describe('submission index minification', function() {
+        const util = require('../src/util/util');
+        const gridForm = {
+          components: [
+            {
+              type: 'datagrid',
+              key: 'dataGrid',
+              input: true,
+              components: [
+                {type: 'file', key: 'file', input: true},
+                {type: 'signature', key: 'sig', input: true},
+              ],
+            },
+          ],
+        };
+
+        it('leaves an empty grid empty', function() {
+          const submission = {data: {dataGrid: []}};
+          util.removeProtectedFields(gridForm, 'index', submission);
+          assert.deepStrictEqual(submission.data, {dataGrid: []});
+        });
+
+        it('leaves an absent grid absent', function() {
+          const submission = {data: {textField: 'value'}};
+          util.removeProtectedFields(gridForm, 'index', submission);
+          assert.deepStrictEqual(submission.data, {textField: 'value'});
+        });
+
+        it('minifies the signature in every grid row', function() {
+          const signature = `data:image/png;base64,${'A'.repeat(200)}`;
+          const submission = {data: {dataGrid: [{sig: signature}, {sig: signature}]}};
+          util.removeProtectedFields(gridForm, 'index', submission);
+          assert.deepStrictEqual(submission.data, {dataGrid: [{sig: 'YES'}, {sig: 'YES'}]});
+        });
+
+        it('strips base64 file urls in every grid row', function() {
+          const submission = {
+            data: {
+              dataGrid: [
+                {
+                  file: [{name: 'a.png', storage: 'base64', url: 'data:image/png;base64,AAAA'}],
+                },
+                {
+                  file: [{name: 'b.png', storage: 'base64', url: 'data:image/png;base64,BBBB'}],
+                },
+              ],
+            },
+          };
+          util.removeProtectedFields(gridForm, 'index', submission);
+          assert.deepStrictEqual(submission.data, {
+            dataGrid: [
+              {file: [{name: 'a.png', storage: 'base64'}]},
+              {file: [{name: 'b.png', storage: 'base64'}]},
+            ],
+          });
+        });
+
+        it('leaves an absent file value absent instead of returning an empty array', function() {
+          const submission = {data: {textField: 'value'}};
+          util.removeProtectedFields(
+            {components: [{type: 'file', key: 'file', input: true}]},
+            'index',
+            submission,
+          );
+          assert.deepStrictEqual(submission.data, {textField: 'value'});
+        });
+      });
     });
 
     describe('Wizard', () => {
