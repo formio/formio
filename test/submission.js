@@ -4496,6 +4496,110 @@ module.exports = function(app, template, hook) {
     })
   });
 
+  describe('Bulk Submission permissions', function() {
+    // Two forms: one grants every *_all to authenticated, one grants every
+    // *_own. user1 (authenticated role) exercises non-admin paths; project
+    // owner exercises the admin path. Bulk delete is restricted to
+    // admin / delete_all, so delete_own callers must be denied.
+    let bulkHelper = null;
+    const minimalComponents = [
+      {type: 'textfield', label: 'Name', key: 'name', input: true, persistent: true},
+    ];
+
+    const buildUrl = (formName) => {
+      const formId = bulkHelper.template.forms[formName]._id;
+      const project = bulkHelper.template.project && bulkHelper.template.project._id;
+      const prefix = project ? `/project/${project}` : '';
+      return `${prefix}/form/${formId}/submission`;
+    };
+
+    const ownerToken = () => bulkHelper.owner.token;
+    const user1Token = () => bulkHelper.template.users.user1.token;
+
+    const bulkDelete = (formName, token, {trailingSlash = false} = {}) =>
+      request(app)
+        .delete(buildUrl(formName) + (trailingSlash ? '/' : ''))
+        .set('x-jwt-token', token)
+        .set('x-delete-confirm', bulkHelper.template.forms[formName]._id);
+
+    before(function(done) {
+      const owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      bulkHelper = new Helper(owner);
+      bulkHelper
+        .project()
+        .user('user', 'user1')
+        .form('bulkPermsAll', minimalComponents, {
+          submissionAccess: [
+            {type: 'create_all', roles: ['authenticated']},
+            {type: 'read_all', roles: ['authenticated']},
+            {type: 'update_all', roles: ['authenticated']},
+            {type: 'delete_all', roles: ['authenticated']},
+          ],
+        })
+        .form('bulkPermsOwn', minimalComponents, {
+          submissionAccess: [
+            {type: 'create_own', roles: ['authenticated']},
+            {type: 'read_own', roles: ['authenticated']},
+            {type: 'update_own', roles: ['authenticated']},
+            {type: 'delete_own', roles: ['authenticated']},
+          ],
+        })
+        .execute(done);
+    });
+
+    describe('Bulk DELETE', function() {
+      it('admin → 200', async function() {
+        const res = await bulkDelete('bulkPermsAll', ownerToken());
+        assert.equal(res.status, 200, 'admin must be allowed to bulk DELETE');
+      });
+
+      it('delete_all caller → 200', async function() {
+        const res = await bulkDelete('bulkPermsAll', user1Token());
+        assert.equal(res.status, 200, 'delete_all caller must be allowed to bulk DELETE');
+      });
+
+      it('delete_own caller → 403 (also verifies trailing slash does not bypass)', async function() {
+        const res = await bulkDelete('bulkPermsOwn', user1Token());
+        assert.equal(
+          res.status,
+          403,
+          'delete_own caller must be denied bulk DELETE (admin/*_all only)',
+        );
+        assert.match(
+          res.body.error || '',
+          /admin role or the `delete_all` submission permission/,
+          'denial body must explain that admin/delete_all is required',
+        );
+
+        const resSlash = await bulkDelete('bulkPermsOwn', user1Token(), {trailingSlash: true});
+        assert.equal(resSlash.status, 403, 'trailing slash must not bypass bulk gate');
+        assert.match(
+          resSlash.body.error || '',
+          /admin role or the `delete_all` submission permission/,
+        );
+      });
+
+      it('delete_own caller does not remove submissions owned by other users', async function() {
+        const formName = 'bulkPermsOwn';
+        const formId = bulkHelper.template.forms[formName]._id;
+        const ownerSub = await request(app)
+          .post(buildUrl(formName))
+          .set('x-jwt-token', ownerToken())
+          .send({data: {name: 'owned by someone else'}})
+          .expect(201);
+
+        await bulkDelete(formName, user1Token());
+
+        const res = await request(app)
+          .get(`${buildUrl(formName)}/${ownerSub.body._id}`)
+          .set('x-jwt-token', ownerToken())
+          .expect(200);
+        assert.equal(res.body._id, ownerSub.body._id);
+        assert.equal(res.body.form, formId);
+      });
+    });
+  });
+
   describe('Nested Submissions', function() {
     it('Sets up a default project', function(done) {
       var owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
