@@ -8,6 +8,26 @@ const EVERYONE = '000000000000000000000000';
 module.exports = function(router) {
   const hook = require('../util/hook')(router.formio);
 
+  // Bulk submission delete operates on many rows and doesn't implement
+  // owner-scoped filtering, so it must be evaluated against the submission
+  // entity (not the parent form) with `*_own` suppressed.
+  // Trailing slashes stripped — Express default strict=false matches both
+  // `/submission` and `/submission/`.
+  //
+  // Matches:
+  //   DELETE /form/:formId/submission -> 'delete'
+  // Returns null for other routes.
+  const getBulkSubmissionAction = (req) => {
+    if (!req.formId) {
+      return null;
+    }
+    const reqPath = req.path.replace(/\/+$/, '');
+    if (reqPath.endsWith('/submission') && req.method === 'DELETE') {
+      return 'delete';
+    }
+    return null;
+  };
+
   /**
    * Convert the submissions resource access into the common roles/permissions format for processing during the request.
    *
@@ -653,8 +673,9 @@ module.exports = function(router) {
       const hasAllAccess = typedAccess(search.all);
       let _hasAccess = false;
 
-      // Check for self access.
+      // Check for self access. Suppressed for bulk submission routes.
       if (
+        !req.bulkSubmissionAction &&
         user &&
         (
           (req.selfAccess && (user === access[entity.type]._id) && hasOwnAccess) ||
@@ -696,8 +717,8 @@ module.exports = function(router) {
         _hasAccess = true;
       }
 
-      // Check for own access.
-      if (hasOwnAccess && (isOwner || isIndex || isPost || isDelete)) {
+      // Check for own access. Suppressed for bulk submission routes.
+      if (!req.bulkSubmissionAction && hasOwnAccess && (isOwner || isIndex || isPost || isDelete)) {
         _hasAccess = true;
       }
 
@@ -750,6 +771,16 @@ module.exports = function(router) {
       return next();
     }
 
+    // Bulk submission delete is evaluated against the submission entity (not the
+    // form). `req.bulkSubmissionAction` tells hasAccess to suppress `*_own` /
+    // self-access grants — the bulk handler doesn't implement owner-scoped
+    // filtering, so only admin or submission `delete_all` should pass. Callers
+    // needing owner-scoped deletes must use the single-submission endpoint.
+    const bulkSubmissionAction = getBulkSubmissionAction(req);
+    if (bulkSubmissionAction) {
+      req.bulkSubmissionAction = bulkSubmissionAction;
+    }
+
     // Determine if we are trying to access an entity of the form or submission.
     router.formio.access.getAccess(req, res, function(err, access) {
       if (err) {
@@ -766,6 +797,15 @@ module.exports = function(router) {
         entity = {
           type: 'submission',
           id: req.subId
+        };
+      }
+      else if (bulkSubmissionAction) {
+        // Bulk submission routes carry no subId but operate on submissions,
+        // not the parent form — evaluate against the submission entity.
+        // `req.bulkSubmissionAction` suppresses `*_own` in hasAccess.
+        entity = {
+          type: 'submission',
+          id: ''
         };
       }
       else if (req.hasOwnProperty('formId') && ((req.formId !== null) && (req.formId !== undefined))) {
@@ -807,6 +847,18 @@ module.exports = function(router) {
         res.status(401);
         return next();
       }
+
+      // Authenticated callers without bulk perms get a descriptive 403 so they
+      // understand `*_own` is intentionally not honored on collection routes.
+      // Unauthenticated callers stay on 401.
+      if (req.bulkSubmissionAction && req.user && !res.headersSent) {
+        return res.status(403).json({
+          error: `Bulk submission ${req.bulkSubmissionAction} requires an admin role or the ` +
+            `\`${req.bulkSubmissionAction}_all\` submission permission. ` +
+            'Use the single-submission endpoint for owner-scoped operations.',
+        });
+      }
+
       return res.headersSent ? next() : res.sendStatus(401);
     });
   };
