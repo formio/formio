@@ -89,8 +89,10 @@ const deleteFieldAtPath = (dataPath) =>
   modifyFieldAtPath(dataPath, (data, key) => delete data[key]);
 
 /**
- * Identifies the data-paths of a protected component. A datamap's entries are keyed
- * by user-defined strings, so every entry is addressed with a '*' segment (dataMap.*.ssn).
+ * The single, shared helper to identify the data-paths of protected components
+ *  –– used by removeProtectedFields. A datamap's
+ * user-keyed entries use a '*' segment (dataMap.*.ssn) since their keys have no static
+ * path.
  *
  * @param {Object} component
  *   The form component to inspect.
@@ -98,30 +100,45 @@ const deleteFieldAtPath = (dataPath) =>
  *   The component's data path, from eachComponent's path argument.
  * @returns {Array<String>}
  *   The protected data-paths for this component: [] when nothing is
- *   protected, one entry for a protected field (or a wholly protected datamap),
- *   or one per protected datamap sub-field.
+ *   protected, one entry for a protected field, or one
+ *   per protected datamap sub-field.
  */
-const componentProtectedPaths = (component, dataPath) => {
+function componentProtectedPaths(component, dataPath) {
   if (component.protected) {
     return [dataPath];
   }
-  const valueComponent = component.type === 'datamap' && component.valueComponent;
-  if (!valueComponent) {
-    return [];
+  if (component.type === 'datamap' && component.valueComponent) {
+    return getProtectedDataMapPaths(component.valueComponent, dataPath);
   }
+  return [];
+}
+
+/**
+ * Collects the protected data-paths inside a datamap. Its entries are keyed by
+ * user-defined strings, so every entry is addressed with a '*' segment.
+ *
+ * @param {Object} valueComponent
+ *   The datamap's value component — the schema every entry shares.
+ * @param {String} dataMapPath
+ *   The datamap's own data path.
+ * @returns {Array<String>}
+ *   The protected data-paths inside the datamap, e.g. ['dataMap.*.ssn'], or the
+ *   datamap's own path when every entry value is protected.
+ */
+function getProtectedDataMapPaths(valueComponent, dataMapPath) {
   // A protected value component means every entry's value is protected, so the whole map is removed.
   if (valueComponent.protected) {
-    return [dataPath];
+    return [dataMapPath];
   }
   // Paths here are relative to one datamap entry, so the value component is the entry root: ''.
   const entryPaths = componentProtectedPaths(valueComponent, '');
-  Formio.Utils.eachComponent(valueComponent.components, (child, path) => {
+  Formio.Utils.eachComponent(valueComponent.components, (component, path) => {
     // add path relative to the valueComponent for each entry in the datamap
-    entryPaths.push(...componentProtectedPaths(child, path));
+    entryPaths.push(...componentProtectedPaths(component, path));
   }, true);
   // datamap entry root -> '*', the dynamic key the user specified. One per datamap level: i.e. dataMap.*.*.ssn
-  return entryPaths.map((entryPath) => [dataPath, '*', entryPath].filter(Boolean).join('.'));
-};
+  return entryPaths.map((entryPath) => [dataMapPath, '*', entryPath].filter(Boolean).join('.'));
+}
 
 const Utils = {
   Formio: Formio.Formio,
