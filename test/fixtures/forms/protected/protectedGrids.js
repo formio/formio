@@ -1,0 +1,161 @@
+/* eslint-disable */
+// Each grid component (datagrid, editgrid, datatable) holds a `protected` and a
+// public textfield. Used to assert protected redaction descends into every grid
+// row. Field keys follow `public_*` / `protected_*` for readability.
+module.exports = {
+  components: [
+    {
+      label: 'Data Grid',
+      reorder: false,
+      addAnotherPosition: 'bottom',
+      layoutFixed: false,
+      enableRowGroups: false,
+      initEmpty: false,
+      tableView: false,
+      defaultValue: [{}],
+      validateWhenHidden: false,
+      key: 'dataGrid',
+      type: 'datagrid',
+      input: true,
+      components: [
+        {
+          label: 'Public',
+          applyMaskOn: 'change',
+          tableView: true,
+          validateWhenHidden: false,
+          key: 'public_datagrid',
+          type: 'textfield',
+          input: true,
+        },
+        {
+          label: 'Protected',
+          applyMaskOn: 'change',
+          tableView: true,
+          protected: true,
+          validateWhenHidden: false,
+          key: 'protected_datagrid',
+          type: 'textfield',
+          input: true,
+        },
+      ],
+    },
+    {
+      label: 'Edit Grid',
+      tableView: false,
+      validateWhenHidden: false,
+      rowDrafts: false,
+      key: 'editGrid',
+      type: 'editgrid',
+      displayAsTable: false,
+      input: true,
+      components: [
+        {
+          label: 'Public',
+          applyMaskOn: 'change',
+          tableView: true,
+          validateWhenHidden: false,
+          key: 'public_editgrid',
+          type: 'textfield',
+          input: true,
+        },
+        {
+          label: 'Protected',
+          applyMaskOn: 'change',
+          tableView: true,
+          protected: true,
+          validateWhenHidden: false,
+          key: 'protected_editgrid',
+          type: 'textfield',
+          input: true,
+        },
+      ],
+    },
+    {
+      label: 'Data Table',
+      sortable: true,
+      filterable: true,
+      inlineEditing: false,
+      clipCells: false,
+      itemsPerPage: 10,
+      showAddBtn: true,
+      showEditBtn: true,
+      showDeleteBtn: true,
+      showDeleteAllBtn: false,
+      tableView: false,
+      isSubmitData: true,
+      validateWhenHidden: false,
+      fetch: {
+        enableFetch: false,
+        sort: {},
+      },
+      key: 'dataTable',
+      type: 'datatable',
+      indexeddb: {},
+      input: true,
+      enableRowSelect: false,
+      components: [
+        {
+          label: 'Public',
+          applyMaskOn: 'change',
+          tableView: true,
+          validateWhenHidden: false,
+          key: 'public_datatable',
+          type: 'textfield',
+          input: true,
+        },
+        {
+          label: 'Protected',
+          applyMaskOn: 'change',
+          tableView: true,
+          protected: true,
+          validateWhenHidden: false,
+          key: 'protected_datatable',
+          type: 'textfield',
+          input: true,
+        },
+      ],
+    },
+    {
+      type: 'button',
+      label: 'Submit',
+      key: 'submit',
+      disableOnInvalid: true,
+      input: true,
+      tableView: false,
+    },
+  ],
+  // Multi-row data so we assert redaction reaches every row (value === key + row index).
+  submission: {
+    dataGrid: [
+      { public_datagrid: 'public_datagrid_0', protected_datagrid: 'protected_datagrid_0' },
+      { public_datagrid: 'public_datagrid_1', protected_datagrid: 'protected_datagrid_1' },
+      { public_datagrid: 'public_datagrid_2', protected_datagrid: 'protected_datagrid_2' },
+    ],
+    editGrid: [
+      { public_editgrid: 'public_editgrid_0', protected_editgrid: 'protected_editgrid_0' },
+      { public_editgrid: 'public_editgrid_1', protected_editgrid: 'protected_editgrid_1' },
+      { public_editgrid: 'public_editgrid_2', protected_editgrid: 'protected_editgrid_2' },
+    ],
+    dataTable: [
+      { public_datatable: 'public_datatable_0', protected_datatable: 'protected_datatable_0' },
+      { public_datatable: 'public_datatable_1', protected_datatable: 'protected_datatable_1' },
+    ],
+  },
+  // What the API should return: every public field in every row, no protected field.
+  expected: {
+    dataGrid: [
+      { public_datagrid: 'public_datagrid_0' },
+      { public_datagrid: 'public_datagrid_1' },
+      { public_datagrid: 'public_datagrid_2' },
+    ],
+    editGrid: [
+      { public_editgrid: 'public_editgrid_0' },
+      { public_editgrid: 'public_editgrid_1' },
+      { public_editgrid: 'public_editgrid_2' },
+    ],
+    dataTable: [
+      { public_datatable: 'public_datatable_0' },
+      { public_datatable: 'public_datatable_1' },
+    ],
+  },
+};
