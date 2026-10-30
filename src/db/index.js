@@ -11,6 +11,15 @@ const debug = {
   sanity: require('debug')('formio:sanityCheck')
 };
 const path = require('path');
+const {sanitizeMongoConnectionString, redactConfig} = require('./util');
+
+const getDatabaseDebugInfo = (database) => database
+  ? {
+    databaseName: database.databaseName,
+  }
+  : database;
+
+const getToolsDebugInfo = (dbTools) => (dbTools ? Object.keys(dbTools) : dbTools);
 
 // The mongo database connection.
 let db = null;
@@ -183,7 +192,8 @@ module.exports = function(formio) {
       ? config.mongo
       : config.mongo[0];
 
-    debug.db(`Opening new connection to ${dbUrl}`);
+    const sanitizedDbUrl = sanitizeMongoConnectionString(dbUrl);
+    debug.db(`Opening new connection to ${sanitizedDbUrl}`);
     let mongoConfig = config.mongoConfig ? JSON.parse(config.mongoConfig) : {};
     if (!mongoConfig.hasOwnProperty('connectTimeoutMS')) {
       mongoConfig.connectTimeoutMS = 300000;
@@ -212,7 +222,7 @@ module.exports = function(formio) {
       if (err) {
         debug.db(`Connection Error: ${err}`);
         unlock(function() {
-          throw new Error(`Could not connect to the given Database for server updates: ${dbUrl}.`);
+          throw new Error(`Could not connect to the given Database for server updates: ${sanitizedDbUrl}.`);
         });
       }
       db = client.db(client.s.options.dbName);
@@ -637,9 +647,9 @@ module.exports = function(formio) {
           }
 
           debug.db('Update Params:');
-          debug.db(db);
-          debug.db(config);
-          debug.db(tools);
+          debug.db('Database:', getDatabaseDebugInfo(db));
+          debug.db('Config:', redactConfig(config));
+          debug.db('Tools:', getToolsDebugInfo(tools));
           _update(db, config, tools, function(err) {
             if (err) {
               return callback(err);
@@ -713,9 +723,9 @@ module.exports = function(formio) {
           }
 
           debug.db('Update Params:');
-          debug.db(db);
-          debug.db(config);
-          debug.db(tools);
+          debug.db('Database:', getDatabaseDebugInfo(db));
+          debug.db('Config:', redactConfig(config));
+          debug.db('Tools:', getToolsDebugInfo(tools));
           _update(db, config, tools, function(err) {
             if (err) {
               return callback(err);
