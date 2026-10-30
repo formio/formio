@@ -762,7 +762,10 @@ module.exports = function(router) {
 
       // Check for permissions starting at micro -> macro level.
       let entity = null;
-      if (req.hasOwnProperty('subId') && ((req.subId !== null) && (req.subId !== undefined))) {
+      if (
+        (req.hasOwnProperty('subId') && ((req.subId !== null) && (req.subId !== undefined))) ||
+        req.checkSubmissionAccess
+      ) {
         entity = {
           type: 'submission',
           id: req.subId

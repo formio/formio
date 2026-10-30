@@ -2554,6 +2554,208 @@ module.exports = function(app, template, hook) {
                 done();
               });
           });
+
+          describe('Oracle behavior fix', function() {
+            const protectedComponents = [
+              {
+                type: 'textfield',
+                key: 'value',
+                label: 'value',
+                input: true,
+              },
+              {
+                type: 'panel',
+                key: 'panel',
+                label: 'Panel',
+                input: false,
+                components: [
+                  {
+                    type: 'textfield',
+                    key: 'ssn',
+                    label: 'SSN',
+                    input: true,
+                    protected: true,
+                  },
+                ],
+              },
+            ];
+            const submissionData = {value: 'foo', ssn: '615-23-4567'};
+
+            let oracleForm = {};
+            let oracleSubmission = {};
+            let publicForm = {};
+            let publicSubmission = {};
+
+            const createForm = function(form, done) {
+              request(app)
+                .post(hook.alter('url', '/form', template))
+                .set('x-jwt-token', template.users.admin.token)
+                .send(form)
+                .expect(201)
+                .end(function(err, res) {
+                  if (err) {
+                    return done(err);
+                  }
+                  template.users.admin.token = res.headers['x-jwt-token'];
+                  const created = res.body;
+
+                  request(app)
+                    .post(hook.alter('url', '/form/' + created._id + '/submission', template))
+                    .set('x-jwt-token', template.users.admin.token)
+                    .send({data: submissionData})
+                    .expect(201)
+                    .end(function(err, res) {
+                      if (err) {
+                        return done(err);
+                      }
+                      template.users.admin.token = res.headers['x-jwt-token'];
+                      done(null, created, res.body);
+                    });
+                });
+            };
+
+            before(function(done) {
+              // allowExistsEndpoint: false
+              createForm(
+                {
+                  title: 'Oracle Fix Test Form',
+                  name: 'oraclefixform',
+                  path: 'oraclefixform',
+                  type: 'form',
+                  components: protectedComponents,
+                },
+                function(err, form, submission) {
+                  if (err) {
+                    return done(err);
+                  }
+                  oracleForm = form;
+                  oracleSubmission = submission;
+
+                  // allowExistsEndpoint: true
+                  createForm(
+                    {
+                      title: 'Public Exists Form',
+                      name: 'publicexistsform',
+                      path: 'publicexistsform',
+                      type: 'form',
+                      settings: {allowExistsEndpoint: true},
+                      components: protectedComponents,
+                    },
+                    function(err, form, submission) {
+                      if (err) {
+                        return done(err);
+                      }
+                      publicForm = form;
+                      publicSubmission = submission;
+                      done();
+                    }
+                  );
+                }
+              );
+            });
+
+            describe('withoutPermissions=false', function() {
+              it('Anonymous should get 401 when submission exists', function(done) {
+                request(app)
+                  .get(hook.alter('url', '/form/' + oracleForm._id + '/exists?data.value=foo', template))
+                  .expect(401)
+                  .expect('Content-Type', /text/)
+                  .end(done);
+              });
+
+              it('Anonymous should get 401 when submission does not exist', function(done) {
+                request(app)
+                  .get(hook.alter('url', '/form/' + oracleForm._id + '/exists?data.value=doesnotexist99999', template))
+                  .expect(401)
+                  .expect('Content-Type', /text/)
+                  .end(done);
+              });
+
+              it('Authenticated user without submission access should get 401 when submission exists', function(done) {
+                request(app)
+                  .get(hook.alter('url', '/form/' + oracleForm._id + '/exists?data.value=foo', template))
+                  .set('x-jwt-token', template.users.user1.token)
+                  .expect(401)
+                  .expect('Content-Type', /text/)
+                  .end(done);
+              });
+
+              it('Authenticated user without submission access should get 401 when submission does not exist', function(done) {
+                request(app)
+                  .get(hook.alter('url', '/form/' + oracleForm._id + '/exists?data.value=doesnotexist99999', template))
+                  .set('x-jwt-token', template.users.user1.token)
+                  .expect(401)
+                  .expect('Content-Type', /text/)
+                  .end(done);
+              });
+
+              it('Admin should get 200 with _id when submission exists', function(done) {
+                request(app)
+                  .get(hook.alter('url', '/form/' + oracleForm._id + '/exists?data.value=foo', template))
+                  .set('x-jwt-token', template.users.admin.token)
+                  .expect(200)
+                  .end(function(err, res) {
+                    if (err) {
+                      return done(err);
+                    }
+                    assert.equal(res.body._id, oracleSubmission._id.toString());
+                    done();
+                  });
+              });
+
+              it('Admin should get 404 when submission does not exist', function(done) {
+                request(app)
+                  .get(hook.alter('url', '/form/' + oracleForm._id + '/exists?data.value=doesnotexist99999', template))
+                  .set('x-jwt-token', template.users.admin.token)
+                  .expect(404)
+                  .end(done);
+              });
+            });
+
+            describe('withoutPermissions=true', function() {
+              it('Anonymous should get 200 with _id when submission exists', function(done) {
+                request(app)
+                  .get(hook.alter('url', '/form/' + publicForm._id + '/exists?data.value=foo', template))
+                  .expect(200)
+                  .end(function(err, res) {
+                    if (err) {
+                      return done(err);
+                    }
+                    assert.equal(res.body._id, publicSubmission._id.toString());
+                    done();
+                  });
+              });
+
+              it('Anonymous should get 404 when submission does not exist', function(done) {
+                request(app)
+                  .get(hook.alter('url', '/form/' + publicForm._id + '/exists?data.value=doesnotexist99999', template))
+                  .expect(404)
+                  .end(done);
+              });
+
+              it('Authenticated user should get 200 with _id when submission exists', function(done) {
+                request(app)
+                  .get(hook.alter('url', '/form/' + publicForm._id + '/exists?data.value=foo', template))
+                  .set('x-jwt-token', template.users.user1.token)
+                  .expect(200)
+                  .end(function(err, res) {
+                    if (err) {
+                      return done(err);
+                    }
+                    assert.equal(res.body._id, publicSubmission._id.toString());
+                    done();
+                  });
+              });
+
+              it('Authenticated user should get 404 when submission does not exist', function(done) {
+                request(app)
+                  .get(hook.alter('url', '/form/' + publicForm._id + '/exists?data.value=doesnotexist99999', template))
+                  .set('x-jwt-token', template.users.user1.token)
+                  .expect(404)
+                  .end(done);
+              });
+            });
+          });
         });
 
         describe('Project Owner Submission', function() {
