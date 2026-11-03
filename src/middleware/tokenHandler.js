@@ -33,8 +33,17 @@ module.exports = (router) => {
    * @param inputToken
    * @param payload
    * @param res
+   * @param req
    */
-  const generateToken = (inputToken, payload, res) => {
+  const generateToken = (inputToken, payload, res, req) => {
+    if (payload.tempToken) {
+      router.formio.log('Token', req, 'Temporary token; skipping the token refresh');
+      debug.handler('Temporary token; skipping the token refresh');
+      req.skipTokenRefresh = true;
+      res.token = inputToken;
+      return;
+    }
+
     // Refresh the token that is sent back to the user when appropriate.
     const newToken = router.formio.auth.getToken(payload);
     res.token = newToken
@@ -81,7 +90,9 @@ module.exports = (router) => {
       // Refresh the token that is sent back to the user when appropriate.
       req.tokenIssued = Math.trunc(Date.now() / 1000);
       generateToken(token, decoded, res, req);
-      router.formio.log('Token', req, 'Using normal token');
+      if (!req.skipTokenRefresh) {
+        router.formio.log('Token', req, 'Using normal token');
+      }
       if (req.user) {
         router.formio.log('User', req, req.user._id);
       }
