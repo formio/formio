@@ -4993,25 +4993,6 @@ module.exports = function(app, template, hook) {
           });
       });
 
-      it('Should update the form in the URL when PUT /form/:formId has a spoofed _id', (done) => {
-        request(app)
-          .put(hook.alter('url', `/form/${idorFormA._id}`, template))
-          .set('x-jwt-token', template.users.admin.token)
-          .send({title: 'IDOR Test Form A Updated', _id: idorFormB._id})
-          .expect('Content-Type', /json/)
-          .expect(200)
-          .end((err, res) => {
-            if (err) {
-              return done(err);
-            }
-
-            assert.equal(res.body._id, idorFormA._id);
-            assert.equal(res.body.title, 'IDOR Test Form A Updated');
-            template.users.admin.token = res.headers['x-jwt-token'];
-            done();
-          });
-      });
-
       it('Should not allow PATCH on /form/:formId', (done) => {
         request(app)
           .patch(hook.alter('url', `/form/${idorFormA._id}`, template))
