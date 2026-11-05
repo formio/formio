@@ -297,7 +297,7 @@ module.exports = function(app) {
         .post('/project')
         .send({
           title: chance.word(),
-          name: chance.word(),
+          name: chance.word() + chance.string({pool: 'abcdefghijklmnopqrstuvwxyz0123456789', length: 6}),
           description: chance.sentence(),
           settings: settings !== undefined ? settings : {}
         })
