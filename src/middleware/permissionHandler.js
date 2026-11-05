@@ -3,6 +3,7 @@
 const util = require('../util/util');
 const async = require('async');
 const _ = require('lodash');
+const debug = require('debug')('formio:middleware:permissionHandler');
 const EVERYONE = '000000000000000000000000';
 
 module.exports = function(router) {
@@ -11,8 +12,9 @@ module.exports = function(router) {
   // Bulk submission delete operates on many rows and doesn't implement
   // owner-scoped filtering, so it must be evaluated against the submission
   // entity (not the parent form) with `*_own` suppressed.
-  // Trailing slashes stripped — Express default strict=false matches both
-  // `/submission` and `/submission/`.
+  // Trailing slashes stripped and case folded — Express defaults
+  // (strict=false, caseSensitive=false) route `/submission/` and
+  // `/SUBMISSION` to the same bulk handler (FIO-12469).
   //
   // Matches:
   //   DELETE /form/:formId/submission -> 'delete'
@@ -21,7 +23,7 @@ module.exports = function(router) {
     if (!req.formId) {
       return null;
     }
-    const reqPath = req.path.replace(/\/+$/, '');
+    const reqPath = req.path.replace(/\/+$/, '').toLowerCase();
     if (reqPath.endsWith('/submission') && req.method === 'DELETE') {
       return 'delete';
     }
@@ -855,6 +857,10 @@ module.exports = function(router) {
       // understand `*_own` is intentionally not honored on collection routes.
       // Unauthenticated callers stay on 401.
       if (req.bulkSubmissionAction && req.user && !res.headersSent) {
+        debug(
+          `Denying bulk submission ${req.bulkSubmissionAction}:` +
+          'admin or *_all submission permission required'
+        );
         return res.status(403).json({
           error: `Bulk submission ${req.bulkSubmissionAction} requires an admin role or the ` +
             `\`${req.bulkSubmissionAction}_all\` submission permission. ` +
