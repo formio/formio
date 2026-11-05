@@ -4651,12 +4651,27 @@ module.exports = function(app, template, hook) {
       return `${prefix}/form/${formId}/submission`;
     };
 
+    // FIO-12469: Express routes case-insensitively, so `/SUBMISSION` reaches
+    // the bulk handler too. Re-cases only the last segment (`upper` | `title`).
+    const casePath = (url, pathCase) => {
+      if (!pathCase) {
+        return url;
+      }
+      const start = url.lastIndexOf('/') + 1;
+      const segment = url.slice(start);
+      const cased = pathCase === 'upper'
+        ? segment.toUpperCase()
+        : segment[0].toUpperCase() + segment.slice(1);
+      return url.slice(0, start) + cased;
+    };
+    const pathCases = ['title', 'upper'];
+
     const ownerToken = () => bulkHelper.owner.token;
     const user1Token = () => bulkHelper.template.users.user1.token;
 
-    const bulkDelete = (formName, token, {trailingSlash = false} = {}) =>
+    const bulkDelete = (formName, token, {trailingSlash = false, pathCase} = {}) =>
       request(app)
-        .delete(buildUrl(formName) + (trailingSlash ? '/' : ''))
+        .delete(casePath(buildUrl(formName), pathCase) + (trailingSlash ? '/' : ''))
         .set('x-jwt-token', token)
         .set('x-delete-confirm', bulkHelper.template.forms[formName]._id);
 
@@ -4734,6 +4749,33 @@ module.exports = function(app, template, hook) {
           .expect(200);
         assert.equal(res.body._id, ownerSub.body._id);
         assert.equal(res.body.form, formId);
+      });
+
+      pathCases.forEach((pathCase) => {
+        it(`delete_own caller → 403 on ${pathCase}-cased path, submissions kept`, async function() {
+          const created = await request(app)
+            .post(buildUrl('bulkPermsOwn'))
+            .set('x-jwt-token', ownerToken())
+            .send({data: {name: 'keep'}});
+          assert.equal(created.status, 201, 'setup: admin creates a submission');
+
+          const res = await bulkDelete('bulkPermsOwn', user1Token(), {pathCase});
+          assert.equal(res.status, 403, 'path case must not bypass bulk gate');
+          assert.match(
+            res.body.error || '',
+            /admin role or the `delete_all` submission permission/,
+          );
+
+          const kept = await request(app)
+            .get(`${buildUrl('bulkPermsOwn')}/${created.body._id}`)
+            .set('x-jwt-token', ownerToken());
+          assert.equal(kept.status, 200, 'admin submission must survive the denied bulk DELETE');
+        });
+
+        it(`delete_all caller → 200 on ${pathCase}-cased path`, async function() {
+          const res = await bulkDelete('bulkPermsAll', user1Token(), {pathCase});
+          assert.equal(res.status, 200, 'delete_all caller must still be allowed');
+        });
       });
     });
   });
