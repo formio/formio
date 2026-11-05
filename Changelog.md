@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## [Unreleased: 4.2.11-rc.0]
+### Changed
+ - FIO-12665: query parameter parsing update
+ - FIO-12672: request query handling update
+ - FIO-12676: protected field handling update
+ - FIO-12666 / FIO-12668: reference hydration update
+ - FIO-12666 / FIO-12668: PDF reference data update
+ - FIO-12669: submission delete permission update
+ - FIO-12670: token handler update
+ - FIO-12674: db logging update
+ - FIO-12675: exists endpoint response ordering update
+ - FIO-12664: request body id handling
+ - FIO-12669: submission delete permission update pt 2
+   
 ## 4.2.10
 ### Changed
  - Official Release
