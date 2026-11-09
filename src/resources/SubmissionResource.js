@@ -69,6 +69,10 @@ module.exports = (router) => {
       next();
     },
     router.formio.middleware.permissionHandler,
+    // Must stay here: reference.js later moves `data.<nested-form>.*` filters
+    // into a $lookup and deletes them from req.query, so a guard placed after it
+    // never sees them. After permissionHandler so an unauthorized caller still gets 401.
+    router.formio.middleware.blockProtectedFieldQuery,
     router.formio.middleware.setFilterQueryTypes,
     router.formio.middleware.filterMongooseExists({
       field: 'deleted',
@@ -119,47 +123,58 @@ module.exports = (router) => {
           return res.status(400).send('Invalid query');
         }
 
-        query.form = form._id;
-        query.deleted = {$eq: null};
-        const submissionModel = req.submissionModel || router.formio.resources.submission.model;
-
-        // Query the submissions for this submission.
-        submissionModel.findOne(
-          hook.alter('submissionQuery', query, req),
-          null,
-          (ignoreCase && router.formio.mongoFeatures.collation) ? {collation: {locale: 'en', strength: 2}} : {},
-          (err, submission) => {
-            if (err) {
-              // Don't expose error details to clients
-              return res.status(500).send('Internal server error');
-            }
-
-            // By default check permissions to access the endpoint.
-            const withoutPermissions = _.get(form, 'settings.allowExistsEndpoint', false);
-
-            if (withoutPermissions) {
-              // Return not found.
-              if (!submission || !submission._id) {
-                return res.status(404).send('Not found');
-              }
-              // Send only the id as a response if the submission exists.
-              return res.status(200).json({
-                _id: submission._id.toString(),
-              });
-            }
-
-            if (!submission || !submission._id) {
-              debug(`No submission matched on form ${form._id}; deferring the response to permissionHandler.`);
-              req.submissionNotFound = true;
-              req.checkSubmissionAccess = true;
-            }
-            else {
-              req.subId = submission._id.toString();
-            }
-            req.permissionsChecked = false;
-            return next();
+        // Existence of a match on a protected value is the same oracle as reading it.
+        // Hydrated on a copy so nested protected paths count; the error stays opaque.
+        router.formio.cache.loadSubForms(_.cloneDeep(form), req, (loadErr, hydrated) => {
+          if (loadErr) {
+            return res.status(500).send('Internal server error');
           }
-        );
+          if (router.formio.util.findProtectedPathInFilter(hydrated.components, query)) {
+            return res.status(400).send('Invalid query');
+          }
+
+          query.form = form._id;
+          query.deleted = {$eq: null};
+          const submissionModel = req.submissionModel || router.formio.resources.submission.model;
+
+          // Query the submissions for this submission.
+          submissionModel.findOne(
+            hook.alter('submissionQuery', query, req),
+            null,
+            (ignoreCase && router.formio.mongoFeatures.collation) ? {collation: {locale: 'en', strength: 2}} : {},
+            (err, submission) => {
+              if (err) {
+                // Don't expose error details to clients
+                return res.status(500).send('Internal server error');
+              }
+
+              // By default check permissions to access the endpoint.
+              const withoutPermissions = _.get(form, 'settings.allowExistsEndpoint', false);
+
+              if (withoutPermissions) {
+                // Return not found.
+                if (!submission || !submission._id) {
+                  return res.status(404).send('Not found');
+                }
+                // Send only the id as a response if the submission exists.
+                return res.status(200).json({
+                  _id: submission._id.toString(),
+                });
+              }
+
+              if (!submission || !submission._id) {
+                debug(`No submission matched on form ${form._id}; deferring the response to permissionHandler.`);
+                req.submissionNotFound = true;
+                req.checkSubmissionAccess = true;
+              }
+              else {
+                req.subId = submission._id.toString();
+              }
+              req.permissionsChecked = false;
+              return next();
+            }
+          );
+        });
       });
     });
   }, router.formio.middleware.permissionHandler, (req, res, next) => {

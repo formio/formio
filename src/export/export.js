@@ -136,6 +136,14 @@ module.exports = (router) => {
       }
       /* eslint-enable require-atomic-updates */
 
+      // Protected values are redacted from the rows, but filtering on them still
+      // narrows the export. Checked on the compiled query, so the x-query header
+      // (which may nest paths inside $or) is covered too.
+      const protectedPath = router.formio.util.findProtectedPathInFilter(form.components, query);
+      if (protectedPath) {
+        return res.status(400).json(`Cannot filter by protected field: ${protectedPath}`);
+      }
+
       // Create the exporter.
       const exporter = new exporters[format](form, req, res);
 

@@ -140,6 +140,101 @@ function getProtectedDataMapPaths(valueComponent, dataMapPath) {
   return entryPaths.map((entryPath) => [dataMapPath, '*', entryPath].filter(Boolean).join('.'));
 }
 
+/**
+ * Splits a data path into comparable segments, dropping array indices. MongoDB matches
+ * array elements without an index, so 'dataGrid[0].ssn' and 'dataGrid.ssn' are the same
+ * stored value.
+ *
+ * @param {String} path
+ *   A data path, e.g. 'dataGrid[0].ssn' or 'data.dataGrid.ssn'.
+ * @returns {Array<String>}
+ *   The path's segments with numeric indices removed.
+ */
+const normalizePathSegments = (path) => _.toPath(path).filter((segment) => !/^\d+$/.test(segment));
+
+/**
+ * Whether a queried path targets one protected path. A '*' segment matches any key.
+ *
+ * @param {String} protectedPath
+ *   A protected data path, e.g. 'dataMap.*.ssn'.
+ * @param {Array<String>} querySegments
+ *   The normalized segments of the queried data path.
+ * @returns {Boolean}
+ *   Whether the queried path targets the protected one.
+ */
+const matchesProtectedPath = (protectedPath, querySegments) => {
+  const protectedSegments = normalizePathSegments(protectedPath);
+  // Anything past the protected segments is a sub-field of a protected value.
+  const canReachProtectedPath = protectedSegments.length > 0 &&
+    querySegments.length >= protectedSegments.length;
+  if (!canReachProtectedPath) {
+    return false;
+  }
+  return protectedSegments.every((segment, index) => {
+    return segment === '*' || segment === querySegments[index];
+  });
+};
+
+/**
+ * Whether a queried path targets any protected path. Paths outside submission
+ * data are never protected.
+ *
+ * @param {Array<String>} protectedPaths
+ *   The form's protected data paths.
+ * @param {String} queryPath
+ *   The path as written in the query, e.g. 'data.password'.
+ * @returns {Boolean}
+ *   Whether the queried path resolves to a protected component.
+ */
+const matchesAnyProtectedPath = (protectedPaths, queryPath) => {
+  const segments = normalizePathSegments(queryPath);
+  const isSubmissionDataPath = segments[0] === 'data' && segments.length > 1;
+  if (!isSubmissionDataPath) {
+    return false;
+  }
+  const dataSegments = segments.slice(1);
+  return protectedPaths.some((protectedPath) => matchesProtectedPath(protectedPath, dataSegments));
+};
+
+/**
+ * Walks a compiled MongoDB filter, including $or/$and branches.
+ *
+ * @param {Array<String>} protectedPaths
+ *   The form's protected data paths.
+ * @param {Object|Array} filter
+ *   A compiled MongoDB filter, or one of its branch lists.
+ * @returns {String|undefined}
+ *   The first protected path found, or undefined.
+ */
+const walkFilterForProtectedPath = (protectedPaths, filter) => {
+  if (Array.isArray(filter)) {
+    for (let index = 0; index < filter.length; index++) {
+      const nestedPath = walkFilterForProtectedPath(protectedPaths, filter[index]);
+      if (nestedPath) {
+        return nestedPath;
+      }
+    }
+    return undefined;
+  }
+  // A string, number, RegExp or ObjectId is a value, not something to descend into.
+  if (!_.isPlainObject(filter)) {
+    return undefined;
+  }
+  const keys = Object.keys(filter);
+  for (let index = 0; index < keys.length; index++) {
+    const key = keys[index];
+    // A '$' key is an operator, not a data path — only its value is worth checking.
+    if (key.indexOf('$') !== 0 && matchesAnyProtectedPath(protectedPaths, key)) {
+      return key;
+    }
+    const nestedPath = walkFilterForProtectedPath(protectedPaths, filter[key]);
+    if (nestedPath) {
+      return nestedPath;
+    }
+  }
+  return undefined;
+};
+
 const Utils = {
   Formio: Formio.Formio,
   FormioUtils: Formio.Utils,
@@ -661,6 +756,55 @@ const Utils = {
       }
     });
     return changed;
+  },
+
+  /**
+   * The protected data paths for a form. A datagrid field is 'dataGrid.ssn'
+   * (no row index) and a datamap entry uses a '*' segment ('dataMap.*.ssn').
+   *
+   * @param {Array} components
+   *   The form components.
+   * @returns {Array<String>}
+   *   The protected data paths.
+   */
+  getProtectedFieldsPaths(components) {
+    const protectedPaths = [];
+    this.eachComponent(components, (component, path) => {
+      protectedPaths.push(...componentProtectedPaths(component, path));
+    }, true);
+    return protectedPaths;
+  },
+
+  /**
+   * The first query path that targets a protected component. Read paths use this
+   * to refuse filtering or sorting on a value they redact — otherwise the filter
+   * is a blind oracle over it.
+   *
+   * @param {Array} components
+   *   The form components.
+   * @param {Array<String>} queryPaths
+   *   Paths a request wants to filter or sort on.
+   * @returns {String|undefined}
+   *   The offending path, or undefined when none of them is protected.
+   */
+  findProtectedPath(components, queryPaths) {
+    const protectedPaths = this.getProtectedFieldsPaths(components);
+    return queryPaths.find((queryPath) => matchesAnyProtectedPath(protectedPaths, queryPath));
+  },
+
+  /**
+   * The first protected data path inside a compiled MongoDB filter, including
+   * $or/$and branches. Export accepts such an object verbatim via x-query.
+   *
+   * @param {Array} components
+   *   The form components.
+   * @param {Object} filter
+   *   A compiled MongoDB filter.
+   * @returns {String|undefined}
+   *   The offending path, or undefined when nothing protected is targeted.
+   */
+  findProtectedPathInFilter(components, filter) {
+    return walkFilterForProtectedPath(this.getProtectedFieldsPaths(components), filter);
   },
 
   removeProtectedFields(form, action, submissions, doNotMinify) {
