@@ -956,5 +956,292 @@ module.exports = function (app, template, hook) {
         assert.strictEqual(raw.data.ssn, 'new-secret');
       });
     });
+
+    // Redaction only rewrites the response body. Query operators are evaluated
+    // against the raw stored document, so a filter is a blind oracle over a hidden value.
+    describe('Query filters on protected fields', function () {
+      const layout = require('./fixtures/forms/protected/protectedLayout');
+      const grids = require('./fixtures/forms/protected/protectedGrids');
+      const dataMap = require('./fixtures/forms/protected/protectedDataMap');
+      const fixtures = { layout, grids, dataMap };
+      const created = {};
+
+      const getRaw = async (path, status) => {
+        const res = await request(app).get(url(path)).set('x-jwt-token', token()).expect(status);
+        template.users.admin.token = res.headers['x-jwt-token'] || token();
+        return res;
+      };
+      const exportWithQueryHeader = async (formId, query, status) => {
+        const res = await request(app)
+          .get(url(`/form/${formId}/export?format=json`))
+          .set('x-jwt-token', token())
+          .set('x-query', JSON.stringify(query))
+          .expect(status);
+        template.users.admin.token = res.headers['x-jwt-token'] || token();
+        return res;
+      };
+
+      before('create one form and submission per fixture', async function () {
+        for (const [fixtureName, fixture] of Object.entries(fixtures)) {
+          const form = await createForm({
+            title: `Protected Query ${fixtureName}`,
+            name: `protectedQuery${fixtureName}`,
+            path: `protectedquery${fixtureName.toLowerCase()}`,
+            type: 'form',
+            components: fixture.components,
+          });
+          const submission = await post(`/form/${form._id}/submission`, { data: fixture.submission });
+          created[fixtureName] = { id: form._id, submissionId: submission._id };
+        }
+      });
+
+      describe('Submission index', function () {
+        it('rejects a regex filter on a protected field', async function () {
+          await get(`/form/${created.layout.id}/submission?data.protected_root__regex=^protected`, 400);
+        });
+
+        it('rejects an exact-match filter on a protected field', async function () {
+          await get(`/form/${created.layout.id}/submission?data.protected_root=protected_root`, 400);
+        });
+
+        it('rejects an __exists filter on a protected field', async function () {
+          await get(`/form/${created.layout.id}/submission?data.protected_root__exists=true`, 400);
+        });
+
+        it('rejects an __in filter on a protected field', async function () {
+          await get(
+            `/form/${created.layout.id}/submission?data.protected_root__in=protected_root,other`,
+            400,
+          );
+        });
+
+        it('rejects a __gt filter on a protected field', async function () {
+          await get(`/form/${created.layout.id}/submission?data.protected_root__gt=a`, 400);
+        });
+
+        it('rejects a __ne filter on a protected field', async function () {
+          await get(`/form/${created.layout.id}/submission?data.protected_root__ne=nope`, 400);
+        });
+
+        it('rejects sorting by a protected field', async function () {
+          await get(`/form/${created.layout.id}/submission?sort=-data.protected_root`, 400);
+        });
+
+        it('rejects sorting by a protected field with no direction prefix', async function () {
+          await get(`/form/${created.layout.id}/submission?sort=data.protected_root`, 400);
+        });
+
+        it('rejects a protected field listed among several sort fields', async function () {
+          await get(
+            `/form/${created.layout.id}/submission?sort=data.public_root,-data.protected_root`,
+            400,
+          );
+        });
+
+        it('rejects sorting by a protected field with a plus prefix', async function () {
+          await get(`/form/${created.layout.id}/submission?sort=+data.protected_root`, 400);
+        });
+
+        it('rejects a protected field in a space-separated sort list', async function () {
+          await get(
+            `/form/${created.layout.id}/submission?sort=data.public_root%20-data.protected_root`,
+            400,
+          );
+        });
+
+        it('rejects a protected filter even when no rows are requested', async function () {
+          await get(
+            `/form/${created.layout.id}/submission?limit=0&data.protected_root__regex=^protected`,
+            400,
+          );
+        });
+
+        it('names the rejected path in the error message', async function () {
+          const res = await getRaw(
+            `/form/${created.layout.id}/submission?data.protected_root__regex=^protected`,
+            400,
+          );
+          const message = typeof res.body === 'string' ? res.body : res.text;
+          assert.ok(message.indexOf('data.protected_root') !== -1, message);
+        });
+
+        it('rejects a filter on a protected field nested in a layout component', async function () {
+          await get(`/form/${created.layout.id}/submission?data.protected_panel__regex=^p`, 400);
+        });
+
+        it('rejects a filter on a protected field inside a grid', async function () {
+          await get(
+            `/form/${created.grids.id}/submission?data.dataGrid.protected_datagrid__regex=^protected`,
+            400,
+          );
+        });
+
+        it('rejects a filter that spells out the grid row index', async function () {
+          await get(
+            `/form/${created.grids.id}/submission?data.dataGrid.0.protected_datagrid=protected_datagrid_0`,
+            400,
+          );
+        });
+
+        it('rejects a filter on a protected datamap entry', async function () {
+          await get(
+            `/form/${created.dataMap.id}/submission?data.dataMap.alpha.ssn=secret_alpha`,
+            400,
+          );
+        });
+
+        it('rejects a filter whose operator suffix is empty', async function () {
+          await get(
+            `/form/${created.layout.id}/submission?data.protected_root__=protected_root`,
+            400,
+          );
+        });
+      });
+
+      describe('Submission index — unaffected queries', function () {
+        it('still filters on a non-protected field', async function () {
+          const list = await get(
+            `/form/${created.layout.id}/submission?data.public_root=public_root`,
+          );
+          assert.strictEqual(list.length, 1);
+          assert.strictEqual(list[0]._id, created.layout.submissionId);
+        });
+
+        it('still filters on submission metadata', async function () {
+          const list = await get(
+            `/form/${created.layout.id}/submission?_id=${created.layout.submissionId}`,
+          );
+          assert.strictEqual(list.length, 1);
+        });
+
+        it('still sorts by a non-protected field', async function () {
+          await get(`/form/${created.layout.id}/submission?sort=-created`);
+        });
+
+        it('still strips protected fields from the index response', async function () {
+          const list = await get(`/form/${created.layout.id}/submission`);
+          const found = list.find((item) => item._id === created.layout.submissionId);
+          assert.ok(found, 'created submission should be in the index response');
+          assert.deepStrictEqual(found.data, layout.expected);
+        });
+
+        it('leaves a single-submission read untouched by the guard', async function () {
+          const fetched = await get(
+            `/form/${created.layout.id}/submission/${created.layout.submissionId}` +
+              `?data.protected_root__regex=^protected`,
+          );
+          assert.strictEqual(fetched._id, created.layout.submissionId);
+          assert.strictEqual(fetched.data.protected_root, undefined);
+        });
+
+        it('allows selecting a protected field without returning it', async function () {
+          const list = await get(
+            `/form/${created.layout.id}/submission?select=data.protected_root`,
+          );
+          assert.ok(list.every((item) => !item.data || !('protected_root' in item.data)));
+        });
+      });
+
+      describe('Nested forms', function () {
+        const {
+          childFormA,
+          childFormB,
+          parentForm,
+          submission,
+        } = require('./fixtures/forms/protected/protectedNested');
+
+        let parentId;
+        const renamed = (form, suffix) => ({
+          ...form,
+          name: `${form.name}${suffix}`,
+          path: `${form.path}${suffix.toLowerCase()}`,
+        });
+
+        before('create two child forms and a parent embedding both', async function () {
+          const childA = await createForm(renamed(childFormA(), 'Query'));
+          const childB = await createForm(renamed(childFormB(), 'Query'));
+          parentId = (await createForm(renamed(parentForm(childA._id, childB._id), 'Query')))._id;
+          await post(`/form/${parentId}/submission`, submission);
+        });
+
+        it('rejects a filter on an inline child form protected field', async function () {
+          await get(`/form/${parentId}/submission?data.childB.data.childBSecret__regex=^cbs`, 400);
+        });
+
+        it('rejects a filter on a referenced child form protected field', async function () {
+          await get(`/form/${parentId}/submission?data.childA.data.childASecret__regex=^cas`, 400);
+        });
+
+        it('still filters on an inline child form public field', async function () {
+          const list = await get(`/form/${parentId}/submission?data.childB.data.childBPublic=cbp`);
+          assert.strictEqual(list.length, 1);
+        });
+
+        it('rejects an exists filter on an inline child form protected field', async function () {
+          const res = await getRaw(`/form/${parentId}/exists?data.childB.data.childBSecret=cbs`, 400);
+          assert.strictEqual(res.text, 'Invalid query');
+        });
+      });
+
+      describe('Submission exists', function () {
+        it('rejects a protected field without naming it', async function () {
+          const res = await getRaw(
+            `/form/${created.layout.id}/exists?data.protected_root=protected_root`,
+            400,
+          );
+          assert.strictEqual(res.text, 'Invalid query');
+        });
+
+        it('still answers a query on a non-protected field that misses', async function () {
+          await getRaw(`/form/${created.layout.id}/exists?data.public_root=nope`, 404);
+        });
+
+        it('still answers a query on a non-protected field that hits', async function () {
+          const res = await getRaw(
+            `/form/${created.layout.id}/exists?data.public_root=public_root`,
+            200,
+          );
+          assert.strictEqual(res.body._id, created.layout.submissionId);
+        });
+      });
+
+      describe('Export', function () {
+        it('rejects a protected filter passed as a query string', async function () {
+          await getRaw(
+            `/form/${created.layout.id}/export?format=json&data.protected_root__regex=^protected`,
+            400,
+          );
+        });
+
+        it('rejects a protected filter passed in the x-query header', async function () {
+          await exportWithQueryHeader(
+            created.layout.id,
+            { 'data.protected_root': { $regex: '^protected' } },
+            400,
+          );
+        });
+
+        it('rejects a protected filter nested in an x-query $or branch', async function () {
+          await exportWithQueryHeader(
+            created.layout.id,
+            {
+              $or: [
+                { 'data.public_root': 'nothing' },
+                { 'data.protected_root': { $regex: '^protected' } },
+              ],
+            },
+            400,
+          );
+        });
+
+        it('still exports with a non-protected x-query filter', async function () {
+          await exportWithQueryHeader(
+            created.layout.id,
+            { 'data.public_root': 'public_root' },
+            200,
+          );
+        });
+      });
+    });
   });
 };
