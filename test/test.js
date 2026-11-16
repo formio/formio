@@ -3,6 +3,9 @@
 
 var async = require('async');
 
+// Standalone unit suites that need no server/database.
+require('./isStorageRequest.test');
+
 // Bootstrap the test environment.
 var app = null;
 var template = require('./fixtures/template')();
