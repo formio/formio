@@ -1,5 +1,5 @@
 'use strict';
-const { parse } = require('url');
+const {parse} = require('url');
 
 const STORAGE_ROUTE = /^(?:\/project\/[^/]+)?\/form\/[^/]+\/storage\/(.+?)\/?$/i;
 
@@ -8,7 +8,7 @@ const STORAGE_PROVIDER = /^(?:s3(?:\/multipart\/(?:complete|abort))?|azure|dropb
 // Express routes on the path as sent, up to "?". Only a URL that doesn't start with "/", or holds
 // "#" or whitespace, goes through url.parse, which also turns backslashes into slashes. Read the
 // path the same way so the route and this check always agree.
-const NEEDS_FULL_PARSE = /[\t\n\f\r # ﻿]/;
+const NEEDS_FULL_PARSE = /[\t\n\f\r #\u00a0\ufeff]/;
 const routePath = (req) => {
   const url = req?.url || '';
   if (!url.startsWith('/') || NEEDS_FULL_PARSE.test(url)) {
